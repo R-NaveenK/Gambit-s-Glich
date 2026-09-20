@@ -1,6 +1,7 @@
 import express from 'express';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { dbAdapter } from '../db/dbAdapter.js';
+import { sendShortlistedEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -161,16 +162,29 @@ router.post('/team/update-status', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid target team status.' });
     }
 
-    let targetRegId = reg_id;
+    let targetTeam = null;
     let targetTeamId = team_id;
+    let targetRegId = reg_id;
 
-    if (reg_id && !team_id) {
-      const t = await dbAdapter.getTeamByRegId(reg_id);
-      if (t) targetTeamId = t.id;
+    if (reg_id) {
+      targetTeam = await dbAdapter.getTeamByRegId(reg_id);
+      if (targetTeam) {
+        targetTeamId = targetTeam.id;
+        targetRegId = targetTeam.reg_id;
+      }
+    } else if (team_id) {
+      const allTeams = await dbAdapter.getAllTeams();
+      targetTeam = allTeams.find(t => t.id === team_id);
+      if (targetTeam) targetRegId = targetTeam.reg_id;
     }
 
     await dbAdapter.updateTeamStatus(targetTeamId, new_status);
     await dbAdapter.logAdminAction(req.user.email, `TEAM_STATUS_${new_status}`, targetRegId, `Status changed to ${new_status}`);
+
+    // Trigger Shortlisted Email with WhatsApp link if team is shortlisted
+    if (new_status === 'SHORTLISTED' && targetTeam) {
+      sendShortlistedEmail(targetTeam).catch(err => console.error('Shortlist email dispatch error:', err));
+    }
 
     return res.json({ success: true, message: `Team status updated to ${new_status}.` });
   } catch (err) {
@@ -241,6 +255,18 @@ router.get('/export-csv', async (req, res) => {
   } catch (err) {
     console.error('CSV export error:', err);
     return res.status(500).json({ success: false, message: 'CSV export failed.' });
+  }
+});
+
+// 9. Clear All Test Data Endpoint
+router.post('/clear-all', async (req, res) => {
+  try {
+    await dbAdapter.clearAllData();
+    await dbAdapter.logAdminAction(req.user.email, 'CLEAR_ALL_DATA', null, 'All test database records cleared.');
+    return res.json({ success: true, message: 'All test registrations, payments, and submissions have been cleared.' });
+  } catch (err) {
+    console.error('Clear data error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to clear test data.' });
   }
 });
 

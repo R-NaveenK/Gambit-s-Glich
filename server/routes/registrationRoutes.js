@@ -3,6 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { dbAdapter } from '../db/dbAdapter.js';
+import { sendRegistrationConfirmation } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -139,6 +140,9 @@ router.post('/', regUpload, async (req, res) => {
     ];
 
     const createdTeam = await dbAdapter.createTeam(teamData, teamMembersData);
+
+    // Send Registration Confirmation Email
+    sendRegistrationConfirmation(createdTeam, teamMembersData).catch(err => console.error('Registration email dispatch error:', err));
 
     // Process Payment Screenshot if attached
     let paymentRecord = null;

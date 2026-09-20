@@ -9,6 +9,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -421,5 +422,30 @@ export const dbAdapter = {
       const store = loadLocalStore();
       return store.admin_logs.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
+  },
+
+  // Clear all test data from Supabase & Local JSON store
+  async clearAllData() {
+    if (this.isSupabase) {
+      console.log('🧹 Clearing all test data from Supabase PostgreSQL database...');
+      await supabase.from('admin_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('ppt_submissions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('payments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('teams').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      console.log('✅ Supabase database cleared successfully.');
+    }
+
+    // Also clear local JSON store
+    const emptyData = {
+      teams: [],
+      team_members: [],
+      payments: [],
+      ppt_submissions: [],
+      announcements: [],
+      admin_logs: []
+    };
+    saveLocalStore(emptyData);
+    console.log('✅ Local JSON store cleared successfully.');
   }
 };

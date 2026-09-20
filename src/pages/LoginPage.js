@@ -28,7 +28,7 @@ export class LoginPage {
             <form id="admin-login-form" class="space-y-4">
               <div>
                 <label class="block text-xs text-ink mb-2">ADMIN EMAIL *</label>
-                <input type="email" name="email" required value="admin@gambitsglitch.tech" class="w-full px-4 py-3 text-xs text-ink focus:border-accent outline-none" />
+                <input type="email" name="email" required value="gambitsglitch@gmail.com" class="w-full px-4 py-3 text-xs text-ink focus:border-accent outline-none" />
               </div>
 
               <div>
@@ -37,7 +37,7 @@ export class LoginPage {
               </div>
 
               <div class="text-[10px] text-muted p-3 bg-canvas border border-line">
-                Default Credentials: <code class="text-accent-dark font-bold">admin@gambitsglitch.tech</code> / <code class="text-accent-dark font-bold">admin#glitch2026</code>
+                Default Credentials: <code class="text-accent-dark font-bold">gambitsglitch@gmail.com</code> / <code class="text-accent-dark font-bold">admin#glitch2026</code>
               </div>
 
               <button type="submit" id="login-btn" class="nav-link btn-primary w-full py-4 text-xs font-bold tracking-widest uppercase">
