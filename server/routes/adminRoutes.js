@@ -1,0 +1,247 @@
+import express from 'express';
+import { authenticateAdmin } from '../middleware/auth.js';
+import { dbAdapter } from '../db/dbAdapter.js';
+
+const router = express.Router();
+
+// Apply auth middleware to ALL admin routes
+router.use(authenticateAdmin);
+
+// 1. Dashboard Overview Stats & Summary
+router.get('/dashboard', async (req, res) => {
+  try {
+    const teams = await dbAdapter.getAllTeams();
+
+    let totalRegistrations = teams.length;
+    let pendingPayments = 0;
+    let approvedPayments = 0;
+    let rejectedPayments = 0;
+    let pptSubmissions = 0;
+    let shortlisted = 0;
+
+    for (const t of teams) {
+      const fullTeam = await dbAdapter.getTeamByRegId(t.reg_id);
+      if (fullTeam.payment) {
+        if (fullTeam.payment.status === 'PENDING') pendingPayments++;
+        else if (fullTeam.payment.status === 'APPROVED') approvedPayments++;
+        else if (fullTeam.payment.status === 'REJECTED') rejectedPayments++;
+      } else {
+        pendingPayments++;
+      }
+
+      if (fullTeam.ppt) pptSubmissions++;
+      if (fullTeam.status === 'SHORTLISTED') shortlisted++;
+    }
+
+    return res.json({
+      success: true,
+      stats: {
+        totalRegistrations,
+        pendingPayments,
+        approvedPayments,
+        rejectedPayments,
+        pptSubmissions,
+        shortlisted
+      }
+    });
+  } catch (err) {
+    console.error('Admin dashboard stats error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch dashboard statistics.' });
+  }
+});
+
+// 2. Search & Filter Teams
+router.get('/teams', async (req, res) => {
+  try {
+    const { search, theme, status, college } = req.query;
+    const teams = await dbAdapter.getAllTeams();
+
+    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
+
+    let filtered = fullTeams;
+
+    if (search) {
+      const q = search.toLowerCase();
+      filtered = filtered.filter(t =>
+        t.reg_id.toLowerCase().includes(q) ||
+        t.team_name.toLowerCase().includes(q) ||
+        t.leader_name.toLowerCase().includes(q) ||
+        t.leader_email.toLowerCase().includes(q) ||
+        (t.payment && t.payment.utr_number.toLowerCase().includes(q))
+      );
+    }
+
+    if (theme && theme !== 'ALL') {
+      filtered = filtered.filter(t => t.theme_id === theme);
+    }
+
+    if (status && status !== 'ALL') {
+      filtered = filtered.filter(t => t.status === status);
+    }
+
+    if (college && college !== 'ALL') {
+      filtered = filtered.filter(t => t.college.toLowerCase().includes(college.toLowerCase()));
+    }
+
+    return res.json({ success: true, teams: filtered });
+  } catch (err) {
+    console.error('Admin teams fetch error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to fetch teams list.' });
+  }
+});
+
+// 3. Approve Payment
+router.post('/payment/approve', async (req, res) => {
+  try {
+    const { payment_id, reg_id } = req.body;
+    if (!payment_id && !reg_id) {
+      return res.status(400).json({ success: false, message: 'Payment ID or Registration ID is required.' });
+    }
+
+    let targetTeam = null;
+    let paymentId = payment_id;
+
+    if (reg_id) {
+      targetTeam = await dbAdapter.getTeamByRegId(reg_id);
+      if (targetTeam && targetTeam.payment) paymentId = targetTeam.payment.id;
+    }
+
+    if (!paymentId) {
+      return res.status(404).json({ success: false, message: 'No payment record found for team.' });
+    }
+
+    const updatedPayment = await dbAdapter.updatePaymentStatus(paymentId, 'APPROVED', null, req.user.email);
+    await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_APPROVED', targetTeam ? targetTeam.reg_id : reg_id, `Payment approved for payment ID ${paymentId}`);
+
+    return res.json({ success: true, message: 'Payment approved successfully! PPT submission unlocked for team.', payment: updatedPayment });
+  } catch (err) {
+    console.error('Payment approval error:', err);
+    return res.status(500).json({ success: false, message: 'Payment approval failed.' });
+  }
+});
+
+// 4. Reject Payment (Requires Mandatory Reason)
+router.post('/payment/reject', async (req, res) => {
+  try {
+    const { payment_id, reg_id, reason } = req.body;
+
+    if (!reason || !reason.trim()) {
+      return res.status(400).json({ success: false, message: 'A mandatory rejection reason must be provided.' });
+    }
+
+    let targetTeam = null;
+    let paymentId = payment_id;
+
+    if (reg_id) {
+      targetTeam = await dbAdapter.getTeamByRegId(reg_id);
+      if (targetTeam && targetTeam.payment) paymentId = targetTeam.payment.id;
+    }
+
+    if (!paymentId) {
+      return res.status(404).json({ success: false, message: 'No payment record found for team.' });
+    }
+
+    const updatedPayment = await dbAdapter.updatePaymentStatus(paymentId, 'REJECTED', reason.trim(), req.user.email);
+    await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_REJECTED', targetTeam ? targetTeam.reg_id : reg_id, `Reason: ${reason.trim()}`);
+
+    return res.json({ success: true, message: 'Payment rejected. Team informed via status tracker.', payment: updatedPayment });
+  } catch (err) {
+    console.error('Payment rejection error:', err);
+    return res.status(500).json({ success: false, message: 'Payment rejection failed.' });
+  }
+});
+
+// 5. Shortlist or Reject Team
+router.post('/team/update-status', async (req, res) => {
+  try {
+    const { team_id, reg_id, new_status } = req.body;
+    const validStatuses = ['SHORTLISTED', 'UNDER_REVIEW', 'REJECTED', 'PAYMENT_APPROVED'];
+
+    if (!validStatuses.includes(new_status)) {
+      return res.status(400).json({ success: false, message: 'Invalid target team status.' });
+    }
+
+    let targetRegId = reg_id;
+    let targetTeamId = team_id;
+
+    if (reg_id && !team_id) {
+      const t = await dbAdapter.getTeamByRegId(reg_id);
+      if (t) targetTeamId = t.id;
+    }
+
+    await dbAdapter.updateTeamStatus(targetTeamId, new_status);
+    await dbAdapter.logAdminAction(req.user.email, `TEAM_STATUS_${new_status}`, targetRegId, `Status changed to ${new_status}`);
+
+    return res.json({ success: true, message: `Team status updated to ${new_status}.` });
+  } catch (err) {
+    console.error('Update status error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update team status.' });
+  }
+});
+
+// 6. Post Announcement
+router.post('/announcements', async (req, res) => {
+  try {
+    const { title, content, priority } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ success: false, message: 'Announcement title and content are required.' });
+    }
+    const newAnn = await dbAdapter.createAnnouncement({ title: title.trim(), content: content.trim(), priority: priority || 'NORMAL' });
+    await dbAdapter.logAdminAction(req.user.email, 'CREATE_ANNOUNCEMENT', null, `Title: ${title}`);
+    return res.status(201).json({ success: true, announcement: newAnn });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to create announcement.' });
+  }
+});
+
+// 7. Get Audit Logs
+router.get('/logs', async (req, res) => {
+  try {
+    const logs = await dbAdapter.getAdminLogs();
+    return res.json({ success: true, logs });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch admin logs.' });
+  }
+});
+
+// 8. Export CSV
+router.get('/export-csv', async (req, res) => {
+  try {
+    const teams = await dbAdapter.getAllTeams();
+    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
+
+    let csvContent = 'Registration ID,Team Name,Theme,Leader Name,Leader Email,Leader Phone,College,Department,Year,Member Count,Status,UTR Number,Payer Name,Payment Status,PPT Title,PPT File URL\n';
+
+    for (const t of fullTeams) {
+      const row = [
+        `"${t.reg_id}"`,
+        `"${t.team_name.replace(/"/g, '""')}"`,
+        `"${t.theme_id}"`,
+        `"${t.leader_name.replace(/"/g, '""')}"`,
+        `"${t.leader_email}"`,
+        `"${t.leader_phone}"`,
+        `"${t.college.replace(/"/g, '""')}"`,
+        `"${t.department.replace(/"/g, '""')}"`,
+        `"${t.year}"`,
+        t.member_count,
+        `"${t.status}"`,
+        `"${t.payment ? t.payment.utr_number : 'N/A'}"`,
+        `"${t.payment ? t.payment.payer_name.replace(/"/g, '""') : 'N/A'}"`,
+        `"${t.payment ? t.payment.status : 'N/A'}"`,
+        `"${t.ppt ? t.ppt.project_title.replace(/"/g, '""') : 'N/A'}"`,
+        `"${t.ppt ? t.ppt.file_url : 'N/A'}"`
+      ].join(',');
+      csvContent += row + '\n';
+    }
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="gambits_glitch_registrations_2026.csv"');
+    return res.status(200).send(csvContent);
+
+  } catch (err) {
+    console.error('CSV export error:', err);
+    return res.status(500).json({ success: false, message: 'CSV export failed.' });
+  }
+});
+
+export default router;

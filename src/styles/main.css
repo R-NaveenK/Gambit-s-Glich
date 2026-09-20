@@ -1,0 +1,260 @@
+@import './fonts.css';
+
+@tailwind base;
+@tailwind components;
+
+:root {
+  --bg-color: #f7f7f7;
+  --text-color: #101010;
+  --text-gray-color: #908c8c;
+  --text-gray-second-color: #aaaaaa;
+  --white: #ffffff;
+  --transition-main: cubic-bezier(0.11, 0.82, 0.39, 0.92);
+
+  --font-sofia: 'Sofia Sans Condensed', sans-serif;
+  --font-spline: 'Spline Sans Mono', monospace;
+
+  --canvas: #F2F0E9;
+  --ink: #10100E;
+  --signal: #D79218;
+  --signal-light: #E7B94F;
+  --muted: #77756F;
+  --line: rgba(16, 16, 14, 0.18);
+  --inverse: #10100E;
+  --inverse-text: #F2F0E9;
+
+  --font-serif: 'Instrument Serif', Georgia, serif;
+  --font-sans: 'Space Grotesk', 'Outfit', sans-serif;
+  --font-mono: 'Spline Sans Mono', 'JetBrains Mono', monospace;
+}
+
+/* RESET & BASE */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  scroll-behavior: smooth;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.font-sofia {
+  font-family: var(--font-sofia);
+  font-stretch: condensed;
+}
+
+.font-spline {
+  font-family: var(--font-spline);
+}
+
+/* SELECTION & SCROLLBAR */
+::selection {
+  background-color: var(--signal);
+  color: var(--ink);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 16, 14, 0.25);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--signal);
+}
+
+/* TYPOGRAPHY HIERARCHY */
+.font-serif {
+  font-family: var(--font-serif);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.text-hero-title {
+  font-family: var(--font-sofia);
+  font-size: clamp(5.5rem, 14vw, 14rem);
+  font-weight: 900;
+  line-height: 0.82;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  font-stretch: condensed;
+}
+
+.text-hero-serif {
+  font-family: var(--font-serif);
+  font-size: clamp(2.5rem, 5vw, 5.5rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+.text-hero-desc {
+  font-family: var(--font-sans);
+  font-size: clamp(1rem, 1.3vw, 1.3rem);
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.text-nav {
+  font-family: var(--font-spline);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+
+.text-meta {
+  font-family: var(--font-spline);
+  font-size: 0.775rem;
+  letter-spacing: 0.06em;
+}
+
+.text-signal {
+  color: var(--signal);
+}
+
+.text-muted {
+  color: var(--muted);
+}
+
+/* SWISS BORDERS & SURFACES */
+.border-line {
+  border-color: var(--line);
+}
+
+.btn-register-nav {
+  background-color: var(--inverse);
+  color: var(--inverse-text);
+  font-family: var(--font-spline);
+  font-size: 0.875rem;
+  font-weight: 700;
+  padding: 0.65rem 1.4rem;
+  border: 1px solid var(--inverse);
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn-register-nav:hover {
+  background-color: var(--signal);
+  border-color: var(--signal);
+  color: var(--ink);
+}
+
+@media (max-width: 639px) {
+  .btn-register-nav { padding: 0.65rem 0.8rem; font-size: 0.75rem; white-space: nowrap; }
+  .text-hero-title { font-size: clamp(3.5rem, 23vw, 5.5rem); }
+}
+
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: var(--inverse);
+  color: var(--inverse-text);
+  font-family: var(--font-spline);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 1.1rem 2.2rem;
+  border: 1px solid var(--inverse);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.btn-hero-primary:hover {
+  background-color: var(--signal);
+  border-color: var(--signal);
+  color: var(--ink);
+  transform: translateY(-2px);
+}
+
+.btn-hero-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  background-color: transparent;
+  color: var(--ink);
+  font-family: var(--font-spline);
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 1.1rem 2.2rem;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-decoration: none;
+}
+
+.btn-hero-secondary:hover {
+  border-color: var(--ink);
+  background-color: rgba(16, 16, 14, 0.05);
+  transform: translateY(-2px);
+}
+
+/* CONTAINER */
+.container {
+  width: 100%;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+/* The original pages referenced these shared controls, but their rules were missing. */
+.tech-card { border: 1px solid var(--line); }
+.btn-primary, .btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.25rem;
+  border: 1px solid var(--ink);
+  text-decoration: none;
+  cursor: pointer;
+}
+.btn-primary { background: var(--ink); color: var(--inverse-text); }
+.btn-secondary { background: transparent; color: var(--ink); }
+.btn-primary:hover, .btn-secondary:hover { background: var(--signal); color: var(--ink); }
+input:not([type='checkbox']):not([type='radio']), select, textarea {
+  border: 1px solid var(--line);
+  background: var(--bg-color);
+  color: var(--ink);
+}
+:focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+@tailwind utilities;
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
