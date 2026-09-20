@@ -1,29 +1,24 @@
 # Gambit's Glitch
 
-A hackathon website built with HTML, CSS, vanilla JavaScript and Vite, with an existing Express backend for registration, payment proof, manual verification and pitch deck uploads.
-
-**Start with [START_HERE.md](START_HERE.md) to open the corrected project in Antigravity.** This revision repairs the reference-style intro and the missing CSS build setup. It is a development project for local review; it has not been approved for accepting live payments.
+A high-intensity hackathon web application built with HTML, CSS, vanilla JavaScript, and Vite, featuring an Express backend for team registration, payment proof verification, status tracking, and pitch deck uploads.
 
 ## Run locally
 
-In a Windows PowerShell terminal opened inside this folder:
+In a terminal opened inside this folder:
 
 ```powershell
-npm.cmd ci
 npm.cmd run dev
 ```
 
-Open **http://localhost:3000/?intro=replay** to review the loader. Use the address Vite prints if port 3000 is already occupied. On macOS/Linux, use `npm` in place of `npm.cmd`.
+Open **http://localhost:3000** to launch the site. On macOS/Linux, use `npm` in place of `npm.cmd`.
 
-A normal visit plays the intro once per browser tab session. The `?intro=replay` query forces a replay. Escape or the keyboard-focusable Skip introduction button skips it. A reduced-motion preference bypasses it.
-
-The visual preview does not require the API server. To work on registration and uploads, preserve your original environment/data files and start the existing API in a second terminal:
+To run the backend API server alongside the frontend, open a second terminal and run:
 
 ```powershell
 npm.cmd run server
 ```
 
-Vite forwards `/api` and `/uploads` to the local server on port 5000. Use [START_HERE.md](START_HERE.md) before moving an existing setup.
+Vite automatically proxies `/api` and `/uploads` requests to the Express backend running on port 5000.
 
 ## Build and preview
 
@@ -32,22 +27,19 @@ npm.cmd run build
 npm.cmd run preview
 ```
 
-The production frontend is written to `dist/`. Vite's preview command previews the frontend; it is not a deployment of the Express backend.
+The production frontend bundle is generated in the `dist/` directory.
 
-## Project map
+## Project Map
 
 | Location | Purpose |
 | --- | --- |
-| `src/components/Loader.js` | Intro wording, 3D text renderer and animation timing |
-| `src/styles/loader.css` | Loader colours, proportions and responsive layout |
-| `src/styles/fonts.css` | Local font files bundled by Vite |
-| `src/styles/main.css` | Existing website styles and Tailwind layers |
-| `tailwind.config.js`, `postcss.config.js` | Utility CSS build setup |
-| `src/config/eventConfig.js` | Event details, dates, payment information and contacts |
-| `src/pages/` | Existing event and participant/admin screens |
-| `server/` | Existing Express routes, storage adapter and schema |
-| `DESIGN.md` | Loader-specific requirements followed by the existing website direction |
-| `REPAIR_NOTES.md` | Changes, verification results and known limits |
+| `src/components/` | Navbar, Footer, HeroCanvas, Countdown, and Loader components |
+| `src/pages/` | Event pages (Home, About, Tracks, Timeline, Rules, Register, Payment, FAQ, etc.) |
+| `src/styles/` | Global CSS styles, bundled fonts, and Tailwind layers |
+| `src/config/eventConfig.js` | Central event details, dates, payment info, tracks, and rules |
+| `server/` | Express backend routes, JSON data store, and database adapters |
+| `tailwind.config.js`, `postcss.config.js` | CSS build and styling configuration |
+
 
 ## Event and backend setup
 
