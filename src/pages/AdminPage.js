@@ -74,47 +74,52 @@ export class AdminPage {
             </div>
           </div>
 
-          <!-- EVENT DAY ATTENDANCE & QR CODE SCANNER SECTION -->
-          <div class="tech-card p-6 md:p-8 border-accent bg-paper space-y-6 mb-12">
+          <!-- EVENT DAY UNIFIED ATTENDANCE & QR CODE SCANNER SECTION -->
+          <div class="tech-card p-6 md:p-8 border-accent bg-paper space-y-6 mb-12 max-w-3xl mx-auto">
             <div class="flex flex-wrap items-center justify-between border-b border-line pb-4 gap-4">
               <div>
-                <div class="text-xs text-accent-dark font-bold">// VENUE ENTRY SCANNER</div>
+                <div class="text-xs text-accent-dark font-bold">// VENUE CHECK-IN SYSTEM</div>
                 <h2 class="font-sans text-2xl font-bold text-ink uppercase">
-                  📷 Venue Entry QR Scanner
+                  📷 Official Venue QR Pass Scanner
                 </h2>
               </div>
-              <span id="qr-status-badge" class="text-xs font-mono text-accent-dark bg-canvas px-3 py-1 border border-accent font-bold">
-                ● Live Camera & Hardware QR Scanner Active
-              </span>
+              <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2.5 px-5 uppercase font-bold cursor-pointer flex items-center gap-2">
+                <span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                ▶ START LIVE CAMERA
+              </button>
             </div>
 
-            <!-- LIVE CAMERA VIEWPORT & QR SCANNER INTERFACE -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
-              <div class="md:col-span-1 space-y-3">
-                <div id="reader" class="w-full min-h-[220px] bg-canvas border-2 border-dashed border-accent flex flex-col items-center justify-center p-4 text-center">
-                  <div class="text-3xl mb-2">📷</div>
-                  <div class="text-xs text-muted font-mono mb-3">Live Camera Scanner</div>
-                  <button type="button" id="toggle-camera-btn" class="btn-secondary text-xs py-2 px-4 border-accent text-accent-dark font-bold uppercase cursor-pointer">
-                    ▶ START CAMERA SCANNER
-                  </button>
-                </div>
-              </div>
-
-              <div class="md:col-span-2 space-y-4">
-                <form id="qr-scanner-form" class="flex flex-wrap items-center gap-3">
-                  <div class="flex-1 min-w-[240px]">
-                    <input type="text" id="qr-scan-input" autofocus placeholder="Point QR Scanner or Scan Ticket Pass..." class="w-full px-4 py-3 text-xs text-ink font-mono focus:border-accent outline-none font-bold" />
+            <!-- UNIFIED SCANNER VIEWPORT -->
+            <div class="space-y-4">
+              <div id="reader-container" class="relative bg-canvas border-2 border-accent p-4 min-h-[220px] flex flex-col items-center justify-center text-center">
+                <div id="reader" class="w-full max-w-md mx-auto"></div>
+                
+                <div id="camera-placeholder" class="py-4 space-y-2">
+                  <div class="text-4xl text-accent-dark">📷</div>
+                  <div class="text-xs font-mono font-bold text-ink uppercase tracking-wider">
+                    SCANNER ACTIVE // HOLD QR TICKET TO CAMERA OR BARCODE SCANNER
                   </div>
-                  <button type="submit" class="btn-primary text-xs py-3 px-6 uppercase font-bold">
-                    ⚡ SCAN TICKET →
-                  </button>
-                </form>
-
-                <!-- SCANNER RESULT DISPLAY -->
-                <div id="scanner-result-box" class="hidden p-6 bg-canvas border border-accent space-y-4">
-                  <!-- Injected dynamically via JS -->
+                  <div class="text-[11px] text-muted font-mono">
+                    Point participant's QR pass or trigger handheld scanner below
+                  </div>
                 </div>
               </div>
+
+              <!-- UNIFIED SCAN INPUT FIELD -->
+              <form id="qr-scanner-form" class="flex flex-wrap items-center gap-2 bg-canvas p-2 border border-accent">
+                <div class="flex-1 flex items-center px-3 gap-2">
+                  <span class="text-accent-dark text-xs font-mono font-bold">⚡ SCAN:</span>
+                  <input type="text" id="qr-scan-input" autofocus placeholder="Point scanner or scan pass here..." class="w-full py-2 text-xs text-ink font-mono bg-transparent focus:outline-none uppercase font-bold" />
+                </div>
+                <button type="submit" class="btn-primary text-xs py-2.5 px-6 uppercase font-bold">
+                  VERIFY TICKET →
+                </button>
+              </form>
+            </div>
+
+            <!-- SCANNER RESULT DISPLAY -->
+            <div id="scanner-result-box" class="hidden p-6 bg-canvas border-2 border-accent space-y-4">
+              <!-- Injected dynamically via JS -->
             </div>
           </div>
 
@@ -241,6 +246,7 @@ export class AdminPage {
 
     // CAMERA QR SCANNER TOGGLE
     const cameraBtn = document.getElementById('toggle-camera-btn');
+    const placeholder = document.getElementById('camera-placeholder');
     if (cameraBtn) {
       cameraBtn.addEventListener('click', async () => {
         if (this.isScanning && this.html5QrCode) {
@@ -249,16 +255,18 @@ export class AdminPage {
             this.html5QrCode.clear();
           } catch (e) {}
           this.isScanning = false;
-          cameraBtn.textContent = '▶ START CAMERA SCANNER';
+          if (placeholder) placeholder.classList.remove('hidden');
+          cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> ▶ START LIVE CAMERA';
           return;
         }
 
         try {
           if (window.Html5Qrcode) {
             this.html5QrCode = new window.Html5Qrcode("reader");
+            if (placeholder) placeholder.classList.add('hidden');
             await this.html5QrCode.start(
               { facingMode: "environment" },
-              { fps: 10, qrbox: { width: 200, height: 200 } },
+              { fps: 10, qrbox: { width: 220, height: 220 } },
               (decodedText) => {
                 soundFx.playBeep();
                 this.processScanCode(decodedText);
@@ -266,12 +274,13 @@ export class AdminPage {
               () => {}
             );
             this.isScanning = true;
-            cameraBtn.textContent = '⏹ STOP CAMERA';
+            cameraBtn.innerHTML = '⏹ STOP CAMERA';
           } else {
             toast.show('Camera scanner module loading...', 'info');
           }
         } catch (err) {
-          toast.show('Camera access unavailable. Point barcode scanner or scan ticket into field.', 'error');
+          if (placeholder) placeholder.classList.remove('hidden');
+          toast.show('Camera access unavailable. Point scanner or scan ticket into field.', 'error');
         }
       });
     }
