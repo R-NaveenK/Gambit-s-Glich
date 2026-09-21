@@ -346,12 +346,10 @@ export const dbAdapter = {
           .eq('id', existing.id)
           .select().single();
         if (error) throw error;
-        await supabase.from('teams').update({ status: 'PPT_SUBMITTED' }).eq('id', pptData.team_id);
         return data;
       } else {
         const { data, error } = await supabase.from('ppt_submissions').insert([pptData]).select().single();
         if (error) throw error;
-        await supabase.from('teams').update({ status: 'PPT_SUBMITTED' }).eq('id', pptData.team_id);
         return data;
       }
     } else {
@@ -376,11 +374,6 @@ export const dbAdapter = {
           updated_at: new Date().toISOString()
         };
         store.ppt_submissions.push(pptRecord);
-      }
-
-      const team = store.teams.find(t => t.id === pptData.team_id);
-      if (team) {
-        team.status = 'PPT_SUBMITTED';
       }
 
       saveLocalStore(store);

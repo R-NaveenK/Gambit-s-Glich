@@ -37,6 +37,9 @@ export class AdminPage {
             </div>
 
             <div class="flex items-center gap-3">
+              <button id="admin-refresh-btn" class="btn-primary text-xs py-2 px-4 uppercase font-bold cursor-pointer">
+                🔄 REFRESH DATA
+              </button>
               <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2 px-4 border-accent text-accent-dark hover:bg-accent hover:text-ink">
                 📥 EXPORT DATA CSV
               </a>
@@ -255,6 +258,16 @@ export class AdminPage {
   }
 
   async attachEvents() {
+    const refreshBtn = document.getElementById('admin-refresh-btn');
+    if (refreshBtn) {
+      refreshBtn.addEventListener('click', async () => {
+        soundFx.playClick();
+        toast.show('Refreshing admin teams database...', 'info');
+        await this.fetchDashboardData();
+        toast.show('Dashboard data updated!', 'success');
+      });
+    }
+
     const logoutBtn = document.getElementById('admin-logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
