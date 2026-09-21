@@ -163,35 +163,7 @@ export class RegisterPage {
               </div>
             </div>
 
-            <!-- SECTION 5: PAYMENT PROOF (OPTIONAL AT REGISTRATION) -->
-            <div class="tech-card p-6 md:p-8 border-line bg-paper space-y-6">
-              <div class="flex items-center justify-between border-b border-line pb-3">
-                <h2 class="font-sans text-lg font-bold text-ink uppercase">
-                  05 / FEE PAYMENT PROOF (OPTIONAL AT REGISTRATION)
-                </h2>
-                <span id="calculated-fee-badge" class="text-xs font-bold text-accent-dark bg-canvas px-3 py-1 border border-accent">
-                  FEE: ₹300 / PERSON (AFTER SHORTLISTING)
-                </span>
-              </div>
 
-              <div class="p-4 bg-canvas border border-line text-xs space-y-2">
-                <div class="text-[11px] text-muted font-sans">
-                  ℹ️ Fee payment (₹300/person) is required <strong>only after your team is shortlisted by the jury</strong>. If you have already completed payment via UPI, you may attach your receipt screenshot and 12-digit UTR number below now.
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label class="block text-xs text-ink mb-2">PAYMENT PROOF SCREENSHOT (IF PAID NOW)</label>
-                  <input type="file" name="payment_screenshot" accept="image/jpeg,image/png,image/webp,image/heic" class="w-full bg-canvas border border-line p-3 text-xs text-muted file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-accent file:text-ink file:font-bold file:text-xs cursor-pointer" />
-                </div>
-
-                <div>
-                  <label class="block text-xs text-ink mb-2">12-DIGIT UTR / REFERENCE NUMBER (IF PAID NOW)</label>
-                  <input type="text" name="utr_number" pattern="[a-zA-Z0-9]{8,24}" placeholder="e.g. 202698765432" class="w-full px-4 py-3 text-xs focus:border-accent outline-none font-mono" />
-                </div>
-              </div>
-            </div>
 
             <!-- SECTION 6: CODE OF CONDUCT & SUBMIT -->
             <div class="tech-card p-6 border-line bg-paper space-y-4">
