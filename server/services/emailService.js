@@ -20,9 +20,19 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS
+      },
+      tls: {
+        rejectUnauthorized: false
       }
     });
-    console.log(`✉️ Email Service initialized with SMTP (${SMTP_HOST})`);
+    
+    transporter.verify((error) => {
+      if (error) {
+        console.error(`❌ SMTP Connection Verification Failed:`, error.message);
+      } else {
+        console.log(`✉️ Email Service initialized & verified with SMTP (${SMTP_HOST}:${SMTP_PORT})`);
+      }
+    });
   } catch (err) {
     console.warn(`⚠️ Email Service transport initialization error:`, err.message);
   }
