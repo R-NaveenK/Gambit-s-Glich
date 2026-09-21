@@ -19,6 +19,9 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust reverse proxy headers on Render.com / Heroku for rate-limiting
+app.set('trust proxy', 1);
+
 // Security & Middleware Configuration
 app.use(helmet({
   contentSecurityPolicy: false, // Disabled for local dev & Vite inline styles/scripts compatibility

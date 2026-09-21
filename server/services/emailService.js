@@ -21,14 +21,17 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
         user: SMTP_USER,
         pass: SMTP_PASS
       },
+      connectionTimeout: 15000, // 15s timeout for cloud servers (Render.com)
+      greetingTimeout: 10000,   // 10s greeting timeout
+      socketTimeout: 15000,     // 15s socket timeout
       tls: {
         rejectUnauthorized: false
       }
     });
-    
+
     transporter.verify((error) => {
       if (error) {
-        console.error(`❌ SMTP Connection Verification Failed:`, error.message);
+        console.warn(`⚠️ SMTP Connection Note (${SMTP_HOST}:${SMTP_PORT}):`, error.message);
       } else {
         console.log(`✉️ Email Service initialized & verified with SMTP (${SMTP_HOST}:${SMTP_PORT})`);
       }
