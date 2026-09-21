@@ -511,7 +511,11 @@ export class AdminPage {
 
   async fetchDashboardData() {
     try {
-      const statsRes = await api.getAdminStats();
+      const [statsRes, teamsRes] = await Promise.all([
+        api.getAdminStats(),
+        api.getAdminTeams()
+      ]);
+
       if (statsRes.success && statsRes.stats) {
         document.getElementById('stat-total').textContent = statsRes.stats.totalRegistrations;
         document.getElementById('stat-pending').textContent = statsRes.stats.pendingPayments;
@@ -520,7 +524,11 @@ export class AdminPage {
         document.getElementById('stat-shortlist').textContent = statsRes.stats.shortlisted;
         document.getElementById('stat-attended').textContent = statsRes.stats.attendedCount || 0;
       }
-      await this.fetchTeamsData();
+
+      if (teamsRes.success) {
+        this.teams = teamsRes.teams || [];
+        this.renderTeamsTable(this.teams);
+      }
     } catch (err) {
       toast.show('Error loading dashboard statistics.', 'error');
     }

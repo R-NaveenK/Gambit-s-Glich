@@ -12,16 +12,17 @@ router.use(authenticateAdmin);
 router.get('/dashboard', async (req, res) => {
   try {
     const teams = await dbAdapter.getAllTeams();
+    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
 
-    let totalRegistrations = teams.length;
+    let totalRegistrations = fullTeams.length;
     let pendingPayments = 0;
     let approvedPayments = 0;
     let pptSubmissions = 0;
     let shortlisted = 0;
     let attendedCount = 0;
 
-    for (const t of teams) {
-      const fullTeam = await dbAdapter.getTeamByRegId(t.reg_id);
+    for (const fullTeam of fullTeams) {
+      if (!fullTeam) continue;
       if (fullTeam.payment) {
         if (fullTeam.payment.status === 'APPROVED') approvedPayments++;
         else pendingPayments++;

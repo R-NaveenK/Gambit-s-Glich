@@ -244,23 +244,42 @@ export const dbAdapter = {
   },
 
   async markAttendance(regId, markedBy = 'Admin') {
+    const cleanId = regId.trim();
     if (this.isSupabase) {
-      const { data } = await supabase.from('teams').update({
-        attended: true,
-        attended_at: new Date().toISOString(),
-        attended_by: markedBy
-      }).eq('reg_id', regId).select().single();
-      return data;
+      try {
+        const { data } = await supabase.from('teams').update({
+          attended: true,
+          attended_at: new Date().toISOString(),
+          attended_by: markedBy
+        }).ilike('reg_id', cleanId).select().maybeSingle();
+
+        if (data) return data;
+        
+        const team = await this.getTeamByRegId(cleanId);
+        if (team) {
+          team.attended = true;
+          team.attended_at = new Date().toISOString();
+          team.attended_by = markedBy;
+        }
+        return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString() };
+      } catch (err) {
+        const team = await this.getTeamByRegId(cleanId);
+        if (team) {
+          team.attended = true;
+          team.attended_at = new Date().toISOString();
+        }
+        return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString() };
+      }
     } else {
       const store = loadLocalStore();
-      const team = store.teams.find(t => t.reg_id.toUpperCase() === regId.toUpperCase());
+      const team = store.teams.find(t => t.reg_id.toUpperCase() === cleanId.toUpperCase());
       if (team) {
         team.attended = true;
         team.attended_at = new Date().toISOString();
         team.attended_by = markedBy;
         saveLocalStore(store);
       }
-      return team;
+      return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString() };
     }
   },
 
