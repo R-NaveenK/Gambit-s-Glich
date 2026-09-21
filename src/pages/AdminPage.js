@@ -80,26 +80,41 @@ export class AdminPage {
               <div>
                 <div class="text-xs text-accent-dark font-bold">// VENUE ENTRY SCANNER</div>
                 <h2 class="font-sans text-2xl font-bold text-ink uppercase">
-                  📷 Attendance & QR Code Scanner
+                  📷 Venue Entry QR Scanner
                 </h2>
               </div>
-              <span class="text-xs font-mono text-muted bg-canvas px-3 py-1 border border-line">
-                Scan QR Pass or Enter Registration ID
+              <span id="qr-status-badge" class="text-xs font-mono text-accent-dark bg-canvas px-3 py-1 border border-accent font-bold">
+                ● Live Camera & Hardware QR Scanner Active
               </span>
             </div>
 
-            <form id="qr-scanner-form" class="flex flex-wrap items-center gap-4">
-              <div class="flex-1 min-w-[280px]">
-                <input type="text" id="qr-scan-input" required placeholder="Scan QR Pass or type Reg ID (e.g. GG26-8F92)..." class="w-full px-4 py-3 text-xs text-ink font-mono focus:border-accent outline-none uppercase font-bold" />
+            <!-- LIVE CAMERA VIEWPORT & QR SCANNER INTERFACE -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+              <div class="md:col-span-1 space-y-3">
+                <div id="reader" class="w-full min-h-[220px] bg-canvas border-2 border-dashed border-accent flex flex-col items-center justify-center p-4 text-center">
+                  <div class="text-3xl mb-2">📷</div>
+                  <div class="text-xs text-muted font-mono mb-3">Live Camera Scanner</div>
+                  <button type="button" id="toggle-camera-btn" class="btn-secondary text-xs py-2 px-4 border-accent text-accent-dark font-bold uppercase cursor-pointer">
+                    ▶ START CAMERA SCANNER
+                  </button>
+                </div>
               </div>
-              <button type="submit" class="btn-primary text-xs py-3 px-6 uppercase font-bold">
-                🔍 VERIFY & SCAN TICKET →
-              </button>
-            </form>
 
-            <!-- SCANNER RESULT DISPLAY -->
-            <div id="scanner-result-box" class="hidden p-6 bg-canvas border border-accent space-y-4">
-              <!-- Injected dynamically via JS -->
+              <div class="md:col-span-2 space-y-4">
+                <form id="qr-scanner-form" class="flex flex-wrap items-center gap-3">
+                  <div class="flex-1 min-w-[240px]">
+                    <input type="text" id="qr-scan-input" autofocus placeholder="Point QR Scanner or Scan Ticket Pass..." class="w-full px-4 py-3 text-xs text-ink font-mono focus:border-accent outline-none font-bold" />
+                  </div>
+                  <button type="submit" class="btn-primary text-xs py-3 px-6 uppercase font-bold">
+                    ⚡ SCAN TICKET →
+                  </button>
+                </form>
+
+                <!-- SCANNER RESULT DISPLAY -->
+                <div id="scanner-result-box" class="hidden p-6 bg-canvas border border-accent space-y-4">
+                  <!-- Injected dynamically via JS -->
+                </div>
+              </div>
             </div>
           </div>
 
@@ -224,6 +239,67 @@ export class AdminPage {
 
     await this.fetchDashboardData();
 
+    // CAMERA QR SCANNER TOGGLE
+    const cameraBtn = document.getElementById('toggle-camera-btn');
+    if (cameraBtn) {
+      cameraBtn.addEventListener('click', async () => {
+        if (this.isScanning && this.html5QrCode) {
+          try {
+            await this.html5QrCode.stop();
+            this.html5QrCode.clear();
+          } catch (e) {}
+          this.isScanning = false;
+          cameraBtn.textContent = '▶ START CAMERA SCANNER';
+          return;
+        }
+
+        try {
+          if (window.Html5Qrcode) {
+            this.html5QrCode = new window.Html5Qrcode("reader");
+            await this.html5QrCode.start(
+              { facingMode: "environment" },
+              { fps: 10, qrbox: { width: 200, height: 200 } },
+              (decodedText) => {
+                soundFx.playBeep();
+                this.processScanCode(decodedText);
+              },
+              () => {}
+            );
+            this.isScanning = true;
+            cameraBtn.textContent = '⏹ STOP CAMERA';
+          } else {
+            toast.show('Camera scanner module loading...', 'info');
+          }
+        } catch (err) {
+          toast.show('Camera access unavailable. Point barcode scanner or scan ticket into field.', 'error');
+        }
+      });
+    }
+
+    const processScanCode = async (rawInput) => {
+      if (!rawInput) return;
+      let regId = rawInput.trim();
+      const match = rawInput.match(/GG26-[A-Z0-9]{4}/i);
+      if (match) regId = match[0];
+
+      const team = this.teams.find(t => t.reg_id.toUpperCase() === regId.toUpperCase());
+      if (team) {
+        this.renderScannerResult(team);
+      } else {
+        try {
+          const allRes = await api.getAdminTeams({ search: regId });
+          if (allRes.success && allRes.teams && allRes.teams.length) {
+            this.renderScannerResult(allRes.teams[0]);
+          } else {
+            toast.show(`Invalid QR Code scanned.`, 'error');
+          }
+        } catch (err) {
+          toast.show('Error verifying scanned QR ticket.', 'error');
+        }
+      }
+    };
+    this.processScanCode = processScanCode;
+
     // QR SCANNER FORM EVENT
     const qrForm = document.getElementById('qr-scanner-form');
     const qrInput = document.getElementById('qr-scan-input');
@@ -231,30 +307,8 @@ export class AdminPage {
       qrForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         soundFx.playClick();
-        let rawInput = qrInput.value.trim();
-
-        // Extract Reg ID if full string or URL scanned
-        let regId = rawInput;
-        const match = rawInput.match(/GG26-[A-Z0-9]{4}/i);
-        if (match) {
-          regId = match[0];
-        }
-
-        const team = this.teams.find(t => t.reg_id.toUpperCase() === regId.toUpperCase());
-        if (team) {
-          this.renderScannerResult(team);
-        } else {
-          try {
-            const allRes = await api.getAdminTeams({ search: regId });
-            if (allRes.success && allRes.teams && allRes.teams.length) {
-              this.renderScannerResult(allRes.teams[0]);
-            } else {
-              toast.show(`No registered team found matching "${regId}".`, 'error');
-            }
-          } catch (err) {
-            toast.show('Error looking up team ID.', 'error');
-          }
-        }
+        await processScanCode(qrInput.value);
+        qrInput.value = '';
       });
     }
 
