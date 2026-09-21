@@ -14,6 +14,7 @@ export class AdminPage {
     this.teams = [];
     this.logs = [];
     this.selectedTeam = null;
+    this.scannedTeam = null;
   }
 
   render() {
@@ -52,24 +53,53 @@ export class AdminPage {
               <div id="stat-total" class="font-mono text-3xl font-bold text-ink">--</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center">
+              <div class="text-[10px] text-muted uppercase">SHORTLISTED</div>
+              <div id="stat-shortlist" class="font-mono text-3xl font-bold text-accent">--</div>
+            </div>
+            <div class="tech-card p-4 border-line bg-paper text-center">
               <div class="text-[10px] text-muted uppercase">PAYMENT PENDING</div>
-              <div id="stat-pending" class="font-mono text-3xl font-bold text-accent">--</div>
+              <div id="stat-pending" class="font-mono text-3xl font-bold text-accent-dark">--</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center">
               <div class="text-[10px] text-muted uppercase">PAYMENT APPROVED</div>
               <div id="stat-approved" class="font-mono text-3xl font-bold text-success">--</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">PAYMENT REJECTED</div>
-              <div id="stat-rejected" class="font-mono text-3xl font-bold text-error">--</div>
-            </div>
-            <div class="tech-card p-4 border-line bg-paper text-center">
               <div class="text-[10px] text-muted uppercase">PPT SUBMISSIONS</div>
-              <div id="stat-ppt" class="font-mono text-3xl font-bold text-accent-dark">--</div>
+              <div id="stat-ppt" class="font-mono text-3xl font-bold text-ink">--</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">SHORTLISTED</div>
-              <div id="stat-shortlist" class="font-mono text-3xl font-bold text-success">--</div>
+              <div class="text-[10px] text-muted uppercase">ATTENDANCE ENTRY</div>
+              <div id="stat-attended" class="font-mono text-3xl font-bold text-success">--</div>
+            </div>
+          </div>
+
+          <!-- EVENT DAY ATTENDANCE & QR CODE SCANNER SECTION -->
+          <div class="tech-card p-6 md:p-8 border-accent bg-paper space-y-6 mb-12">
+            <div class="flex flex-wrap items-center justify-between border-b border-line pb-4 gap-4">
+              <div>
+                <div class="text-xs text-accent-dark font-bold">// VENUE ENTRY SCANNER</div>
+                <h2 class="font-sans text-2xl font-bold text-ink uppercase">
+                  📷 Attendance & QR Code Scanner
+                </h2>
+              </div>
+              <span class="text-xs font-mono text-muted bg-canvas px-3 py-1 border border-line">
+                Scan QR Pass or Enter Registration ID
+              </span>
+            </div>
+
+            <form id="qr-scanner-form" class="flex flex-wrap items-center gap-4">
+              <div class="flex-1 min-w-[280px]">
+                <input type="text" id="qr-scan-input" required placeholder="Scan QR Pass or type Reg ID (e.g. GG26-8F92)..." class="w-full px-4 py-3 text-xs text-ink font-mono focus:border-accent outline-none uppercase font-bold" />
+              </div>
+              <button type="submit" class="btn-primary text-xs py-3 px-6 uppercase font-bold">
+                🔍 VERIFY & SCAN TICKET →
+              </button>
+            </form>
+
+            <!-- SCANNER RESULT DISPLAY -->
+            <div id="scanner-result-box" class="hidden p-6 bg-canvas border border-accent space-y-4">
+              <!-- Injected dynamically via JS -->
             </div>
           </div>
 
@@ -89,11 +119,11 @@ export class AdminPage {
             <div class="w-40">
               <select id="admin-status-filter" class="w-full px-3 py-2 text-xs text-ink outline-none">
                 <option value="ALL">All Statuses</option>
+                <option value="UNDER_REVIEW">PPT Under Review</option>
+                <option value="SHORTLISTED">Shortlisted</option>
                 <option value="PAYMENT_PENDING">Payment Pending</option>
                 <option value="PAYMENT_APPROVED">Payment Approved</option>
-                <option value="PAYMENT_REJECTED">Payment Rejected</option>
                 <option value="PPT_SUBMITTED">PPT Submitted</option>
-                <option value="SHORTLISTED">Shortlisted</option>
               </select>
             </div>
 
@@ -110,7 +140,7 @@ export class AdminPage {
                   <th class="p-4">TEAM INTEL</th>
                   <th class="p-4">THEME</th>
                   <th class="p-4">PAYMENT / UTR</th>
-                  <th class="p-4">PPT FILE</th>
+                  <th class="p-4">PPT PITCH DECK</th>
                   <th class="p-4">STATUS</th>
                   <th class="p-4 text-right">ACTIONS</th>
                 </tr>
@@ -160,7 +190,7 @@ export class AdminPage {
                 <div>REG ID: <strong id="modal-reg-id" class="text-accent-dark">--</strong></div>
                 <div>UTR NO: <strong id="modal-utr" class="text-ink">--</strong></div>
                 <div>PAYER: <span id="modal-payer" class="text-ink">--</span></div>
-                <div>AMOUNT: <span id="modal-amount" class="text-accent-dark font-bold">₹499</span></div>
+                <div>AMOUNT: <span id="modal-amount" class="text-accent-dark font-bold">₹900</span></div>
               </div>
 
               <!-- Screenshot Viewer -->
@@ -170,16 +200,9 @@ export class AdminPage {
 
               <!-- Controls -->
               <div class="flex flex-col gap-3 pt-2">
-                <button id="modal-approve-btn" class="btn-primary w-full py-3 text-xs">
-                  ✔ APPROVE PAYMENT (UNLOCK PPT GATE)
+                <button id="modal-approve-btn" class="btn-primary w-full py-3 text-xs font-bold tracking-widest uppercase">
+                  ✔ APPROVE PAYMENT (ISSUE ATTENDANCE PASS & INVOICE) →
                 </button>
-                
-                <div class="space-y-2 pt-2 border-t border-line">
-                  <input type="text" id="modal-reject-reason" placeholder="Mandatory rejection reason if rejecting..." class="w-full px-3 py-2 text-xs text-error outline-none" />
-                  <button id="modal-reject-btn" class="btn-secondary w-full py-3 text-xs border-error text-error hover:bg-error hover:text-canvas">
-                    ❌ REJECT PAYMENT WITH REASON
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -200,6 +223,40 @@ export class AdminPage {
     }
 
     await this.fetchDashboardData();
+
+    // QR SCANNER FORM EVENT
+    const qrForm = document.getElementById('qr-scanner-form');
+    const qrInput = document.getElementById('qr-scan-input');
+    if (qrForm && qrInput) {
+      qrForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        let rawInput = qrInput.value.trim();
+
+        // Extract Reg ID if full string or URL scanned
+        let regId = rawInput;
+        const match = rawInput.match(/GG26-[A-Z0-9]{4}/i);
+        if (match) {
+          regId = match[0];
+        }
+
+        const team = this.teams.find(t => t.reg_id.toUpperCase() === regId.toUpperCase());
+        if (team) {
+          this.renderScannerResult(team);
+        } else {
+          try {
+            const allRes = await api.getAdminTeams({ search: regId });
+            if (allRes.success && allRes.teams && allRes.teams.length) {
+              this.renderScannerResult(allRes.teams[0]);
+            } else {
+              toast.show(`No registered team found matching "${regId}".`, 'error');
+            }
+          } catch (err) {
+            toast.show('Error looking up team ID.', 'error');
+          }
+        }
+      });
+    }
 
     const searchInput = document.getElementById('admin-search-input');
     const themeFilter = document.getElementById('admin-theme-filter');
@@ -253,6 +310,81 @@ export class AdminPage {
     }
   }
 
+  renderScannerResult(team) {
+    const box = document.getElementById('scanner-result-box');
+    if (!box) return;
+
+    this.scannedTeam = team;
+    const isPaid = team.payment && team.payment.status === 'APPROVED';
+    const isAttended = Boolean(team.attended);
+
+    const membersHtml = (team.members && team.members.length) ? team.members.map((m, i) => `
+      <div class="text-[11px] text-ink border-b border-line/40 py-1 flex justify-between">
+        <span><strong>0${i + 1}. ${m.name}</strong> (${m.role || 'Member'})</span>
+        <span class="text-muted">${m.phone || m.email}</span>
+      </div>
+    `).join('') : `<div class="text-[11px] text-muted">01. ${team.leader_name} (${team.leader_phone})</div>`;
+
+    box.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between border-b border-line pb-3 gap-2">
+        <div>
+          <div class="text-xs text-muted">REGISTRATION ID: <strong class="text-accent-dark font-mono text-base">${team.reg_id}</strong></div>
+          <h3 class="font-sans text-xl font-bold text-ink uppercase">${team.team_name}</h3>
+          <div class="text-xs text-muted">${team.college} // Track: ${team.theme_id}</div>
+        </div>
+
+        <div class="text-right font-mono">
+          <div class="px-3 py-1 border ${isPaid ? 'border-success text-success bg-paper' : 'border-accent text-accent-dark bg-paper'} text-xs font-bold uppercase mb-1">
+            ${isPaid ? '✔ PAYMENT VERIFIED' : '⏳ PAYMENT PENDING'}
+          </div>
+          <div class="text-[11px] ${isAttended ? 'text-success font-bold' : 'text-error font-bold'}">
+            ${isAttended ? `✔ ATTENDANCE RECORDED (${team.attended_at ? team.attended_at.split('T')[0] : 'Today'})` : '❌ NOT CHECKED IN'}
+          </div>
+        </div>
+      </div>
+
+      <div class="space-y-2 font-mono text-xs">
+        <div class="text-xs text-accent-dark font-bold uppercase">// SQUAD ROSTER DETAILS:</div>
+        <div class="bg-paper p-3 border border-line space-y-1">
+          ${membersHtml}
+        </div>
+      </div>
+
+      <div class="pt-2 flex gap-3">
+        ${!isAttended ? `
+          <button id="scanner-mark-attendance-btn" class="btn-primary w-full py-3 text-xs font-bold tracking-wider uppercase">
+            ✔ MARK ATTENDANCE & GRANT VENUE ENTRY →
+          </button>
+        ` : `
+          <div class="p-3 bg-paper border border-success text-success text-xs text-center font-bold w-full">
+            ✔ ENTRY ALREADY GRANTED // ATTENDANCE LOGGED
+          </div>
+        `}
+      </div>
+    `;
+
+    box.classList.remove('hidden');
+
+    const markBtn = document.getElementById('scanner-mark-attendance-btn');
+    if (markBtn) {
+      markBtn.addEventListener('click', async () => {
+        try {
+          const res = await api.markAttendance(team.reg_id);
+          if (res.success) {
+            soundFx.playBeep();
+            toast.show(`ENTRY GRANTED! Attendance logged for ${team.team_name}`, 'success');
+            await this.fetchDashboardData();
+            this.renderScannerResult({ ...team, attended: true, attended_at: new Date().toISOString() });
+          } else {
+            toast.show(res.message || 'Failed to mark attendance.', 'error');
+          }
+        } catch (err) {
+          toast.show('Network error marking attendance.', 'error');
+        }
+      });
+    }
+  }
+
   async fetchDashboardData() {
     try {
       const statsRes = await api.getAdminStats();
@@ -260,9 +392,9 @@ export class AdminPage {
         document.getElementById('stat-total').textContent = statsRes.stats.totalRegistrations;
         document.getElementById('stat-pending').textContent = statsRes.stats.pendingPayments;
         document.getElementById('stat-approved').textContent = statsRes.stats.approvedPayments;
-        document.getElementById('stat-rejected').textContent = statsRes.stats.rejectedPayments;
         document.getElementById('stat-ppt').textContent = statsRes.stats.pptSubmissions;
         document.getElementById('stat-shortlist').textContent = statsRes.stats.shortlisted;
+        document.getElementById('stat-attended').textContent = statsRes.stats.attendedCount || 0;
       }
       await this.fetchTeamsData();
     } catch (err) {
@@ -300,14 +432,15 @@ export class AdminPage {
 
       const payBadge = pay ? (
         pay.status === 'APPROVED' ? '<span class="text-success font-bold">✔ APPROVED</span>' :
-        pay.status === 'REJECTED' ? '<span class="text-error font-bold">❌ REJECTED</span>' :
-        '<span class="text-accent font-bold">⏳ PENDING</span>'
+        '<span class="text-accent-dark font-bold">⏳ PENDING VERIFICATION</span>'
       ) : '<span class="text-muted">NO PROOF</span>';
+
+      const attendanceBadge = team.attended ? '<span class="text-success font-bold text-[10px]">✔ ATTENDED</span>' : '';
 
       return `
         <tr class="hover:bg-canvas transition-colors">
           <td class="p-4">
-            <div class="font-bold text-ink font-sans">${team.team_name}</div>
+            <div class="font-bold text-ink font-sans">${team.team_name} ${attendanceBadge}</div>
             <div class="text-accent-dark text-[11px] font-mono">${team.reg_id} // Leader: ${team.leader_name}</div>
             <div class="text-muted text-[10px] font-sans">${team.college} (${team.member_count} Members)</div>
           </td>
@@ -331,8 +464,7 @@ export class AdminPage {
 
           <td class="p-4 font-mono text-[11px]">
             <span class="px-2 py-1 border ${
-              team.status === 'SHORTLISTED' ? 'border-accent text-accent-dark font-bold' :
-              team.status === 'REJECTED' ? 'border-error text-error' : 'border-line text-ink'
+              team.status === 'SHORTLISTED' ? 'border-accent text-accent-dark font-bold' : 'border-line text-ink'
             }">
               ${team.status}
             </span>
@@ -347,6 +479,10 @@ export class AdminPage {
 
             <button data-action="toggle-shortlist" data-reg="${team.reg_id}" data-current="${team.status}" class="px-2 py-1 border border-line text-ink hover:bg-paper text-[10px] cursor-pointer">
               ${team.status === 'SHORTLISTED' ? 'UN-SHORTLIST' : 'SHORTLIST'}
+            </button>
+
+            <button data-action="quick-scan" data-reg="${team.reg_id}" class="px-2 py-1 border border-success text-success hover:bg-success hover:text-canvas text-[10px] cursor-pointer">
+              📷 SCAN / ENTRY
             </button>
           </td>
         </tr>
@@ -363,11 +499,22 @@ export class AdminPage {
       });
     });
 
+    tbody.querySelectorAll('button[data-action="quick-scan"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const regId = btn.getAttribute('data-reg');
+        const team = this.teams.find(t => t.reg_id === regId);
+        if (team) {
+          this.renderScannerResult(team);
+          window.scrollTo({ top: 300, behavior: 'smooth' });
+        }
+      });
+    });
+
     tbody.querySelectorAll('button[data-action="toggle-shortlist"]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const regId = btn.getAttribute('data-reg');
         const current = btn.getAttribute('data-current');
-        const nextStatus = current === 'SHORTLISTED' ? 'PAYMENT_APPROVED' : 'SHORTLISTED';
+        const nextStatus = current === 'SHORTLISTED' ? 'UNDER_REVIEW' : 'SHORTLISTED';
 
         try {
           const res = await api.updateTeamStatus(regId, nextStatus);
@@ -397,37 +544,17 @@ export class AdminPage {
     modal.classList.remove('hidden');
 
     const approveBtn = document.getElementById('modal-approve-btn');
-    const rejectBtn = document.getElementById('modal-reject-btn');
-    const reasonInput = document.getElementById('modal-reject-reason');
 
     approveBtn.onclick = async () => {
       try {
         const res = await api.approvePayment(team.reg_id, team.payment.id);
         if (res.success) {
-          toast.show('Payment approved! PPT gate unlocked for team.', 'success');
+          toast.show('Payment approved! Invoice & Attendance QR Pass dispatched.', 'success');
           modal.classList.add('hidden');
           await this.fetchDashboardData();
         }
       } catch (err) {
         toast.show('Error approving payment.', 'error');
-      }
-    };
-
-    rejectBtn.onclick = async () => {
-      const reason = reasonInput.value;
-      if (!reason || !reason.trim()) {
-        toast.show('Mandatory rejection reason required.', 'error');
-        return;
-      }
-      try {
-        const res = await api.rejectPayment(team.reg_id, team.payment.id, reason);
-        if (res.success) {
-          toast.show('Payment rejected with reason.', 'info');
-          modal.classList.add('hidden');
-          await this.fetchDashboardData();
-        }
-      } catch (err) {
-        toast.show('Error rejecting payment.', 'error');
       }
     };
   }

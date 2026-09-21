@@ -1,5 +1,5 @@
 /**
- * GAMBIT'S GLITCH - 06 / TRANSMIT YOUR ENTRY (Full Team Registration, Payment & PPT Submission)
+ * GAMBIT'S GLITCH - 06 / TRANSMIT YOUR ENTRY (Registration & PPT Pitch Deck Submission)
  */
 
 import { eventConfig } from '../config/eventConfig.js';
@@ -20,13 +20,13 @@ export class RegisterPage {
           
           <!-- Header -->
           <div class="border-b border-line pb-8 mb-10">
-            <div class="text-xs text-accent-dark tracking-widest uppercase mb-2">06 / TRANSMIT YOUR ENTRY</div>
+            <div class="text-xs text-accent-dark tracking-widest uppercase mb-2">06 / TRANSMIT YOUR ENTRY — STEP 01</div>
             <h1 class="font-serif text-5xl sm:text-7xl font-normal italic text-ink">
-              Team Registration & Submission
+              Team Registration & Pitch Deck
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Register your squad, attach your payment screenshot, and upload your project presentation pitch deck. 
-              Fee: <strong class="text-accent-dark font-bold">₹300 per person</strong>. Deadline: <strong class="text-ink font-bold">05/10/2026</strong>.
+              Register your squad and upload your presentation pitch deck (.ppt, .pptx, .pdf). 
+              Our technical jury evaluates all pitch decks. <strong class="text-accent-dark font-bold">Shortlisted teams will receive an official notification email with their fee payment link.</strong>
             </p>
           </div>
 
@@ -117,9 +117,9 @@ export class RegisterPage {
                 <div class="flex items-center gap-2">
                   <span class="text-xs text-muted">SQUAD SIZE:</span>
                   <select id="member-count-select" class="px-3 py-1 text-xs text-accent-dark font-bold outline-none border border-line bg-canvas">
-                    <option value="2">2 Members (₹600)</option>
-                    <option value="3" selected>3 Members (₹900)</option>
-                    <option value="4">4 Members (₹1200)</option>
+                    <option value="2">2 Members</option>
+                    <option value="3" selected>3 Members</option>
+                    <option value="4">4 Members</option>
                   </select>
                 </div>
               </div>
@@ -130,55 +130,13 @@ export class RegisterPage {
               </div>
             </div>
 
-            <!-- SECTION 4: PAYMENT SCREENSHOT & UTR PROOF -->
+            <!-- SECTION 4: PPT PRESENTATION SUBMISSION -->
             <div class="tech-card p-6 md:p-8 border-line bg-paper space-y-6">
               <div class="flex items-center justify-between border-b border-line pb-3">
                 <h2 class="font-sans text-lg font-bold text-ink uppercase">
-                  04 / PAYMENT PROOF SCREENSHOT
+                  04 / PPT PRESENTATION SUBMISSION
                 </h2>
-                <span id="calculated-fee-badge" class="text-xs font-bold text-accent-dark bg-canvas px-3 py-1 border border-accent">
-                  TOTAL FEE: ₹900 (3 MEMBERS × ₹300)
-                </span>
-              </div>
-
-              <div class="p-4 bg-canvas border border-line text-xs space-y-2">
-                <div class="flex flex-wrap items-center justify-between gap-2">
-                  <div>UPI VPA / ID: <strong class="text-ink font-bold">${eventConfig.paymentDetails.upiId}</strong></div>
-                  <div>PAYEE: <strong class="text-ink">${eventConfig.paymentDetails.payeeName}</strong></div>
-                  <div>HOTLINE: <strong class="text-accent-dark">${eventConfig.contact.phone}</strong></div>
-                </div>
-                <div class="text-[11px] text-muted font-sans">
-                  Pay the total fee using any UPI app (GPay, PhonePe, Paytm, BHIM) and upload the clear payment receipt screenshot below along with the 12-digit UTR number.
-                </div>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label class="block text-xs text-ink mb-2">PAYMENT PROOF SCREENSHOT *</label>
-                  <input type="file" name="payment_screenshot" accept="image/jpeg,image/png,image/webp,image/heic" required class="w-full bg-canvas border border-line p-3 text-xs text-muted file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-accent file:text-ink file:font-bold file:text-xs cursor-pointer" />
-                  <div class="text-[10px] text-muted mt-1 font-sans">Upload payment receipt screenshot (JPG, PNG, WEBP).</div>
-                </div>
-
-                <div>
-                  <label class="block text-xs text-ink mb-2">12-DIGIT UTR / REFERENCE NUMBER *</label>
-                  <input type="text" name="utr_number" required pattern="[a-zA-Z0-9]{8,24}" placeholder="e.g. 202698765432" class="w-full px-4 py-3 text-xs focus:border-accent outline-none font-mono" />
-                  <div class="text-[10px] text-muted mt-1 font-sans">12-digit transaction ID from your payment receipt.</div>
-                </div>
-              </div>
-
-              <div>
-                <label class="block text-xs text-ink mb-2">PAYER NAME (NAME ON UPI ACCOUNT)</label>
-                <input type="text" name="payer_name" placeholder="Name as displayed on payment app" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
-              </div>
-            </div>
-
-            <!-- SECTION 5: PPT PRESENTATION SUBMISSION -->
-            <div class="tech-card p-6 md:p-8 border-line bg-paper space-y-6">
-              <div class="flex items-center justify-between border-b border-line pb-3">
-                <h2 class="font-sans text-lg font-bold text-ink uppercase">
-                  05 / PPT PRESENTATION SUBMISSION
-                </h2>
-                <span class="text-xs text-accent-dark font-bold">MAX FILE SIZE: 15 MB</span>
+                <span class="text-xs text-accent-dark font-bold">MANDATORY FOR JURY EVALUATION</span>
               </div>
 
               <div>
@@ -195,7 +153,7 @@ export class RegisterPage {
                 <div>
                   <label class="block text-xs text-ink mb-2">PITCH DECK PRESENTATION FILE (.PPT, .PPTX, .PDF) *</label>
                   <input type="file" name="ppt_file" accept=".ppt,.pptx,.pdf" required class="w-full bg-canvas border border-line p-3 text-xs text-muted file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-accent file:text-ink file:font-bold file:text-xs cursor-pointer" />
-                  <div class="text-[10px] text-muted mt-1 font-sans">Upload your deck file (.ppt, .pptx, or .pdf).</div>
+                  <div class="text-[10px] text-muted mt-1 font-sans">Upload your deck file (.ppt, .pptx, or .pdf - Max 15 MB).</div>
                 </div>
 
                 <div>
@@ -205,17 +163,47 @@ export class RegisterPage {
               </div>
             </div>
 
+            <!-- SECTION 5: PAYMENT PROOF (OPTIONAL AT REGISTRATION) -->
+            <div class="tech-card p-6 md:p-8 border-line bg-paper space-y-6">
+              <div class="flex items-center justify-between border-b border-line pb-3">
+                <h2 class="font-sans text-lg font-bold text-ink uppercase">
+                  05 / FEE PAYMENT PROOF (OPTIONAL AT REGISTRATION)
+                </h2>
+                <span id="calculated-fee-badge" class="text-xs font-bold text-accent-dark bg-canvas px-3 py-1 border border-accent">
+                  FEE: ₹300 / PERSON (AFTER SHORTLISTING)
+                </span>
+              </div>
+
+              <div class="p-4 bg-canvas border border-line text-xs space-y-2">
+                <div class="text-[11px] text-muted font-sans">
+                  ℹ️ Fee payment (₹300/person) is required <strong>only after your team is shortlisted by the jury</strong>. If you have already completed payment via UPI, you may attach your receipt screenshot and 12-digit UTR number below now.
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label class="block text-xs text-ink mb-2">PAYMENT PROOF SCREENSHOT (IF PAID NOW)</label>
+                  <input type="file" name="payment_screenshot" accept="image/jpeg,image/png,image/webp,image/heic" class="w-full bg-canvas border border-line p-3 text-xs text-muted file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-accent file:text-ink file:font-bold file:text-xs cursor-pointer" />
+                </div>
+
+                <div>
+                  <label class="block text-xs text-ink mb-2">12-DIGIT UTR / REFERENCE NUMBER (IF PAID NOW)</label>
+                  <input type="text" name="utr_number" pattern="[a-zA-Z0-9]{8,24}" placeholder="e.g. 202698765432" class="w-full px-4 py-3 text-xs focus:border-accent outline-none font-mono" />
+                </div>
+              </div>
+            </div>
+
             <!-- SECTION 6: CODE OF CONDUCT & SUBMIT -->
             <div class="tech-card p-6 border-line bg-paper space-y-4">
               <label class="flex items-start gap-3 cursor-pointer text-xs text-muted font-sans">
                 <input type="checkbox" name="rules_agreed" required class="mt-1 accent-accent" />
                 <span>
-                  I confirm that all team members are enrolled students and agree to abide by the <strong class="text-ink">Gambit’s Glitch Rules and Code of Conduct</strong>. I have attached the payment proof screenshot and PPT presentation file.
+                  I confirm that all team members are enrolled students and agree to abide by the <strong class="text-ink">Gambit’s Glitch Rules and Code of Conduct</strong>.
                 </span>
               </label>
 
               <button type="submit" id="submit-reg-btn" class="nav-link btn-primary w-full py-4 text-xs font-bold tracking-widest uppercase">
-                ⚡ COMPLETE REGISTRATION & SUBMIT ENTRY →
+                ⚡ SUBMIT SQUAD REGISTRATION & PITCH DECK →
               </button>
             </div>
 
@@ -237,7 +225,7 @@ export class RegisterPage {
               </div>
 
               <p class="text-xs text-muted leading-relaxed font-sans">
-                Team registration, payment screenshot, and PPT pitch deck have been submitted successfully. Admin review is underway.
+                Team registration and PPT presentation pitch deck have been submitted successfully. Our technical jury is evaluating all pitch decks. If shortlisted, you will receive an official email with your fee payment link!
               </p>
 
               <div class="flex flex-col gap-3 pt-2">
@@ -263,7 +251,7 @@ export class RegisterPage {
       const totalFee = totalMembers * feePerPerson;
 
       if (feeBadge) {
-        feeBadge.textContent = `TOTAL FEE: ₹${totalFee} (${totalMembers} MEMBERS × ₹${feePerPerson})`;
+        feeBadge.textContent = `FEE: ₹${totalFee} (${totalMembers} MEMBERS × ₹${feePerPerson})`;
       }
 
       const extraCount = totalMembers - 1;
@@ -308,7 +296,7 @@ export class RegisterPage {
 
         const submitBtn = document.getElementById('submit-reg-btn');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `TRANSMITTING REGISTRATION, PAYMENT & PPT...`;
+        submitBtn.innerHTML = `TRANSMITTING REGISTRATION & PITCH DECK...`;
 
         const formData = new FormData(form);
         const memberCount = parseInt(selectEl.value);
@@ -331,7 +319,7 @@ export class RegisterPage {
           const res = await api.registerTeam(formData);
           if (res.success) {
             soundFx.playGlitch();
-            toast.show(`Registration & Submission successful! ID: ${res.reg_id}`, 'success');
+            toast.show(`Registration successful! ID: ${res.reg_id}`, 'success');
             
             sessionStorage.setItem('last_reg_id', res.reg_id);
 
@@ -350,15 +338,14 @@ export class RegisterPage {
           } else {
             toast.show(res.message || 'Registration failed.', 'error');
             submitBtn.disabled = false;
-            submitBtn.innerHTML = `⚡ COMPLETE REGISTRATION & SUBMIT ENTRY →`;
+            submitBtn.innerHTML = `⚡ SUBMIT SQUAD REGISTRATION & PITCH DECK →`;
           }
         } catch (err) {
           toast.show('Network error submitting registration.', 'error');
           submitBtn.disabled = false;
-          submitBtn.innerHTML = `⚡ COMPLETE REGISTRATION & SUBMIT ENTRY →`;
+          submitBtn.innerHTML = `⚡ SUBMIT SQUAD REGISTRATION & PITCH DECK →`;
         }
       });
     }
   }
 }
-

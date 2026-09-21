@@ -243,6 +243,27 @@ export const dbAdapter = {
     }
   },
 
+  async markAttendance(regId, markedBy = 'Admin') {
+    if (this.isSupabase) {
+      const { data } = await supabase.from('teams').update({
+        attended: true,
+        attended_at: new Date().toISOString(),
+        attended_by: markedBy
+      }).eq('reg_id', regId).select().single();
+      return data;
+    } else {
+      const store = loadLocalStore();
+      const team = store.teams.find(t => t.reg_id.toUpperCase() === regId.toUpperCase());
+      if (team) {
+        team.attended = true;
+        team.attended_at = new Date().toISOString();
+        team.attended_by = markedBy;
+        saveLocalStore(store);
+      }
+      return team;
+    }
+  },
+
   // Payments CRUD
   async createPayment(paymentData) {
     if (this.isSupabase) {

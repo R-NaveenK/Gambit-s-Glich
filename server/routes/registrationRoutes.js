@@ -3,7 +3,7 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { dbAdapter } from '../db/dbAdapter.js';
-import { sendRegistrationConfirmation } from '../services/emailService.js';
+import { sendRegistrationConfirmation, sendPaymentInvoiceEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -78,6 +78,17 @@ router.post('/', regUpload, async (req, res) => {
       return res.status(400).json({ success: false, message: 'You must agree to the event rules and code of conduct.' });
     }
 
+    const paymentFile = req.files && req.files['payment_screenshot'] ? req.files['payment_screenshot'][0] : null;
+    const pptFile = req.files && req.files['ppt_file'] ? req.files['ppt_file'][0] : null;
+
+    // STEP 1 REQUIREMENT: Pitch Deck PPT presentation file + title + summary are mandatory for registration!
+    if (!pptFile || !project_title || !project_title.trim() || !summary || !summary.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Registration requirement: Presentation pitch deck file (.ppt, .pptx, .pdf), project title, and summary must be submitted for jury evaluation.'
+      });
+    }
+
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(leader_email)) {
@@ -120,7 +131,7 @@ router.post('/', regUpload, async (req, res) => {
       leader_email: leader_email.trim().toLowerCase(),
       leader_phone: leader_phone.trim(),
       member_count: memberArray.length + 1,
-      status: 'PAYMENT_PENDING',
+      status: 'UNDER_REVIEW',
       rules_agreed: true
     };
 
@@ -141,12 +152,8 @@ router.post('/', regUpload, async (req, res) => {
 
     const createdTeam = await dbAdapter.createTeam(teamData, teamMembersData);
 
-    // Send Registration Confirmation Email
-    sendRegistrationConfirmation(createdTeam, teamMembersData).catch(err => console.error('Registration email dispatch error:', err));
-
-    // Process Payment Screenshot if attached
+    // Process Payment Screenshot & Record if attached
     let paymentRecord = null;
-    const paymentFile = req.files && req.files['payment_screenshot'] ? req.files['payment_screenshot'][0] : null;
     if (paymentFile && utr_number) {
       const screenshotUrl = `/uploads/${paymentFile.filename}`;
       paymentRecord = await dbAdapter.createPayment({
@@ -159,24 +166,26 @@ router.post('/', regUpload, async (req, res) => {
       });
     }
 
-    // Process PPT Pitch Deck if attached
-    let pptRecord = null;
-    const pptFile = req.files && req.files['ppt_file'] ? req.files['ppt_file'][0] : null;
-    if (pptFile && project_title) {
-      pptRecord = await dbAdapter.upsertPptSubmission({
-        team_id: createdTeam.id,
-        project_title: project_title.trim(),
-        summary: (summary || 'Submitted during team registration').trim(),
-        file_url: `/uploads/${pptFile.filename}`,
-        original_filename: pptFile.originalname,
-        repo_link: repo_link ? repo_link.trim() : '',
-        demo_link: demo_link ? demo_link.trim() : ''
-      });
+    // Process PPT Pitch Deck
+    const pptRecord = await dbAdapter.upsertPptSubmission({
+      team_id: createdTeam.id,
+      project_title: project_title.trim(),
+      summary: (summary || 'Submitted during team registration').trim(),
+      file_url: `/uploads/${pptFile.filename}`,
+      original_filename: pptFile.originalname,
+      repo_link: repo_link ? repo_link.trim() : '',
+      demo_link: demo_link ? demo_link.trim() : ''
+    });
+
+    // Send Initial Registration Confirmation Email
+    sendRegistrationConfirmation(createdTeam, teamMembersData, pptRecord).catch(err => console.error('Registration email dispatch error:', err));
+    if (paymentRecord) {
+      sendPaymentInvoiceEmail(createdTeam, paymentRecord, pptRecord, teamMembersData).catch(err => console.error('Invoice email dispatch error:', err));
     }
 
     return res.status(201).json({
       success: true,
-      message: 'Team successfully registered!',
+      message: 'Team successfully registered with Payment & PPT pitch deck!',
       reg_id: regId,
       team: createdTeam,
       payment: paymentRecord,
@@ -190,4 +199,5 @@ router.post('/', regUpload, async (req, res) => {
 });
 
 export default router;
+
 

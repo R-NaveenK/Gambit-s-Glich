@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { dbAdapter } from '../db/dbAdapter.js';
-import { sendShortlistedEmail } from '../services/emailService.js';
+import { sendShortlistedEmail, sendPaymentInvoiceEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -16,22 +16,22 @@ router.get('/dashboard', async (req, res) => {
     let totalRegistrations = teams.length;
     let pendingPayments = 0;
     let approvedPayments = 0;
-    let rejectedPayments = 0;
     let pptSubmissions = 0;
     let shortlisted = 0;
+    let attendedCount = 0;
 
     for (const t of teams) {
       const fullTeam = await dbAdapter.getTeamByRegId(t.reg_id);
       if (fullTeam.payment) {
-        if (fullTeam.payment.status === 'PENDING') pendingPayments++;
-        else if (fullTeam.payment.status === 'APPROVED') approvedPayments++;
-        else if (fullTeam.payment.status === 'REJECTED') rejectedPayments++;
+        if (fullTeam.payment.status === 'APPROVED') approvedPayments++;
+        else pendingPayments++;
       } else {
         pendingPayments++;
       }
 
       if (fullTeam.ppt) pptSubmissions++;
       if (fullTeam.status === 'SHORTLISTED') shortlisted++;
+      if (fullTeam.attended) attendedCount++;
     }
 
     return res.json({
@@ -40,9 +40,9 @@ router.get('/dashboard', async (req, res) => {
         totalRegistrations,
         pendingPayments,
         approvedPayments,
-        rejectedPayments,
         pptSubmissions,
-        shortlisted
+        shortlisted,
+        attendedCount
       }
     });
   } catch (err) {
@@ -114,7 +114,12 @@ router.post('/payment/approve', async (req, res) => {
     const updatedPayment = await dbAdapter.updatePaymentStatus(paymentId, 'APPROVED', null, req.user.email);
     await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_APPROVED', targetTeam ? targetTeam.reg_id : reg_id, `Payment approved for payment ID ${paymentId}`);
 
-    return res.json({ success: true, message: 'Payment approved successfully! PPT submission unlocked for team.', payment: updatedPayment });
+    if (targetTeam) {
+      const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
+      sendPaymentInvoiceEmail(fullTeam, updatedPayment, fullTeam.ppt, fullTeam.members || []).catch(err => console.error('Approved payment invoice dispatch error:', err));
+    }
+
+    return res.json({ success: true, message: 'Payment approved successfully! Official payment invoice with squad member list dispatched to team.', payment: updatedPayment });
   } catch (err) {
     console.error('Payment approval error:', err);
     return res.status(500).json({ success: false, message: 'Payment approval failed.' });
@@ -175,21 +180,47 @@ router.post('/team/update-status', async (req, res) => {
     } else if (team_id) {
       const allTeams = await dbAdapter.getAllTeams();
       targetTeam = allTeams.find(t => t.id === team_id);
-      if (targetTeam) targetRegId = targetTeam.reg_id;
+      if (targetTeam) {
+        targetTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
+        targetRegId = targetTeam.reg_id;
+      }
     }
 
     await dbAdapter.updateTeamStatus(targetTeamId, new_status);
     await dbAdapter.logAdminAction(req.user.email, `TEAM_STATUS_${new_status}`, targetRegId, `Status changed to ${new_status}`);
 
-    // Trigger Shortlisted Email with WhatsApp link if team is shortlisted
+    // Trigger Shortlisted Email with Attendance QR code & payment link if team is shortlisted
     if (new_status === 'SHORTLISTED' && targetTeam) {
-      sendShortlistedEmail(targetTeam).catch(err => console.error('Shortlist email dispatch error:', err));
+      sendShortlistedEmail(targetTeam, targetTeam.members || []).catch(err => console.error('Shortlist email dispatch error:', err));
     }
 
     return res.json({ success: true, message: `Team status updated to ${new_status}.` });
   } catch (err) {
     console.error('Update status error:', err);
     return res.status(500).json({ success: false, message: 'Failed to update team status.' });
+  }
+});
+
+// 6. Mark Event Day Entry Attendance
+router.post('/team/mark-attendance', async (req, res) => {
+  try {
+    const { reg_id } = req.body;
+    if (!reg_id) return res.status(400).json({ success: false, message: 'Registration ID is required.' });
+
+    const team = await dbAdapter.getTeamByRegId(reg_id.trim());
+    if (!team) return res.status(404).json({ success: false, message: `No registered team found with ID: ${reg_id}` });
+
+    const updated = await dbAdapter.markAttendance(team.reg_id, req.user ? req.user.email : 'Admin');
+    await dbAdapter.logAdminAction(req.user ? req.user.email : 'Admin', 'ATTENDANCE_MARKED', team.reg_id, `Attendance entry granted for team ${team.team_name}`);
+
+    return res.json({
+      success: true,
+      message: `✔ ENTRY GRANTED! Attendance logged for Team ${team.team_name} (${team.reg_id}).`,
+      team: updated
+    });
+  } catch (err) {
+    console.error('Mark attendance error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to mark attendance.' });
   }
 });
 
