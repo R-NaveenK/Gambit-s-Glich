@@ -74,33 +74,55 @@ export class AdminPage {
             </div>
           </div>
 
-          <!-- EVENT DAY UNIFIED ATTENDANCE & QR CODE SCANNER SECTION -->
-          <div class="tech-card p-6 md:p-8 border-accent bg-paper space-y-6 mb-12 max-w-3xl mx-auto">
+          <!-- VENUE CHECK-IN SCANNER LAUNCH TRIGGER BANNER -->
+          <div class="tech-card p-6 border-accent bg-paper mb-12 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <div class="text-xs text-accent-dark font-bold font-mono">// VENUE ENTRY SYSTEM</div>
+              <h2 class="font-sans text-xl sm:text-2xl font-bold text-ink uppercase">
+                Event Day Attendance Check-In
+              </h2>
+              <p class="text-xs text-muted font-mono mt-0.5">
+                Click Verify & Scan Ticket to launch live camera scanner or barcode reader.
+              </p>
+            </div>
+            <button type="button" id="open-scanner-box-btn" class="btn-primary py-3.5 px-8 text-xs uppercase font-bold tracking-widest cursor-pointer shadow-md flex items-center gap-2">
+              📷 VERIFY & SCAN TICKET PASS →
+            </button>
+          </div>
+
+          <!-- COLLAPSIBLE SCANNER CONTAINER (Appears when Verify & Scan clicked) -->
+          <div id="scanner-drawer-container" class="hidden tech-card p-6 md:p-8 border-2 border-accent bg-paper space-y-6 mb-12 max-w-3xl mx-auto shadow-2xl relative">
             <div class="flex flex-wrap items-center justify-between border-b border-line pb-4 gap-4">
               <div>
-                <div class="text-xs text-accent-dark font-bold">// VENUE CHECK-IN SYSTEM</div>
+                <div class="text-xs text-accent-dark font-bold">// VENUE CHECK-IN SCANNER ACTIVE</div>
                 <h2 class="font-sans text-2xl font-bold text-ink uppercase">
-                  📷 Official Venue QR Pass Scanner
+                  📷 Official QR Pass Scanner
                 </h2>
               </div>
-              <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2.5 px-5 uppercase font-bold cursor-pointer flex items-center gap-2">
-                <span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span>
-                ▶ START LIVE CAMERA
-              </button>
+              
+              <div class="flex items-center gap-3">
+                <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2 px-4 uppercase font-bold cursor-pointer flex items-center gap-2">
+                  <span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span>
+                  ▶ START LIVE CAMERA
+                </button>
+                <button type="button" id="close-scanner-box-btn" class="btn-secondary text-xs py-2 px-3 border-line text-ink hover:border-accent cursor-pointer font-bold">
+                  ✕ CLOSE SCANNER
+                </button>
+              </div>
             </div>
 
             <!-- UNIFIED SCANNER VIEWPORT -->
             <div class="space-y-4">
-              <div id="reader-container" class="relative bg-canvas border-2 border-accent p-4 min-h-[220px] flex flex-col items-center justify-center text-center">
+              <div id="reader-container" class="relative bg-canvas border-2 border-accent p-4 min-h-[200px] flex flex-col items-center justify-center text-center">
                 <div id="reader" class="w-full max-w-md mx-auto"></div>
                 
                 <div id="camera-placeholder" class="py-4 space-y-2">
                   <div class="text-4xl text-accent-dark">📷</div>
                   <div class="text-xs font-mono font-bold text-ink uppercase tracking-wider">
-                    SCANNER ACTIVE // HOLD QR TICKET TO CAMERA OR BARCODE SCANNER
+                    SCANNER READY // HOLD QR TICKET PASS TO CAMERA OR SCANNER
                   </div>
                   <div class="text-[11px] text-muted font-mono">
-                    Point participant's QR pass or trigger handheld scanner below
+                    Point ticket pass at camera or trigger handheld barcode scanner below
                   </div>
                 </div>
               </div>
@@ -109,7 +131,7 @@ export class AdminPage {
               <form id="qr-scanner-form" class="flex flex-wrap items-center gap-2 bg-canvas p-2 border border-accent">
                 <div class="flex-1 flex items-center px-3 gap-2">
                   <span class="text-accent-dark text-xs font-mono font-bold">⚡ SCAN:</span>
-                  <input type="text" id="qr-scan-input" autofocus placeholder="Point scanner or scan pass here..." class="w-full py-2 text-xs text-ink font-mono bg-transparent focus:outline-none uppercase font-bold" />
+                  <input type="text" id="qr-scan-input" placeholder="Point scanner or scan ticket pass here..." class="w-full py-2 text-xs text-ink font-mono bg-transparent focus:outline-none uppercase font-bold" />
                 </div>
                 <button type="submit" class="btn-primary text-xs py-2.5 px-6 uppercase font-bold">
                   VERIFY TICKET →
@@ -242,7 +264,34 @@ export class AdminPage {
       });
     }
 
-    await this.fetchDashboardData();
+    // SCANNER DRAWER SHOW / HIDE TOGGLE
+    const openScannerBtn = document.getElementById('open-scanner-box-btn');
+    const closeScannerBtn = document.getElementById('close-scanner-box-btn');
+    const scannerDrawer = document.getElementById('scanner-drawer-container');
+    const qrInput = document.getElementById('qr-scan-input');
+
+    if (openScannerBtn && scannerDrawer) {
+      openScannerBtn.addEventListener('click', () => {
+        soundFx.playClick();
+        scannerDrawer.classList.remove('hidden');
+        scannerDrawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (qrInput) setTimeout(() => qrInput.focus(), 100);
+      });
+    }
+
+    if (closeScannerBtn && scannerDrawer) {
+      closeScannerBtn.addEventListener('click', async () => {
+        soundFx.playClick();
+        scannerDrawer.classList.add('hidden');
+        if (this.isScanning && this.html5QrCode) {
+          try {
+            await this.html5QrCode.stop();
+            this.html5QrCode.clear();
+          } catch (e) {}
+          this.isScanning = false;
+        }
+      });
+    }
 
     // CAMERA QR SCANNER TOGGLE
     const cameraBtn = document.getElementById('toggle-camera-btn');
@@ -311,7 +360,6 @@ export class AdminPage {
 
     // QR SCANNER FORM EVENT
     const qrForm = document.getElementById('qr-scanner-form');
-    const qrInput = document.getElementById('qr-scan-input');
     if (qrForm && qrInput) {
       qrForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -567,6 +615,8 @@ export class AdminPage {
         const regId = btn.getAttribute('data-reg');
         const team = this.teams.find(t => t.reg_id === regId);
         if (team) {
+          const drawer = document.getElementById('scanner-drawer-container');
+          if (drawer) drawer.classList.remove('hidden');
           this.renderScannerResult(team);
           window.scrollTo({ top: 300, behavior: 'smooth' });
         }
