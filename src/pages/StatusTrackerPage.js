@@ -161,6 +161,27 @@ export class StatusTrackerPage {
         </div>
       </div>
 
+      <!-- Shortlisted Team Payment Banner Callout -->
+      ${isShortlisted && !isPaymentApproved ? `
+        <div class="tech-card p-6 border-2 border-accent bg-paper space-y-4 shadow-md">
+          <div class="text-xs text-accent-dark font-bold font-mono">// OFFICIAL SHORTLIST ANNOUNCEMENT</div>
+          <h3 class="font-sans text-2xl font-bold text-ink uppercase">
+            🎉 CONGRATULATIONS! TEAM ${data.team_name} HAS BEEN SHORTLISTED!
+          </h3>
+          <p class="text-xs text-ink font-sans leading-relaxed">
+            Your project pitch deck has been selected by our jury panel for the grand finals at <strong>Auditorium, VSBCETC</strong>! Please complete your team fee payment to lock your slot and receive your official Attendance QR pass.
+          </p>
+          <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-3.5 px-6 inline-block font-mono font-bold tracking-widest uppercase cursor-pointer">
+            💳 TEAM SHORTLISTED! PROCEED TO PAYMENT PORTAL →
+          </a>
+        </div>
+      ` : !isShortlisted && !isPaymentApproved ? `
+        <div class="tech-card p-4 border border-line bg-paper text-xs font-sans text-muted space-y-1">
+          <div class="font-bold text-ink">ℹ️ STATUS: JURY REVIEW IN PROGRESS</div>
+          <p>Pitch decks are currently being evaluated by the technical jury. Once your team is <strong>SHORTLISTED</strong> by the organizers, the payment portal will unlock for your team.</p>
+        </div>
+      ` : ''}
+
       <!-- Payment Detail Box -->
       <div class="tech-card p-6 border-line bg-paper space-y-4">
         <h3 class="font-sans text-lg font-bold text-ink uppercase border-b border-line pb-2">
@@ -188,10 +209,12 @@ export class StatusTrackerPage {
 
         ` : `
           <div class="text-xs text-muted space-y-3 font-sans">
-            <p>No payment proof submitted yet for this team.</p>
-            <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
-              SUBMIT PAYMENT PROOF NOW →
-            </a>
+            <p>${isShortlisted ? 'Your team is shortlisted! Submit your payment screenshot below to obtain entry pass.' : 'No payment proof submitted yet for this team. Payment unlocks upon shortlisting.'}</p>
+            ${isShortlisted ? `
+              <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
+                SUBMIT PAYMENT PROOF NOW →
+              </a>
+            ` : ''}
           </div>
         `}
       </div>

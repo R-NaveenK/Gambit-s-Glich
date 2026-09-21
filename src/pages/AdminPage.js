@@ -258,6 +258,16 @@ export class AdminPage {
   }
 
   async attachEvents() {
+    if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer);
+
+    // Fetch initial dashboard data on page load
+    await this.fetchDashboardData();
+
+    // Auto-refresh stats and team status live every 5 seconds
+    this.autoRefreshTimer = setInterval(() => {
+      this.fetchDashboardData(true);
+    }, 5000);
+
     const refreshBtn = document.getElementById('admin-refresh-btn');
     if (refreshBtn) {
       refreshBtn.addEventListener('click', async () => {
@@ -271,6 +281,7 @@ export class AdminPage {
     const logoutBtn = document.getElementById('admin-logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', () => {
+        if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer);
         api.clearToken();
         toast.show('Logged out.', 'info');
         this.navigate('login');
@@ -509,20 +520,36 @@ export class AdminPage {
     }
   }
 
-  async fetchDashboardData() {
+  async fetchDashboardData(silent = false) {
     try {
+      const searchInput = document.getElementById('admin-search-input');
+      const themeFilter = document.getElementById('admin-theme-filter');
+      const statusFilter = document.getElementById('admin-status-filter');
+
+      const filters = {};
+      if (searchInput && searchInput.value) filters.search = searchInput.value;
+      if (themeFilter && themeFilter.value !== 'ALL') filters.theme = themeFilter.value;
+      if (statusFilter && statusFilter.value !== 'ALL') filters.status = statusFilter.value;
+
       const [statsRes, teamsRes] = await Promise.all([
         api.getAdminStats(),
-        api.getAdminTeams()
+        api.getAdminTeams(filters)
       ]);
 
       if (statsRes.success && statsRes.stats) {
-        document.getElementById('stat-total').textContent = statsRes.stats.totalRegistrations;
-        document.getElementById('stat-pending').textContent = statsRes.stats.pendingPayments;
-        document.getElementById('stat-approved').textContent = statsRes.stats.approvedPayments;
-        document.getElementById('stat-ppt').textContent = statsRes.stats.pptSubmissions;
-        document.getElementById('stat-shortlist').textContent = statsRes.stats.shortlisted;
-        document.getElementById('stat-attended').textContent = statsRes.stats.attendedCount || 0;
+        const totalEl = document.getElementById('stat-total');
+        const pendingEl = document.getElementById('stat-pending');
+        const approvedEl = document.getElementById('stat-approved');
+        const pptEl = document.getElementById('stat-ppt');
+        const shortlistEl = document.getElementById('stat-shortlist');
+        const attendedEl = document.getElementById('stat-attended');
+
+        if (totalEl) totalEl.textContent = statsRes.stats.totalRegistrations;
+        if (pendingEl) pendingEl.textContent = statsRes.stats.pendingPayments;
+        if (approvedEl) approvedEl.textContent = statsRes.stats.approvedPayments;
+        if (pptEl) pptEl.textContent = statsRes.stats.pptSubmissions;
+        if (shortlistEl) shortlistEl.textContent = statsRes.stats.shortlisted;
+        if (attendedEl) attendedEl.textContent = statsRes.stats.attendedCount || 0;
       }
 
       if (teamsRes.success) {
@@ -530,7 +557,7 @@ export class AdminPage {
         this.renderTeamsTable(this.teams);
       }
     } catch (err) {
-      toast.show('Error loading dashboard statistics.', 'error');
+      if (!silent) toast.show('Error loading dashboard statistics.', 'error');
     }
   }
 

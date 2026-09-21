@@ -28,8 +28,9 @@ export const eventConfig = {
   venue: {
     type: "ON-SITE",
     name: "AUDITORIUM",
-    city: "COIMBATORE, INDIA",
-    address: "Auditorium, Coimbatore, Tamil Nadu, India",
+    city: "VSBCETC",
+    address: "Auditorium, VSBCETC",
+    location: "Auditorium, VSBCETC",
     mapLink: "https://maps.google.com",
   },
 
@@ -121,7 +122,7 @@ export const eventConfig = {
       date: "OCTOBER 07, 2026",
       time: "06:00 PM IST",
       status: "UPCOMING",
-      details: "Selected finalist teams announced for the physical 10-hour hackathon at Auditorium, Coimbatore."
+      details: "Selected finalist teams announced for the physical 10-hour hackathon at Auditorium, VSBCETC."
     },
     {
       phase: "04",
@@ -129,7 +130,7 @@ export const eventConfig = {
       date: "OCTOBER 10, 2026",
       time: "09:00 AM IST",
       status: "UPCOMING",
-      details: "10-hour continuous build sprint begins at Auditorium, Coimbatore. Live check-ins and mentor guidance."
+      details: "10-hour continuous build sprint begins at Auditorium, VSBCETC. Live check-ins and mentor guidance."
     },
     {
       phase: "05",
@@ -192,7 +193,7 @@ export const eventConfig = {
     {
       id: "faq-1",
       question: "What is Gambit's Glitch and who can participate?",
-      answer: "Gambit's Glitch is a high-intensity 10-hour hackathon taking place at Auditorium, Coimbatore on October 10, 2026. Any college student can register a team of 2 to 4 members."
+      answer: "Gambit's Glitch is a high-intensity 10-hour hackathon taking place at Auditorium, VSBCETC on October 10, 2026. Any college student can register a team of 2 to 4 members."
     },
     {
       id: "faq-2",
@@ -220,7 +221,7 @@ export const eventConfig = {
   contact: {
     email: "ecell.vsbcetc@gmail.com",
     phone: "+91 8438765412 / +91 9791919289",
-    location: "Auditorium, Coimbatore, India",
+    location: "Auditorium, VSBCETC",
     socials: {}
   }
 };

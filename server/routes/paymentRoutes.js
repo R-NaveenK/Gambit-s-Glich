@@ -59,6 +59,16 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
       return res.status(404).json({ success: false, message: `No registered team found with Registration ID: "${reg_id}". Please check your ID.` });
     }
 
+    // Shortlist Gating Check: Only SHORTLISTED teams are permitted to submit payment
+    const allowedStatuses = ['SHORTLISTED', 'PAYMENT_PENDING', 'PAYMENT_APPROVED'];
+    if (!allowedStatuses.includes(team.status)) {
+      return res.status(403).json({
+        success: false,
+        message: `Payment is locked for team ${team.reg_id}. The payment portal unlocks only after your team has been SHORTLISTED by the organizers. Current Status: ${team.status}.`,
+        isLocked: true
+      });
+    }
+
     // Check for duplicate UTR number submission across all payments
     const sanitizedUtr = utr_number.trim();
     const existingPaymentWithUtr = await dbAdapter.getPaymentByUtr(sanitizedUtr);
