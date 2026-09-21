@@ -4,6 +4,7 @@
  * The percentage describes intro progress, not network/download progress.
  */
 import gsap from 'gsap';
+import { playFrameSkipTransition } from '../utils/frameSkipTransition.js';
 import '../styles/loader.css';
 
 const TAU = Math.PI * 2;
@@ -241,6 +242,7 @@ export class Loader {
   finish(immediate = false) {
     if (this.finished) return;
     this.finished = true;
+    this.timeline?.pause();
     this.timeline?.kill();
     cancelAnimationFrame(this.frameId);
     window.removeEventListener('resize', this.handleResize);
@@ -249,7 +251,7 @@ export class Loader {
     try { sessionStorage.setItem(KEY, 'true'); } catch { /* Storage is optional. */ }
     if (this.container) this.container.dataset.phase = 'handoff';
 
-    const cleanup = () => {
+    const cleanUpLoader = () => {
       this.container?.remove();
       document.documentElement.classList.remove('gg-intro-active');
       document.body.classList.remove('gg-intro-active');
@@ -257,10 +259,16 @@ export class Loader {
         this.app.inert = this.appWasInert;
       }
     };
-    try { this.notify(); }
-    finally {
-      if (immediate || !this.container || this.motionQuery.matches) cleanup();
-      else setTimeout(cleanup, 400);
+
+    if (immediate || !this.container || this.motionQuery.matches) {
+      this.notify();
+      cleanUpLoader();
+    } else {
+      playFrameSkipTransition({
+        container: this.container,
+        onMountHomepage: () => this.notify(),
+        onComplete: () => cleanUpLoader(),
+      });
     }
   }
 }
