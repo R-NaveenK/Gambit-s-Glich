@@ -4,7 +4,7 @@ import 'dotenv/config';
 const APP_BASE_URL = process.env.APP_BASE_URL || 'https://gambit-s-glich.onrender.com';
 const WHATSAPP_LINK = process.env.WHATSAPP_GROUP_URL || 'https://chat.whatsapp.com/Iox0gxqKgnSGgMTkYZZXwj';
 const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '587', 10);
+const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || `"GAMBIT'S GLITCH 2026" <${process.env.ADMIN_EMAIL || 'admin@gambitsglitch.tech'}>`;
@@ -12,18 +12,19 @@ const EMAIL_FROM = process.env.EMAIL_FROM || `"GAMBIT'S GLITCH 2026" <${process.
 // Initialize Nodemailer Transporter if SMTP credentials exist
 let transporter = null;
 if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+  const isSecure = SMTP_PORT === 465;
   try {
     transporter = nodemailer.createTransport({
       host: SMTP_HOST,
       port: SMTP_PORT,
-      secure: SMTP_PORT === 465,
+      secure: isSecure,
       auth: {
         user: SMTP_USER,
         pass: SMTP_PASS
       },
-      connectionTimeout: 15000, // 15s timeout for cloud servers (Render.com)
-      greetingTimeout: 10000,   // 10s greeting timeout
-      socketTimeout: 15000,     // 15s socket timeout
+      connectionTimeout: 15000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
       tls: {
         rejectUnauthorized: false
       }
@@ -33,7 +34,7 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
       if (error) {
         console.warn(`⚠️ SMTP Connection Note (${SMTP_HOST}:${SMTP_PORT}):`, error.message);
       } else {
-        console.log(`✉️ Email Service initialized & verified with SMTP (${SMTP_HOST}:${SMTP_PORT})`);
+        console.log(`✉️ Email Service initialized & verified with SMTP (${SMTP_HOST}:${SMTP_PORT} ${isSecure ? 'SSL' : 'STARTTLS'})`);
       }
     });
   } catch (err) {
