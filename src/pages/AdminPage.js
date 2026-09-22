@@ -30,23 +30,23 @@ export class AdminPage {
           <!-- Top Bar -->
           <div class="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6 mb-8">
             <div>
-              <div class="text-xs text-accent-dark tracking-widest uppercase font-bold">[ADMIN CONTROL PANEL]</div>
+              <div class="text-xs text-accent-dark tracking-widest uppercase font-bold font-mono">[ADMIN CONTROL PANEL]</div>
               <h1 class="font-sans text-3xl sm:text-5xl font-extrabold uppercase text-ink">
                 GAMBIT’S GLITCH DASHBOARD
               </h1>
             </div>
 
-            <div class="flex items-center gap-3">
-              <button id="admin-refresh-btn" class="btn-primary text-xs py-2 px-4 uppercase font-bold cursor-pointer">
-                🔄 REFRESH DATA
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+              <button id="admin-refresh-btn" class="btn-primary text-xs py-2.5 px-4 font-mono font-bold uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer">
+                <span>🔄</span> REFRESH DATA
               </button>
-              <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2 px-4 border-accent text-accent-dark hover:bg-accent hover:text-ink">
-                📥 EXPORT DATA CSV
+              <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2.5 px-4 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all flex items-center gap-2">
+                <span>📥</span> EXPORT DATA CSV
               </a>
-              <button id="admin-clear-btn" class="btn-secondary text-xs py-2 px-3 border-error text-error hover:bg-error hover:text-white cursor-pointer font-bold">
-                🧹 CLEAR ALL DATA
+              <button id="admin-clear-btn" class="btn-secondary text-xs py-2.5 px-3 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer">
+                <span>🧹</span> CLEAR ALL DATA
               </button>
-              <button id="admin-logout-btn" class="btn-secondary text-xs py-2 px-3 border-line text-error hover:border-error">
+              <button id="admin-logout-btn" class="btn-secondary text-xs py-2.5 px-3 border border-line text-muted font-mono font-bold uppercase tracking-wider hover:border-error hover:text-error transition-all cursor-pointer">
                 LOGOUT
               </button>
             </div>
@@ -54,28 +54,28 @@ export class AdminPage {
 
           <!-- OVERVIEW STATS GRID -->
           <div id="admin-stats-grid" class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-10">
-            <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">TOTAL TEAMS</div>
+            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">TOTAL TEAMS</div>
               <div id="stat-total" class="font-mono text-3xl font-bold text-ink">--</div>
             </div>
-            <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">SHORTLISTED</div>
+            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">SHORTLISTED</div>
               <div id="stat-shortlist" class="font-mono text-3xl font-bold text-accent">--</div>
             </div>
-            <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">PAYMENT PENDING</div>
+            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">PAYMENT PENDING</div>
               <div id="stat-pending" class="font-mono text-3xl font-bold text-accent-dark">--</div>
             </div>
-            <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">PAYMENT APPROVED</div>
+            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">PAYMENT APPROVED</div>
               <div id="stat-approved" class="font-mono text-3xl font-bold text-success">--</div>
             </div>
-            <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">PPT SUBMISSIONS</div>
+            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">PPT SUBMISSIONS</div>
               <div id="stat-ppt" class="font-mono text-3xl font-bold text-ink">--</div>
             </div>
-            <div class="tech-card p-4 border-line bg-paper text-center">
-              <div class="text-[10px] text-muted uppercase">ATTENDANCE ENTRY</div>
+            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">ATTENDANCE ENTRY</div>
               <div id="stat-attended" class="font-mono text-3xl font-bold text-success">--</div>
             </div>
           </div>
@@ -96,9 +96,9 @@ export class AdminPage {
                 Click Verify & Scan Ticket to launch live camera scanner or barcode reader.
               </p>
             </div>
-            <button type="button" id="open-scanner-box-btn" class="btn-primary py-3.5 px-8 text-xs uppercase font-extrabold tracking-widest cursor-pointer shadow-lg bg-ink hover:bg-accent hover:text-ink text-inverse-text border-2 border-accent transition-all flex items-center gap-3 group">
+            <button type="button" id="open-scanner-box-btn" class="btn-primary py-3 px-6 text-xs uppercase font-mono font-extrabold tracking-widest cursor-pointer shadow-md bg-ink hover:bg-accent hover:text-ink text-inverse-text border border-accent transition-all flex items-center gap-2.5 group">
               <span>📷 VERIFY & SCAN TICKET PASS</span>
-              <span class="text-accent group-hover:text-ink group-hover:translate-x-1 transition-all text-sm font-bold">→</span>
+              <span class="text-accent group-hover:text-ink group-hover:translate-x-0.5 transition-all text-sm font-bold">→</span>
             </button>
           </div>
 
@@ -106,18 +106,18 @@ export class AdminPage {
           <div id="scanner-drawer-container" class="hidden tech-card p-6 md:p-8 border-2 border-accent bg-paper space-y-6 mb-12 max-w-3xl mx-auto shadow-2xl relative">
             <div class="flex flex-wrap items-center justify-between border-b border-line pb-4 gap-4">
               <div>
-                <div class="text-xs text-accent-dark font-bold">// VENUE CHECK-IN SCANNER ACTIVE</div>
+                <div class="text-xs text-accent-dark font-bold font-mono">// VENUE CHECK-IN SCANNER ACTIVE</div>
                 <h2 class="font-sans text-2xl font-bold text-ink uppercase">
                   📷 Official QR Pass Scanner
                 </h2>
               </div>
               
               <div class="flex items-center gap-3">
-                <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2 px-4 uppercase font-bold cursor-pointer flex items-center gap-2">
+                <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2 px-4 uppercase font-mono font-bold cursor-pointer flex items-center gap-2">
                   <span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span>
                   ▶ START LIVE CAMERA
                 </button>
-                <button type="button" id="close-scanner-box-btn" class="btn-secondary text-xs py-2 px-3 border-line text-ink hover:border-accent cursor-pointer font-bold">
+                <button type="button" id="close-scanner-box-btn" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent cursor-pointer font-mono font-bold">
                   ✕ CLOSE SCANNER
                 </button>
               </div>
@@ -145,7 +145,7 @@ export class AdminPage {
                   <span class="text-accent-dark text-xs font-mono font-bold">⚡ SCAN:</span>
                   <input type="text" id="qr-scan-input" placeholder="Point scanner or scan ticket pass here..." class="w-full py-2 text-xs text-ink font-mono bg-transparent focus:outline-none uppercase font-bold" />
                 </div>
-                <button type="submit" class="btn-primary text-xs py-2.5 px-6 uppercase font-bold">
+                <button type="submit" class="btn-primary text-xs py-2.5 px-6 font-mono uppercase font-bold cursor-pointer">
                   VERIFY TICKET →
                 </button>
               </form>
@@ -156,45 +156,22 @@ export class AdminPage {
               <!-- Injected dynamically via JS -->
             </div>
           </div>
-          <!-- EMAIL DIAGNOSTICS & TEST DISPATCH BOX -->
-          <div class="tech-card p-6 border-line bg-paper mb-8">
-            <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b border-line pb-3">
-              <div>
-                <div class="text-xs text-accent-dark font-bold font-mono">// SMTP & EMAIL DISPATCH DIAGNOSTICS</div>
-                <h2 class="font-sans text-xl font-bold text-ink uppercase">
-                  ✉️ Email Service Verification & Test Sender
-                </h2>
-              </div>
-              <div class="text-xs text-muted font-mono">
-                Verify Nodemailer SMTP Relay Delivery Status
-              </div>
-            </div>
-
-            <form id="admin-test-email-form" class="flex flex-wrap items-center gap-3">
-              <div class="flex-1 min-w-[240px]">
-                <input type="email" id="test-email-input" required placeholder="Enter recipient email address..." value="gambitsglitch@gmail.com" class="w-full px-4 py-2.5 text-xs text-ink font-mono bg-canvas border border-line focus:border-accent outline-none" />
-              </div>
-              <button type="submit" id="send-test-email-btn" class="btn-primary py-2.5 px-6 text-xs uppercase font-bold tracking-wider cursor-pointer">
-                ✉️ SEND TEST EMAIL →
-              </button>
-            </form>
-          </div>
 
           <!-- SEARCH & FILTER BAR -->
-          <div class="tech-card p-4 border-line bg-paper flex flex-wrap items-center gap-4 mb-8">
+          <div class="tech-card p-4 border border-line bg-paper flex flex-wrap items-center gap-4 mb-8 shadow-xs">
             <div class="flex-1 min-w-[220px]">
-              <input type="text" id="admin-search-input" placeholder="Search by Team Name, ID, Leader Email, UTR..." class="w-full px-3 py-2 text-xs text-ink focus:border-accent outline-none" />
+              <input type="text" id="admin-search-input" placeholder="Search by Team Name, ID, Leader Email, UTR..." class="w-full px-3 py-2 text-xs text-ink font-mono focus:border-accent outline-none bg-canvas border border-line" />
             </div>
 
             <div class="w-40">
-              <select id="admin-theme-filter" class="w-full px-3 py-2 text-xs text-ink outline-none">
+              <select id="admin-theme-filter" class="w-full px-3 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
                 <option value="ALL">All Themes</option>
                 ${eventConfig.themes.map(t => `<option value="${t.id}">${t.number}. ${t.name}</option>`).join('')}
               </select>
             </div>
 
             <div class="w-40">
-              <select id="admin-status-filter" class="w-full px-3 py-2 text-xs text-ink outline-none">
+              <select id="admin-status-filter" class="w-full px-3 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
                 <option value="ALL">All Statuses</option>
                 <option value="UNDER_REVIEW">PPT Under Review</option>
                 <option value="SHORTLISTED">Shortlisted</option>
@@ -204,7 +181,7 @@ export class AdminPage {
               </select>
             </div>
 
-            <button id="admin-filter-reset" class="btn-secondary text-xs py-2 px-3">
+            <button id="admin-filter-reset" class="btn-secondary text-xs py-2 px-4 font-mono font-bold uppercase tracking-wider border border-line hover:border-accent hover:text-accent-dark transition-all cursor-pointer">
               RESET FILTERS
             </button>
           </div>
@@ -286,13 +263,13 @@ export class AdminPage {
 
           <!-- PPT PREVIEW MODAL -->
           <div id="ppt-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-4">
-            <div class="tech-card p-6 border-accent bg-paper max-w-4xl w-full space-y-4 max-h-[95vh] overflow-y-auto shadow-2xl">
+            <div class="tech-card p-6 border-2 border-accent bg-paper max-w-4xl w-full space-y-4 max-h-[95vh] overflow-y-auto shadow-2xl">
               <div class="flex items-center justify-between border-b border-line pb-3">
                 <div>
                   <div class="text-xs text-accent-dark font-bold font-mono">// PPT PITCH DECK PREVIEW & INTEL</div>
                   <h2 class="font-sans text-xl font-bold text-ink uppercase" id="ppt-modal-team-title">PITCH DECK PREVIEW</h2>
                 </div>
-                <button id="close-ppt-modal-btn" class="text-ink hover:text-accent text-xl font-bold p-2 cursor-pointer">✕</button>
+                <button id="close-ppt-modal-btn" class="text-ink hover:text-accent text-xl font-bold p-2 cursor-pointer transition-colors">✕</button>
               </div>
 
               <!-- Metadata Grid -->
@@ -313,26 +290,32 @@ export class AdminPage {
                 </div>
               </div>
 
-              <!-- Interactive Document Viewer Frame -->
+              <!-- Interactive Document Viewer Frame & Toolbar -->
               <div class="space-y-2">
-                <div class="flex items-center justify-between text-xs font-mono">
-                  <span class="text-accent-dark font-bold">// DOCUMENT PREVIEW VIEWPORT:</span>
-                  <a id="ppt-modal-direct-link" href="#" target="_blank" download class="text-ink hover:text-accent font-bold underline text-[11px]">
+                <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono border-b border-line pb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="text-accent-dark font-bold">// PREVIEW ENGINE:</span>
+                    <button type="button" id="ppt-view-direct-btn" class="px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer">Native View</button>
+                    <button type="button" id="ppt-view-ms-btn" class="px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer">Office Embed</button>
+                    <button type="button" id="ppt-view-gdocs-btn" class="px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer">Google Docs</button>
+                  </div>
+                  <a id="ppt-modal-direct-link" href="#" target="_blank" download class="btn-primary py-1 px-3.5 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
                     📥 Download Original File
                   </a>
                 </div>
-                <div class="relative border-2 border-accent bg-canvas min-h-[350px] flex flex-col items-center justify-center">
-                  <iframe id="ppt-modal-iframe" class="ppt-preview-frame hidden" src="" frameborder="0"></iframe>
+                
+                <div class="relative border-2 border-accent bg-canvas min-h-[420px] flex flex-col items-center justify-center">
+                  <iframe id="ppt-modal-iframe" class="ppt-preview-frame w-full h-[500px] hidden" src="" frameborder="0" allowfullscreen></iframe>
                   <div id="ppt-modal-fallback" class="p-8 text-center space-y-3">
                     <div class="text-4xl text-accent-dark">📊</div>
                     <div class="text-xs font-mono font-bold text-ink uppercase" id="ppt-fallback-text">
                       Presentation Document Ready
                     </div>
                     <div class="flex items-center justify-center gap-3">
-                      <a id="ppt-fallback-open-btn" href="#" target="_blank" class="btn-primary text-xs py-2 px-5 uppercase font-bold">
+                      <a id="ppt-fallback-open-btn" href="#" target="_blank" class="btn-primary text-xs py-2 px-5 font-mono uppercase font-bold">
                         🔗 Open Document in New Tab
                       </a>
-                      <a id="ppt-fallback-download-btn" href="#" download class="btn-secondary text-xs py-2 px-5 uppercase font-bold border-line">
+                      <a id="ppt-fallback-download-btn" href="#" download class="btn-secondary text-xs py-2 px-5 font-mono uppercase font-bold border border-line hover:border-accent">
                         📥 Download File
                       </a>
                     </div>
@@ -343,7 +326,7 @@ export class AdminPage {
               <!-- Controls -->
               <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
                 <div class="text-xs font-mono text-muted" id="ppt-modal-submitted-at">Submitted at: --</div>
-                <button id="ppt-modal-close-bottom-btn" class="btn-secondary py-2 px-6 text-xs font-bold uppercase cursor-pointer">
+                <button id="ppt-modal-close-bottom-btn" class="btn-secondary py-2 px-6 text-xs font-mono font-bold uppercase border border-line hover:border-accent cursor-pointer">
                   CLOSE PREVIEW
                 </button>
               </div>
@@ -566,36 +549,6 @@ export class AdminPage {
           }
         } catch (err) {
           toast.show('Failed to post announcement.', 'error');
-        }
-      });
-    }
-
-    const testEmailForm = document.getElementById('admin-test-email-form');
-    if (testEmailForm) {
-      testEmailForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const emailInput = document.getElementById('test-email-input');
-        const sendBtn = document.getElementById('send-test-email-btn');
-        if (!emailInput || !emailInput.value) return;
-
-        const targetEmail = emailInput.value.trim();
-        const origText = sendBtn.innerHTML;
-        sendBtn.disabled = true;
-        sendBtn.innerHTML = '⏳ TRANSMITTING...';
-
-        try {
-          const res = await api.testEmail(targetEmail);
-          if (res.success) {
-            toast.show(res.message || `Test email sent successfully to ${targetEmail}`, 'success');
-            soundFx.playBeep();
-          } else {
-            toast.show(res.message || 'Failed to send test email.', 'error');
-          }
-        } catch (err) {
-          toast.show('Error executing test email dispatch.', 'error');
-        } finally {
-          sendBtn.disabled = false;
-          sendBtn.innerHTML = origText;
         }
       });
     }
@@ -880,6 +833,11 @@ export class AdminPage {
     if (!modal || !team.ppt) return;
 
     const ppt = team.ppt;
+    const fileUrl = ppt.file_url || '';
+    const fullUrl = fileUrl.startsWith('http') ? fileUrl : (window.location.origin + fileUrl);
+    const lowerFilename = (ppt.original_filename || fileUrl || '').toLowerCase();
+    const isPdf = lowerFilename.endsWith('.pdf') || lowerFilename.includes('.pdf');
+
     document.getElementById('ppt-modal-team-title').textContent = `PITCH DECK PREVIEW: ${team.team_name}`;
     document.getElementById('ppt-modal-reg-id').textContent = team.reg_id;
     document.getElementById('ppt-modal-theme').textContent = team.theme_id;
@@ -893,17 +851,17 @@ export class AdminPage {
     if (linksBox) {
       const links = [];
       if (ppt.repo_link) {
-        links.push(`<a href="${ppt.repo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline">💻 Repository: ${ppt.repo_link}</a>`);
+        links.push(`<a href="${ppt.repo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">💻 Repository: ${ppt.repo_link}</a>`);
       }
       if (ppt.demo_link) {
-        links.push(`<a href="${ppt.demo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline">🚀 Demo Link: ${ppt.demo_link}</a>`);
+        links.push(`<a href="${ppt.demo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">🚀 Demo Link: ${ppt.demo_link}</a>`);
       }
       linksBox.innerHTML = links.join(' | ') || '<span class="text-muted">No external links provided.</span>';
     }
 
     const directLink = document.getElementById('ppt-modal-direct-link');
     if (directLink) {
-      directLink.href = ppt.file_url;
+      directLink.href = fullUrl;
     }
 
     const iframe = document.getElementById('ppt-modal-iframe');
@@ -912,28 +870,52 @@ export class AdminPage {
     const fallbackDownload = document.getElementById('ppt-fallback-download-btn');
     const fallbackText = document.getElementById('ppt-fallback-text');
 
-    if (fallbackOpen) fallbackOpen.href = ppt.file_url;
-    if (fallbackDownload) fallbackDownload.href = ppt.file_url;
+    if (fallbackOpen) fallbackOpen.href = fullUrl;
+    if (fallbackDownload) fallbackDownload.href = fullUrl;
 
-    const fileUrl = ppt.file_url;
-    const lowerUrl = (fileUrl || '').toLowerCase();
-    const isPdf = lowerUrl.endsWith('.pdf') || lowerUrl.includes('pdf');
+    const msEmbedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fullUrl)}`;
+    const googleEmbedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true`;
 
     if (isPdf) {
-      iframe.src = fileUrl;
+      iframe.src = fullUrl;
       iframe.classList.remove('hidden');
       if (fallbackBox) fallbackBox.classList.add('hidden');
-    } else if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
-      const embedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
-      iframe.src = embedUrl;
+    } else if (fullUrl.startsWith('https://') || fullUrl.startsWith('http://')) {
+      iframe.src = msEmbedUrl;
       iframe.classList.remove('hidden');
       if (fallbackBox) fallbackBox.classList.add('hidden');
     } else {
       if (iframe) iframe.classList.add('hidden');
       if (fallbackBox) {
         fallbackBox.classList.remove('hidden');
-        if (fallbackText) fallbackText.textContent = `PITCH DECK (${ppt.original_filename}) READY FOR VIEWING`;
+        if (fallbackText) fallbackText.textContent = `PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW`;
       }
+    }
+
+    const msBtn = document.getElementById('ppt-view-ms-btn');
+    const gDocsBtn = document.getElementById('ppt-view-gdocs-btn');
+    const directViewBtn = document.getElementById('ppt-view-direct-btn');
+
+    if (msBtn) {
+      msBtn.onclick = () => {
+        iframe.src = msEmbedUrl;
+        iframe.classList.remove('hidden');
+        if (fallbackBox) fallbackBox.classList.add('hidden');
+      };
+    }
+    if (gDocsBtn) {
+      gDocsBtn.onclick = () => {
+        iframe.src = googleEmbedUrl;
+        iframe.classList.remove('hidden');
+        if (fallbackBox) fallbackBox.classList.add('hidden');
+      };
+    }
+    if (directViewBtn) {
+      directViewBtn.onclick = () => {
+        iframe.src = fullUrl;
+        iframe.classList.remove('hidden');
+        if (fallbackBox) fallbackBox.classList.add('hidden');
+      };
     }
 
     modal.classList.remove('hidden');
