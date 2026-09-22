@@ -14,11 +14,15 @@ const SMTP_PASS = process.env.SMTP_PASS;
 const EMAIL_FROM = process.env.EMAIL_FROM || `"GAMBIT'S GLITCH 2026" <${process.env.SMTP_USER || 'ba3a11001@smtp-brevo.com'}>`;
 const EMAIL_REPLY_TO = process.env.EMAIL_REPLY_TO || `"GAMBIT'S GLITCH 2026" <${process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com'}>`;
 
-// Initialize Nodemailer Transporter if SMTP credentials exist
+// Check for Brevo REST API Key or SMTP credentials
+const BREVO_API_KEY = process.env.BREVO_API_KEY || (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith('xkeysib-') ? process.env.SMTP_PASS : null);
+
 let transporter = null;
 let isTransporterVerified = false;
 
-if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+if (BREVO_API_KEY) {
+  console.log(`✉️ Email Service initialized & ready with Brevo REST API v3 (HTTPS Port 443).`);
+} else if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
   const isSecure = SMTP_PORT === 465;
   try {
     transporter = nodemailer.createTransport({
@@ -29,9 +33,9 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
         user: SMTP_USER,
         pass: SMTP_PASS
       },
-      connectionTimeout: 15000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      connectionTimeout: 8000,
+      greetingTimeout: 5000,
+      socketTimeout: 8000,
       tls: {
         rejectUnauthorized: false
       }
@@ -51,7 +55,7 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
     console.warn(`⚠️ Email Service transport initialization error:`, err.message);
   }
 } else {
-  console.log(`ℹ️ Email Service running in Preview Mode (Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env to send live emails).`);
+  console.log(`ℹ️ Email Service running in Preview Mode (Set BREVO_API_KEY in .env to send live emails).`);
 }
 
 /**
