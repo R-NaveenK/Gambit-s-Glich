@@ -55,12 +55,12 @@ async function clearData() {
       const supabase = createClient(supabaseUrl, serviceKey);
       console.log('📡 Connecting to Supabase to clear remote database tables...');
 
-      await supabase.from('ppt_submissions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('payments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('teams').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('announcements').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('audit_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('ppt_submissions').delete().not('id', 'is', null);
+      await supabase.from('payments').delete().not('id', 'is', null);
+      await supabase.from('team_members').delete().not('id', 'is', null);
+      await supabase.from('teams').delete().not('id', 'is', null);
+      await supabase.from('announcements').delete().not('id', 'is', null);
+      await supabase.from('audit_logs').delete().not('id', 'is', null);
 
       console.log('✅ Supabase remote database tables cleared successfully.');
     } catch (err) {

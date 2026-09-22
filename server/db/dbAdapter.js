@@ -365,11 +365,11 @@ export const dbAdapter = {
   async clearAllData() {
     if (this.isSupabase) {
       console.log('🧹 Clearing all test data from Supabase PostgreSQL database...');
-      await supabase.from('admin_logs').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('ppt_submissions').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('payments').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('team_members').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-      await supabase.from('teams').delete().neq('id', '00000000-0000-0000-0000-000000000000');
+      await supabase.from('admin_logs').delete().not('id', 'is', null);
+      await supabase.from('ppt_submissions').delete().not('id', 'is', null);
+      await supabase.from('payments').delete().not('id', 'is', null);
+      await supabase.from('team_members').delete().not('id', 'is', null);
+      await supabase.from('teams').delete().not('id', 'is', null);
       console.log('✅ Supabase database cleared successfully.');
     }
 
