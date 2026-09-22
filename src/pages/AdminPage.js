@@ -81,18 +81,24 @@ export class AdminPage {
           </div>
 
           <!-- VENUE CHECK-IN SCANNER LAUNCH TRIGGER BANNER -->
-          <div class="tech-card p-6 border-accent bg-paper mb-12 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <div class="text-xs text-accent-dark font-bold font-mono">// VENUE ENTRY SYSTEM</div>
-              <h2 class="font-sans text-xl sm:text-2xl font-bold text-ink uppercase">
-                Event Day Attendance Check-In
+          <div class="tech-card p-6 border-2 border-accent/40 bg-paper mb-8 flex flex-wrap items-center justify-between gap-6 shadow-sm hover:border-accent transition-all">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs text-accent-dark font-bold font-mono">// VENUE ENTRY & TICKET CHECK-IN</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-accent/15 border border-accent text-accent-dark text-[10px] font-bold font-mono uppercase">
+                  <span class="w-1.5 h-1.5 rounded-full bg-success animate-ping"></span> LIVE SCANNER READY
+                </span>
+              </div>
+              <h2 class="font-sans text-xl sm:text-2xl font-extrabold text-ink uppercase tracking-tight">
+                📷 Event Day Attendance Pass Scanner
               </h2>
-              <p class="text-xs text-muted font-mono mt-0.5">
+              <p class="text-xs text-muted font-mono">
                 Click Verify & Scan Ticket to launch live camera scanner or barcode reader.
               </p>
             </div>
-            <button type="button" id="open-scanner-box-btn" class="btn-primary py-3.5 px-8 text-xs uppercase font-bold tracking-widest cursor-pointer shadow-md flex items-center gap-2">
-              📷 VERIFY & SCAN TICKET PASS →
+            <button type="button" id="open-scanner-box-btn" class="btn-primary py-3.5 px-8 text-xs uppercase font-extrabold tracking-widest cursor-pointer shadow-lg bg-ink hover:bg-accent hover:text-ink text-inverse-text border-2 border-accent transition-all flex items-center gap-3 group">
+              <span>📷 VERIFY & SCAN TICKET PASS</span>
+              <span class="text-accent group-hover:text-ink group-hover:translate-x-1 transition-all text-sm font-bold">→</span>
             </button>
           </div>
 
@@ -149,6 +155,7 @@ export class AdminPage {
             <div id="scanner-result-box" class="hidden p-6 bg-canvas border-2 border-accent space-y-4">
               <!-- Injected dynamically via JS -->
             </div>
+          </div>
           <!-- EMAIL DIAGNOSTICS & TEST DISPATCH BOX -->
           <div class="tech-card p-6 border-line bg-paper mb-8">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b border-line pb-3">
@@ -684,6 +691,13 @@ export class AdminPage {
         api.getAdminStats(),
         api.getAdminTeams(filters)
       ]);
+
+      if (statsRes.unauthorized || teamsRes.unauthorized) {
+        if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer);
+        toast.show('Admin session expired. Please log in again.', 'info');
+        this.navigate('login');
+        return;
+      }
 
       if (statsRes.success && statsRes.stats) {
         const totalEl = document.getElementById('stat-total');

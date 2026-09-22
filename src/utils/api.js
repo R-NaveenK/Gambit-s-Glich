@@ -71,6 +71,10 @@ export const api = {
     const res = await fetch(`${BASE_URL}/admin/dashboard`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    if (res.status === 401) {
+      this.clearToken();
+      return { success: false, unauthorized: true, message: 'Admin session expired.' };
+    }
     return res.json();
   },
 
@@ -80,6 +84,10 @@ export const api = {
     const res = await fetch(`${BASE_URL}/admin/teams?${query}`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
+    if (res.status === 401) {
+      this.clearToken();
+      return { success: false, unauthorized: true, message: 'Admin session expired.' };
+    }
     return res.json();
   },
 
