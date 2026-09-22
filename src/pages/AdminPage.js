@@ -43,6 +43,9 @@ export class AdminPage {
               <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2 px-4 border-accent text-accent-dark hover:bg-accent hover:text-ink">
                 📥 EXPORT DATA CSV
               </a>
+              <button id="admin-clear-btn" class="btn-secondary text-xs py-2 px-3 border-error text-error hover:bg-error hover:text-white cursor-pointer font-bold">
+                🧹 CLEAR ALL DATA
+              </button>
               <button id="admin-logout-btn" class="btn-secondary text-xs py-2 px-3 border-line text-error hover:border-error">
                 LOGOUT
               </button>
@@ -297,6 +300,23 @@ export class AdminPage {
         toast.show('Refreshing admin teams database...', 'info');
         await this.fetchDashboardData();
         toast.show('Dashboard data updated!', 'success');
+      });
+    }
+
+    const clearBtn = document.getElementById('admin-clear-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', async () => {
+        soundFx.playClick();
+        const confirmed = confirm("⚠️ ARE YOU SURE?\nThis will permanently delete all registered teams, payments, PPT submissions, and attendance logs from the database!");
+        if (!confirmed) return;
+        toast.show('Clearing database...', 'info');
+        const res = await api.clearAllData();
+        if (res.success) {
+          toast.show('Database wiped clean successfully!', 'success');
+          await this.fetchDashboardData();
+        } else {
+          toast.show(res.message || 'Failed to clear database.', 'error');
+        }
       });
     }
 
