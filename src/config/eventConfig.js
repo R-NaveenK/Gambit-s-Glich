@@ -106,7 +106,7 @@ export const eventConfig = {
       date: "SEPTEMBER 20, 2026",
       time: "09:00 AM IST",
       status: "ACTIVE",
-      details: "Team registration opens. Form your squad of 2–4 members, upload your payment screenshot & PPT presentation, and select your track."
+      details: "Team registration opens. Form your squad of 2–4 members and select your hackathon track. Initial registration is free."
     },
     {
       phase: "02",
@@ -114,15 +114,15 @@ export const eventConfig = {
       date: "OCTOBER 05, 2026",
       time: "11:59 PM IST",
       status: "UPCOMING",
-      details: "Final date for team registration, payment screenshot verification, and pitch deck PPT submission."
+      details: "Final date for team registration and pitch deck PPT submission via the Submit PPT portal."
     },
     {
       phase: "03",
-      title: "SHORTLIST ANNOUNCEMENT",
+      title: "SHORTLIST ANNOUNCEMENT & PAYMENT GATEWAY OPEN",
       date: "OCTOBER 07, 2026",
       time: "06:00 PM IST",
       status: "UPCOMING",
-      details: "Selected finalist teams announced for the physical 10-hour hackathon at Auditorium, VSBCETC."
+      details: "Selected finalist teams announced. Payment portal unlocks for shortlisted teams to process ₹300/person fee."
     },
     {
       phase: "04",
@@ -155,15 +155,17 @@ export const eventConfig = {
     {
       category: "FEE & PAYMENT POLICY",
       items: [
-        "Registration fee is ₹300 per person (e.g., 2 members = ₹600, 3 members = ₹900, 4 members = ₹1200).",
-        "A clear screenshot of the payment receipt showing the 12-digit UTR/Reference number must be submitted during registration.",
+        "Registration fee is ₹300 per person (e.g., 2 members = ₹600, 3 members = ₹900, 4 members = ₹1,200).",
+        "Initial registration is free. Payment is processed via the Payment Portal once shortlisted teams are announced.",
+        "Entering your Team Registration ID in the Payment Portal automatically fetches your squad size and calculates your total fee.",
+        "A clear payment receipt screenshot showing the 12-digit UTR/Reference number must be uploaded for verification.",
         "Registration fees are non-refundable once payment verification is confirmed by the organizers."
       ]
     },
     {
       category: "PPT SUBMISSION GUIDELINES",
       items: [
-        "A presentation pitch deck (.ppt, .pptx, or .pdf) must be submitted during registration.",
+        "A presentation pitch deck (.ppt, .pptx, or .pdf) can be uploaded and updated anytime via the Submit PPT page.",
         "Maximum file size permitted is 15 MB.",
         "The deck should clearly outline the problem statement, proposed technical solution, architecture, and tech stack."
       ]
@@ -197,21 +199,31 @@ export const eventConfig = {
     },
     {
       id: "faq-2",
-      question: "What is the registration fee and deadline?",
-      answer: "The registration fee is ₹300 per person (e.g. ₹900 for a 3-member team). The deadline for registration, payment screenshot, and PPT submission is 05/10/2026."
+      question: "What is the registration fee and how is it calculated?",
+      answer: "The registration fee is ₹300 per person. When you enter your Team Registration ID in the Payment Portal, the system auto-calculates your exact team fee based on your member count (e.g., ₹600 for 2 members, ₹900 for 3 members, ₹1,200 for 4 members)."
     },
     {
       id: "faq-3",
-      question: "How do I submit the payment screenshot and PPT?",
-      answer: "Both the payment screenshot (with 12-digit UTR number) and your PPT pitch deck (.ppt, .pptx, .pdf) can be uploaded directly within the Team Registration form on this website."
+      question: "How and when do I pay the registration fee and submit our PPT?",
+      answer: "Initial team registration is completely free! You can upload your project PPT pitch deck anytime on the 'Submit PPT' page. Once shortlisted teams are officially announced, the Payment Portal opens. Shortlisted teams enter their Team ID on the Payment Portal, pay via UPI, and submit their 12-digit UTR reference number."
     },
     {
       id: "faq-4",
-      question: "What are the 5 hackathon tracks?",
-      answer: "The 5 tracks are: Health care, Agriculture, Fintech, Cybersecurity, and Education. Teams select their preferred track during registration."
+      question: "Why does the Payment Portal show 'PAYMENT SUBMISSION NOT YET OPEN' or locked status?",
+      answer: "The Payment Portal is controlled by organizers and remains locked until team shortlisting is completed. Only shortlisted teams are eligible to process payment once administrators unlock the portal."
     },
     {
       id: "faq-5",
+      question: "What are the 5 hackathon tracks?",
+      answer: "The 5 tracks are: Health care, Agriculture, Fintech, Cybersecurity, and Education. Teams select their preferred track during initial registration."
+    },
+    {
+      id: "faq-6",
+      question: "How do we receive our official Event Day Attendance Pass?",
+      answer: "Once your payment screenshot and 12-digit UTR reference number are verified by organizers in the Admin Control Panel, your official QR Attendance Pass & Invoice are automatically issued and linked to your Team Registration ID."
+    },
+    {
+      id: "faq-7",
       question: "Who can I contact for queries?",
       answer: "You can email us at ecell.vsbcetc@gmail.com or call our hotline numbers +91 8438765412 / +91 9791919289."
     }

@@ -26,16 +26,12 @@ export class PaymentPage {
               Payment Verification
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Pay ₹300 per person via UPI, upload your payment screenshot, and provide the 12-digit UTR/Reference number for manual verification.
+              Enter your Team Registration ID to auto-fetch squad details and calculate your total team payment fee (₹300 per member).
             </p>
           </div>
 
           <!-- Gate Locked Container -->
           <div id="payment-gate-locked-card" class="hidden tech-card p-8 sm:p-12 border-2 border-accent/60 bg-paper text-center space-y-6 max-w-2xl mx-auto my-8 shadow-xl">
-            <div class="inline-flex items-center justify-center w-14 h-14 bg-accent/20 text-accent-dark border-2 border-accent text-xl font-bold font-mono">
-              GATE
-            </div>
-            
             <div>
               <div class="text-xs text-accent-dark font-bold font-mono uppercase tracking-widest mb-1">// PAYMENT PORTAL GATE STATUS: LOCKED</div>
               <h2 class="font-sans text-2xl sm:text-3xl font-extrabold text-ink uppercase">Payment Submission Not Yet Open</h2>
@@ -48,7 +44,7 @@ export class PaymentPage {
 
             <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
               <button id="gate-view-status-btn" type="button" class="btn-primary py-3 px-8 text-xs font-mono font-bold uppercase tracking-wider cursor-pointer">
-                CHECK SHORTLIST STATUS →
+                CHECK SHORTLIST STATUS
               </button>
             </div>
           </div>
@@ -62,9 +58,12 @@ export class PaymentPage {
                 <div class="text-xs text-accent-dark font-bold font-mono">// UPI PAYMENT INTEL</div>
                 
                 <div class="p-4 bg-canvas border border-line text-center space-y-2">
-                  <div class="text-[11px] text-muted font-mono">REGISTRATION FEE</div>
-                  <div class="font-mono text-3xl font-bold text-accent">₹300 / PER PERSON</div>
-                  <div class="text-[10px] text-muted font-mono">INCLUDES 10-HOUR ACCESS, MEALS & MERCH</div>
+                  <div class="text-[11px] text-muted font-mono">REGISTRATION RATE</div>
+                  <div class="font-mono text-2xl font-bold text-accent">₹300 / PER PERSON</div>
+                  <div id="upi-calculated-total" class="text-xs text-accent-dark font-bold font-mono border-t border-line/60 pt-2 mt-1">
+                    TOTAL: AUTO-CALCULATED ON ID FETCH
+                  </div>
+                  <div class="text-[10px] text-muted font-mono">INCLUDES ACCESS, MEALS & EVENT MERCH</div>
                 </div>
 
                 <div class="space-y-2 text-xs font-mono">
@@ -78,7 +77,7 @@ export class PaymentPage {
 
                 <div class="p-6 bg-canvas border border-line flex flex-col items-center justify-center text-center space-y-2">
                   <div class="w-32 h-32 bg-paper border border-line flex items-center justify-center text-accent font-mono font-bold text-xs p-2">
-                    [UPI QR CODE PLACEHOLDER]
+                    [UPI QR CODE]
                   </div>
                   <div class="text-[10px] text-muted font-mono">SCAN WITH ANY UPI APP (GPAY, PHONEPE, PAYTM)</div>
                 </div>
@@ -102,8 +101,36 @@ export class PaymentPage {
 
                 <div>
                   <label class="block text-xs text-ink mb-2 font-mono">TEAM REGISTRATION ID *</label>
-                  <input type="text" name="reg_id" required value="${defaultRegId}" placeholder="e.g. GG26-8F92" class="w-full px-4 py-3 text-xs text-accent-dark font-bold tracking-wider focus:border-accent outline-none uppercase font-mono" />
-                  <div class="text-[10px] text-muted mt-1 font-sans">Found in your registration success modal or status check.</div>
+                  <div class="flex gap-2">
+                    <input type="text" id="pay-reg-id-input" name="reg_id" required value="${defaultRegId}" placeholder="e.g. GG26-8F92" class="w-full px-4 py-3 text-xs text-accent-dark font-bold tracking-wider focus:border-accent outline-none uppercase font-mono bg-canvas border border-line" />
+                    <button type="button" id="fetch-team-btn" class="btn-secondary px-4 py-3 text-xs font-mono font-bold uppercase tracking-wider border border-accent text-accent-dark hover:bg-accent hover:text-ink transition-all cursor-pointer whitespace-nowrap">
+                      FETCH TEAM
+                    </button>
+                  </div>
+                  <div class="text-[10px] text-muted mt-1 font-sans">Enter Team Registration ID and click Fetch Team to auto-calculate squad amount.</div>
+                </div>
+
+                <!-- DYNAMIC TEAM INTEL & CALCULATED FEE CARD -->
+                <div id="team-intel-card" class="hidden p-4 bg-canvas border-2 border-accent space-y-3 font-mono text-xs">
+                  <div class="flex items-center justify-between border-b border-line pb-2">
+                    <div>
+                      <div class="text-[10px] text-accent-dark font-bold uppercase">// VERIFIED TEAM INTEL</div>
+                      <div id="intel-team-name" class="font-sans text-base font-bold text-ink uppercase">--</div>
+                    </div>
+                    <div id="intel-status-badge" class="px-2.5 py-1 text-[10px] font-bold border border-accent text-accent-dark uppercase bg-paper">
+                      SHORTLISTED
+                    </div>
+                  </div>
+                  <div class="grid grid-cols-2 gap-2 text-[11px]">
+                    <div>COLLEGE: <strong id="intel-college" class="text-ink">--</strong></div>
+                    <div>LEADER: <strong id="intel-leader" class="text-ink">--</strong></div>
+                    <div>SQUAD SIZE: <strong id="intel-members" class="text-accent-dark font-bold">-- Members</strong></div>
+                    <div>RATE PER PERSON: <strong class="text-ink">₹300</strong></div>
+                  </div>
+                  <div class="p-3 bg-paper border border-accent flex items-center justify-between text-xs">
+                    <span class="text-muted font-bold uppercase">TOTAL PAYABLE AMOUNT:</span>
+                    <span id="intel-total-display" class="text-accent-dark font-extrabold text-lg font-mono">₹--</span>
+                  </div>
                 </div>
 
                 <div>
@@ -124,8 +151,8 @@ export class PaymentPage {
                   </div>
 
                   <div>
-                    <label class="block text-xs text-ink mb-2 font-mono">AMOUNT PAID (₹) *</label>
-                    <input type="number" name="amount" required readonly value="${eventConfig.teamPolicy.registrationFee}" class="w-full px-3 py-3 text-xs text-accent-dark font-bold outline-none font-mono" />
+                    <label class="block text-xs text-ink mb-2 font-mono">CALCULATED TOTAL (₹) *</label>
+                    <input type="number" name="amount" required readonly value="300" class="w-full px-3 py-3 text-xs text-accent-dark font-bold outline-none font-mono bg-canvas border border-line" />
                   </div>
                 </div>
 
@@ -136,7 +163,7 @@ export class PaymentPage {
                 </div>
 
                 <button type="submit" id="submit-payment-btn" class="btn-primary w-full py-4 text-xs font-mono font-bold tracking-widest uppercase">
-                  SUBMIT PAYMENT FOR VERIFICATION →
+                  SUBMIT PAYMENT FOR VERIFICATION
                 </button>
 
               </form>
@@ -184,6 +211,84 @@ export class PaymentPage {
       });
     }
 
+    // TEAM DETAILS LOOKUP & AUTOMATIC FEE CALCULATION
+    const regIdInput = document.getElementById('pay-reg-id-input');
+    const fetchBtn = document.getElementById('fetch-team-btn');
+
+    const doTeamLookup = async (showToast = true) => {
+      if (!regIdInput) return;
+      const regId = regIdInput.value.trim();
+      if (!regId) {
+        if (showToast) toast.show('Please enter your Team Registration ID.', 'info');
+        return;
+      }
+
+      if (fetchBtn) {
+        fetchBtn.disabled = true;
+        fetchBtn.textContent = 'FETCHING...';
+      }
+
+      try {
+        const res = await api.lookupPaymentTeam(regId);
+        const intelCard = document.getElementById('team-intel-card');
+        const amountInput = document.querySelector('input[name="amount"]');
+        const upiTotalDisplay = document.getElementById('upi-calculated-total');
+
+        if (res && res.success && res.team) {
+          const t = res.team;
+          if (intelCard) {
+            document.getElementById('intel-team-name').textContent = t.team_name;
+            document.getElementById('intel-college').textContent = t.college;
+            document.getElementById('intel-leader').textContent = t.leader_name;
+            document.getElementById('intel-members').textContent = `${t.member_count} Members`;
+            document.getElementById('intel-total-display').textContent = `₹${t.calculated_total}`;
+            document.getElementById('intel-status-badge').textContent = t.status;
+            intelCard.classList.remove('hidden');
+          }
+
+          if (amountInput) {
+            amountInput.value = t.calculated_total;
+          }
+
+          if (upiTotalDisplay) {
+            upiTotalDisplay.textContent = `TOTAL: ₹${t.calculated_total} (${t.member_count} MEMBERS × ₹300)`;
+          }
+
+          if (showToast) {
+            toast.show(`Team "${t.team_name}" found! Total payable fee: ₹${t.calculated_total} (${t.member_count} members)`, 'success');
+          }
+        } else {
+          if (intelCard) intelCard.classList.add('hidden');
+          if (upiTotalDisplay) upiTotalDisplay.textContent = `TOTAL: AUTO-CALCULATED ON ID FETCH`;
+          if (showToast) toast.show(res.message || 'No team found with this ID.', 'error');
+        }
+      } catch (err) {
+        if (showToast) toast.show('Error fetching team details.', 'error');
+      } finally {
+        if (fetchBtn) {
+          fetchBtn.disabled = false;
+          fetchBtn.textContent = 'FETCH TEAM';
+        }
+      }
+    };
+
+    if (fetchBtn) {
+      fetchBtn.addEventListener('click', () => {
+        soundFx.playClick();
+        doTeamLookup(true);
+      });
+    }
+
+    if (regIdInput) {
+      regIdInput.addEventListener('blur', () => {
+        if (regIdInput.value.trim()) doTeamLookup(false);
+      });
+      // Run initial lookup if regId is prefilled from sessionStorage
+      if (regIdInput.value.trim()) {
+        setTimeout(() => doTeamLookup(false), 200);
+      }
+    }
+
     const form = document.getElementById('payment-form');
     if (form) {
       form.addEventListener('submit', async (e) => {
@@ -216,12 +321,12 @@ export class PaymentPage {
               toast.show(res.message || 'Payment submission failed.', 'error');
             }
             submitBtn.disabled = false;
-            submitBtn.innerHTML = `SUBMIT PAYMENT FOR VERIFICATION →`;
+            submitBtn.innerHTML = `SUBMIT PAYMENT FOR VERIFICATION`;
           }
         } catch (err) {
           toast.show('Network error during payment submission.', 'error');
           submitBtn.disabled = false;
-          submitBtn.innerHTML = `SUBMIT PAYMENT FOR VERIFICATION →`;
+          submitBtn.innerHTML = `SUBMIT PAYMENT FOR VERIFICATION`;
         }
       });
     }

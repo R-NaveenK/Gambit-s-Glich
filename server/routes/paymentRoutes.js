@@ -51,6 +51,44 @@ router.get('/gate-status', async (req, res) => {
   }
 });
 
+// GET Team Details & Calculate Payment Amount by Reg ID
+router.get('/lookup/:regId', async (req, res) => {
+  try {
+    const regId = req.params.regId ? req.params.regId.trim() : '';
+    if (!regId) {
+      return res.status(400).json({ success: false, message: 'Registration ID required.' });
+    }
+
+    const team = await dbAdapter.getTeamByRegId(regId);
+    if (!team) {
+      return res.status(404).json({ success: false, message: `No registered team found matching "${regId}".` });
+    }
+
+    const memberCount = Math.max(1, team.member_count || (team.members ? team.members.length : 1));
+    const perHeadFee = 300;
+    const calculatedTotal = memberCount * perHeadFee;
+
+    return res.json({
+      success: true,
+      team: {
+        reg_id: team.reg_id,
+        team_name: team.team_name,
+        college: team.college,
+        leader_name: team.leader_name,
+        leader_email: team.leader_email,
+        member_count: memberCount,
+        per_head_fee: perHeadFee,
+        calculated_total: calculatedTotal,
+        status: team.status,
+        has_paid: Boolean(team.payment && team.payment.status === 'APPROVED'),
+        payment_status: team.payment ? team.payment.status : 'NOT_SUBMITTED'
+      }
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Server error looking up team details.' });
+  }
+});
+
 router.post('/submit', upload.single('screenshot'), async (req, res) => {
   try {
     const { reg_id, utr_number, payer_name, payment_date, amount } = req.body;

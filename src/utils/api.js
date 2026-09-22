@@ -35,6 +35,11 @@ export const api = {
     return res.json();
   },
 
+  async lookupPaymentTeam(regId) {
+    const res = await fetch(`${BASE_URL}/payment/lookup/${encodeURIComponent(regId)}`);
+    return res.json();
+  },
+
   async submitPpt(formData) {
     const res = await fetch(`${BASE_URL}/ppt/upload`, {
       method: 'POST',
