@@ -33,7 +33,6 @@ export class Footer {
               <a href="#" data-route="payment" class="nav-link text-ink hover:text-accent transition-colors">PAYMENT SUBMISSION</a>
               <a href="#" data-route="submit-ppt" class="nav-link text-ink hover:text-accent transition-colors">PPT SUBMISSION GATE</a>
               <a href="#" data-route="status" class="nav-link text-ink hover:text-accent transition-colors">STATUS TRACKER</a>
-              <a href="#" data-route="admin" class="nav-link text-accent-dark font-bold hover:underline">ADMIN CONTROL PANEL</a>
             </div>
 
             <!-- Column 3: Event Intel -->

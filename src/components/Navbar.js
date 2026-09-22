@@ -22,12 +22,13 @@ export class Navbar {
           </a>
 
           <!-- Centre: Navigation Links (Desktop) -->
-          <nav class="hidden lg:flex items-center gap-8 tracking-widest uppercase font-semibold text-muted text-xs">
+          <nav class="hidden lg:flex items-center gap-7 tracking-widest uppercase font-semibold text-muted text-xs">
             <a href="#" data-route="home" class="nav-link transition-colors hover:text-ink ${this.currentRoute === 'home' ? 'text-ink font-bold border-b-2 border-ink pb-1' : ''}">HOME</a>
             <a href="#" data-route="about" class="nav-link transition-colors hover:text-ink ${this.currentRoute === 'about' ? 'text-ink font-bold border-b-2 border-ink pb-1' : ''}">ABOUT</a>
             <a href="#" data-route="themes" class="nav-link transition-colors hover:text-ink ${this.currentRoute === 'themes' ? 'text-ink font-bold border-b-2 border-ink pb-1' : ''}">TRACKS</a>
             <a href="#" data-route="timeline" class="nav-link transition-colors hover:text-ink ${this.currentRoute === 'timeline' ? 'text-ink font-bold border-b-2 border-ink pb-1' : ''}">TIMELINE</a>
             <a href="#" data-route="rules" class="nav-link transition-colors hover:text-ink ${this.currentRoute === 'rules' ? 'text-ink font-bold border-b-2 border-ink pb-1' : ''}">RULES</a>
+            <a href="#" data-route="payment" class="nav-link transition-colors hover:text-ink ${this.currentRoute === 'payment' ? 'text-ink font-bold border-b-2 border-ink pb-1' : ''}">PAYMENT</a>
             <a href="#" data-route="contact" class="nav-link transition-colors hover:text-ink ${this.currentRoute === 'contact' ? 'text-ink font-bold border-b-2 border-ink pb-1' : ''}">FAQ</a>
           </nav>
 
@@ -65,6 +66,7 @@ export class Navbar {
             <a href="#" data-route="themes" class="nav-link text-3xl font-serif text-ink hover:text-signal">TRACKS</a>
             <a href="#" data-route="timeline" class="nav-link text-3xl font-serif text-ink hover:text-signal">TIMELINE</a>
             <a href="#" data-route="rules" class="nav-link text-3xl font-serif text-ink hover:text-signal">RULES</a>
+            <a href="#" data-route="payment" class="nav-link text-3xl font-serif text-ink hover:text-signal">PAYMENT PORTAL</a>
             <a href="#" data-route="contact" class="nav-link text-3xl font-serif text-ink hover:text-signal">FAQ</a>
             <a href="#" data-route="status" class="nav-link text-3xl font-serif text-ink hover:text-signal">STATUS TRACKER</a>
           </div>

@@ -47,8 +47,14 @@ class App {
       status: StatusTrackerPage,
       contact: ContactFaqPage,
       login: LoginPage,
+      'admin-portalGG': AdminPage,
       admin: AdminPage
     };
+
+    const initialHash = window.location.hash.replace('#', '');
+    if (initialHash && this.routes[initialHash]) {
+      this.currentRoute = initialHash;
+    }
   }
 
   init() {

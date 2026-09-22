@@ -41,9 +41,28 @@ const upload = multer({
   fileFilter
 });
 
+// GET Public Payment Gate Status
+router.get('/gate-status', async (req, res) => {
+  try {
+    const isOpen = await dbAdapter.getPaymentGateStatus();
+    return res.json({ success: true, open: isOpen });
+  } catch (err) {
+    return res.json({ success: true, open: false });
+  }
+});
+
 router.post('/submit', upload.single('screenshot'), async (req, res) => {
   try {
     const { reg_id, utr_number, payer_name, payment_date, amount } = req.body;
+
+    const isGateOpen = await dbAdapter.getPaymentGateStatus();
+    if (!isGateOpen) {
+      return res.status(403).json({
+        success: false,
+        message: 'Payment portal is currently locked by administrators. It will open once shortlisted teams are officially announced.',
+        isLocked: true
+      });
+    }
 
     if (!reg_id || !utr_number || !payer_name || !payment_date) {
       return res.status(400).json({ success: false, message: 'Registration ID, UTR Number, Payer Name, and Payment Date are required.' });

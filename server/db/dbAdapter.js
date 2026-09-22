@@ -405,5 +405,17 @@ export const dbAdapter = {
     };
     saveLocalStore(emptyData);
     console.log('✅ Local JSON store cleared successfully.');
+  },
+
+  async getPaymentGateStatus() {
+    const store = loadLocalStore();
+    return Boolean(store.payment_portal_open);
+  },
+
+  async setPaymentGateStatus(isOpen) {
+    const store = loadLocalStore();
+    store.payment_portal_open = Boolean(isOpen);
+    saveLocalStore(store);
+    return store.payment_portal_open;
   }
 };

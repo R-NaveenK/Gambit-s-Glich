@@ -37,16 +37,19 @@ export class AdminPage {
             </div>
 
             <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-              <button id="admin-refresh-btn" class="btn-primary text-xs py-2.5 px-4 font-mono font-bold uppercase tracking-wider shadow-sm hover:shadow-md transition-all flex items-center gap-2 cursor-pointer">
-                <span>🔄</span> REFRESH DATA
+              <button id="admin-gate-toggle-btn" type="button" class="btn-secondary text-xs py-2.5 px-4 border border-line font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
+                PAYMENT PORTAL: CHECKING...
               </button>
-              <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2.5 px-4 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all flex items-center gap-2">
-                <span>📥</span> EXPORT DATA CSV
+              <button id="admin-refresh-btn" type="button" class="btn-primary text-xs py-2.5 px-4 font-mono font-bold uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer">
+                REFRESH DATA
+              </button>
+              <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2.5 px-4 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all">
+                EXPORT DATA CSV
               </a>
-              <button id="admin-clear-btn" class="btn-secondary text-xs py-2.5 px-3 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer">
-                <span>🧹</span> CLEAR ALL DATA
+              <button id="admin-clear-btn" type="button" class="btn-secondary text-xs py-2.5 px-3 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer">
+                CLEAR ALL DATA
               </button>
-              <button id="admin-logout-btn" class="btn-secondary text-xs py-2.5 px-3 border border-line text-muted font-mono font-bold uppercase tracking-wider hover:border-error hover:text-error transition-all cursor-pointer">
+              <button id="admin-logout-btn" type="button" class="btn-secondary text-xs py-2.5 px-3 border border-line text-muted font-mono font-bold uppercase tracking-wider hover:border-error hover:text-error transition-all cursor-pointer">
                 LOGOUT
               </button>
             </div>
@@ -90,14 +93,14 @@ export class AdminPage {
                 </span>
               </div>
               <h2 class="font-sans text-xl sm:text-2xl font-extrabold text-ink uppercase tracking-tight">
-                📷 Event Day Attendance Pass Scanner
+                Event Day Attendance Pass Scanner
               </h2>
               <p class="text-xs text-muted font-mono">
                 Click Verify & Scan Ticket to launch live camera scanner or barcode reader.
               </p>
             </div>
             <button type="button" id="open-scanner-box-btn" class="btn-primary py-3 px-6 text-xs uppercase font-mono font-extrabold tracking-widest cursor-pointer shadow-md bg-ink hover:bg-accent hover:text-ink text-inverse-text border border-accent transition-all flex items-center gap-2.5 group">
-              <span>📷 VERIFY & SCAN TICKET PASS</span>
+              <span>VERIFY & SCAN TICKET PASS</span>
               <span class="text-accent group-hover:text-ink group-hover:translate-x-0.5 transition-all text-sm font-bold">→</span>
             </button>
           </div>
@@ -108,17 +111,17 @@ export class AdminPage {
               <div>
                 <div class="text-xs text-accent-dark font-bold font-mono">// VENUE CHECK-IN SCANNER ACTIVE</div>
                 <h2 class="font-sans text-2xl font-bold text-ink uppercase">
-                  📷 Official QR Pass Scanner
+                  Official QR Pass Scanner
                 </h2>
               </div>
               
               <div class="flex items-center gap-3">
                 <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2 px-4 uppercase font-mono font-bold cursor-pointer flex items-center gap-2">
                   <span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span>
-                  ▶ START LIVE CAMERA
+                  START LIVE CAMERA
                 </button>
                 <button type="button" id="close-scanner-box-btn" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent cursor-pointer font-mono font-bold">
-                  ✕ CLOSE SCANNER
+                  CLOSE SCANNER
                 </button>
               </div>
             </div>
@@ -129,7 +132,6 @@ export class AdminPage {
                 <div id="reader" class="w-full max-w-md mx-auto"></div>
                 
                 <div id="camera-placeholder" class="py-4 space-y-2">
-                  <div class="text-4xl text-accent-dark">📷</div>
                   <div class="text-xs font-mono font-bold text-ink uppercase tracking-wider">
                     SCANNER READY // HOLD QR TICKET PASS TO CAMERA OR SCANNER
                   </div>
@@ -142,11 +144,11 @@ export class AdminPage {
               <!-- UNIFIED SCAN INPUT FIELD -->
               <form id="qr-scanner-form" class="flex flex-wrap items-center gap-2 bg-canvas p-2 border border-accent">
                 <div class="flex-1 flex items-center px-3 gap-2">
-                  <span class="text-accent-dark text-xs font-mono font-bold">⚡ SCAN:</span>
+                  <span class="text-accent-dark text-xs font-mono font-bold">SCAN:</span>
                   <input type="text" id="qr-scan-input" placeholder="Point scanner or scan ticket pass here..." class="w-full py-2 text-xs text-ink font-mono bg-transparent focus:outline-none uppercase font-bold" />
                 </div>
                 <button type="submit" class="btn-primary text-xs py-2.5 px-6 font-mono uppercase font-bold cursor-pointer">
-                  VERIFY TICKET →
+                  VERIFY TICKET
                 </button>
               </form>
             </div>
@@ -255,7 +257,7 @@ export class AdminPage {
               <!-- Controls -->
               <div class="flex flex-col gap-3 pt-2">
                 <button id="modal-approve-btn" class="btn-primary w-full py-3 text-xs font-bold tracking-widest uppercase">
-                  ✔ APPROVE PAYMENT (ISSUE ATTENDANCE PASS & INVOICE) →
+                  APPROVE PAYMENT (ISSUE ATTENDANCE PASS & INVOICE)
                 </button>
               </div>
             </div>
@@ -300,23 +302,22 @@ export class AdminPage {
                     <button type="button" id="ppt-view-gdocs-btn" class="px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer">Google Docs</button>
                   </div>
                   <a id="ppt-modal-direct-link" href="#" target="_blank" download class="btn-primary py-1 px-3.5 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
-                    📥 Download Original File
+                    Download Original File
                   </a>
                 </div>
                 
                 <div class="relative border-2 border-accent bg-canvas min-h-[420px] flex flex-col items-center justify-center">
                   <iframe id="ppt-modal-iframe" class="ppt-preview-frame w-full h-[500px] hidden" src="" frameborder="0" allowfullscreen></iframe>
                   <div id="ppt-modal-fallback" class="p-8 text-center space-y-3">
-                    <div class="text-4xl text-accent-dark">📊</div>
                     <div class="text-xs font-mono font-bold text-ink uppercase" id="ppt-fallback-text">
                       Presentation Document Ready
                     </div>
                     <div class="flex items-center justify-center gap-3">
                       <a id="ppt-fallback-open-btn" href="#" target="_blank" class="btn-primary text-xs py-2 px-5 font-mono uppercase font-bold">
-                        🔗 Open Document in New Tab
+                        Open Document in New Tab
                       </a>
                       <a id="ppt-fallback-download-btn" href="#" download class="btn-secondary text-xs py-2 px-5 font-mono uppercase font-bold border border-line hover:border-accent">
-                        📥 Download File
+                        Download File
                       </a>
                     </div>
                   </div>
@@ -348,6 +349,49 @@ export class AdminPage {
     this.autoRefreshTimer = setInterval(() => {
       this.fetchDashboardData(true);
     }, 5000);
+
+    // PAYMENT PORTAL GATE TOGGLE BUTTON HANDLER
+    const gateToggleBtn = document.getElementById('admin-gate-toggle-btn');
+    const syncGateBtnUI = async () => {
+      if (!gateToggleBtn) return;
+      try {
+        const res = await api.getPaymentGateStatus();
+        const isOpen = res && res.open;
+        if (isOpen) {
+          gateToggleBtn.className = "btn-secondary text-xs py-2.5 px-4 border border-success text-success font-mono font-bold uppercase tracking-wider hover:bg-success hover:text-canvas transition-all cursor-pointer";
+          gateToggleBtn.textContent = "PAYMENT PORTAL: OPEN";
+        } else {
+          gateToggleBtn.className = "btn-secondary text-xs py-2.5 px-4 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer";
+          gateToggleBtn.textContent = "PAYMENT PORTAL: LOCKED";
+        }
+        gateToggleBtn.setAttribute('data-open', isOpen ? 'true' : 'false');
+      } catch (err) {
+        gateToggleBtn.textContent = "PAYMENT PORTAL: ERROR";
+      }
+    };
+    await syncGateBtnUI();
+
+    if (gateToggleBtn) {
+      gateToggleBtn.addEventListener('click', async () => {
+        soundFx.playClick();
+        const currentOpen = gateToggleBtn.getAttribute('data-open') === 'true';
+        const newStatus = !currentOpen;
+        const confirmed = confirm(`Are you sure you want to ${newStatus ? 'OPEN' : 'LOCK'} the payment portal for shortlisted teams?`);
+        if (!confirmed) return;
+
+        try {
+          const res = await api.togglePaymentGate(newStatus);
+          if (res && res.success) {
+            toast.show(`Payment Portal is now ${res.open ? 'OPEN' : 'LOCKED'}`, 'success');
+            await syncGateBtnUI();
+          } else {
+            toast.show('Failed to toggle Payment Portal gate.', 'error');
+          }
+        } catch (err) {
+          toast.show('Error updating Payment Portal status.', 'error');
+        }
+      });
+    }
 
     const refreshBtn = document.getElementById('admin-refresh-btn');
     if (refreshBtn) {
@@ -427,7 +471,7 @@ export class AdminPage {
           } catch (e) {}
           this.isScanning = false;
           if (placeholder) placeholder.classList.remove('hidden');
-          cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> ▶ START LIVE CAMERA';
+          cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> START LIVE CAMERA';
           return;
         }
 
@@ -445,7 +489,7 @@ export class AdminPage {
               () => {}
             );
             this.isScanning = true;
-            cameraBtn.innerHTML = '⏹ STOP CAMERA';
+            cameraBtn.innerHTML = 'STOP CAMERA';
           } else {
             toast.show('Camera scanner module loading...', 'info');
           }
@@ -579,10 +623,10 @@ export class AdminPage {
 
         <div class="text-right font-mono">
           <div class="px-3 py-1 border ${isPaid ? 'border-success text-success bg-paper' : 'border-accent text-accent-dark bg-paper'} text-xs font-bold uppercase mb-1">
-            ${isPaid ? '✔ PAYMENT VERIFIED' : '⏳ PAYMENT PENDING'}
+            ${isPaid ? 'PAYMENT VERIFIED' : 'PAYMENT PENDING'}
           </div>
           <div class="text-[11px] ${isAttended ? 'text-success font-bold' : 'text-error font-bold'}">
-            ${isAttended ? `✔ ATTENDANCE RECORDED (${team.attended_at ? team.attended_at.split('T')[0] : 'Today'})` : '❌ NOT CHECKED IN'}
+            ${isAttended ? `ATTENDANCE RECORDED (${team.attended_at ? team.attended_at.split('T')[0] : 'Today'})` : 'NOT CHECKED IN'}
           </div>
         </div>
       </div>
@@ -597,11 +641,11 @@ export class AdminPage {
       <div class="pt-2 flex gap-3">
         ${!isAttended ? `
           <button id="scanner-mark-attendance-btn" class="btn-primary w-full py-3 text-xs font-bold tracking-wider uppercase">
-            ✔ MARK ATTENDANCE & GRANT VENUE ENTRY →
+            MARK ATTENDANCE & GRANT VENUE ENTRY
           </button>
         ` : `
           <div class="p-3 bg-paper border border-success text-success text-xs text-center font-bold w-full">
-            ✔ ENTRY ALREADY GRANTED // ATTENDANCE LOGGED
+            ENTRY ALREADY GRANTED // ATTENDANCE LOGGED
           </div>
         `}
       </div>
@@ -706,11 +750,11 @@ export class AdminPage {
       const ppt = team.ppt;
 
       const payBadge = pay ? (
-        pay.status === 'APPROVED' ? '<span class="text-success font-bold">✔ APPROVED</span>' :
-        '<span class="text-accent-dark font-bold">⏳ PENDING VERIFICATION</span>'
+        pay.status === 'APPROVED' ? '<span class="text-success font-bold">APPROVED</span>' :
+        '<span class="text-accent-dark font-bold">PENDING VERIFICATION</span>'
       ) : '<span class="text-muted">NO PROOF</span>';
 
-      const attendanceBadge = team.attended ? '<span class="text-success font-bold text-[10px]">✔ ATTENDED</span>' : '';
+      const attendanceBadge = team.attended ? '<span class="text-success font-bold text-[10px]">ATTENDED</span>' : '';
 
       return `
         <tr class="hover:bg-canvas transition-colors">
@@ -733,10 +777,10 @@ export class AdminPage {
             ${ppt ? `
               <div class="space-y-1">
                 <a href="${ppt.file_url}" target="_blank" download class="text-ink hover:text-accent font-bold underline block truncate max-w-[180px]">
-                  📥 ${ppt.original_filename} (v${ppt.version})
+                  ${ppt.original_filename} (v${ppt.version})
                 </a>
                 <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-0.5 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer">
-                  👁️ PREVIEW PPT
+                  PREVIEW PPT
                 </button>
               </div>
             ` : '<span class="text-muted">NOT SUBMITTED</span>'}
@@ -753,7 +797,7 @@ export class AdminPage {
           <td class="p-4 text-right space-x-2 font-mono">
             ${ppt ? `
               <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer font-bold">
-                👁️ PPT PREVIEW
+                PPT PREVIEW
               </button>
             ` : ''}
 
@@ -768,7 +812,7 @@ export class AdminPage {
             </button>
 
             <button data-action="quick-scan" data-reg="${team.reg_id}" class="px-2 py-1 border border-success text-success hover:bg-success hover:text-canvas text-[10px] cursor-pointer">
-              📷 SCAN / ENTRY
+              SCAN / ENTRY
             </button>
           </td>
         </tr>
@@ -851,10 +895,10 @@ export class AdminPage {
     if (linksBox) {
       const links = [];
       if (ppt.repo_link) {
-        links.push(`<a href="${ppt.repo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">💻 Repository: ${ppt.repo_link}</a>`);
+        links.push(`<a href="${ppt.repo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">Repository: ${ppt.repo_link}</a>`);
       }
       if (ppt.demo_link) {
-        links.push(`<a href="${ppt.demo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">🚀 Demo Link: ${ppt.demo_link}</a>`);
+        links.push(`<a href="${ppt.demo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">Demo Link: ${ppt.demo_link}</a>`);
       }
       linksBox.innerHTML = links.join(' | ') || '<span class="text-muted">No external links provided.</span>';
     }

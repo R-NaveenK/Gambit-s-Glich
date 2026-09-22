@@ -190,5 +190,27 @@ export const api = {
       }
     });
     return res.json();
+  },
+
+  async getPaymentGateStatus() {
+    try {
+      const res = await fetch(`${BASE_URL}/payment/gate-status`);
+      return res.json();
+    } catch (e) {
+      return { success: true, open: false };
+    }
+  },
+
+  async togglePaymentGate(open) {
+    const token = this.getToken();
+    const res = await fetch(`${BASE_URL}/admin/payment-gate/toggle`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ open })
+    });
+    return res.json();
   }
 };

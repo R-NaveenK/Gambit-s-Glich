@@ -352,4 +352,27 @@ router.post('/clear-all', async (req, res) => {
   }
 });
 
+// 12. Toggle Payment Gate Status (Admin Authority)
+router.get('/payment-gate/status', async (req, res) => {
+  try {
+    const isOpen = await dbAdapter.getPaymentGateStatus();
+    return res.json({ success: true, open: isOpen });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch payment gate status.' });
+  }
+});
+
+router.post('/payment-gate/toggle', async (req, res) => {
+  try {
+    const { open } = req.body;
+    const targetStatus = Boolean(open);
+    const updatedStatus = await dbAdapter.setPaymentGateStatus(targetStatus);
+    await dbAdapter.logAdminAction(req.user.email, 'TOGGLE_PAYMENT_GATE', null, `Payment portal gate set to ${updatedStatus ? 'OPEN' : 'LOCKED'}`);
+    return res.json({ success: true, open: updatedStatus, message: `Payment portal gate is now ${updatedStatus ? 'OPEN' : 'LOCKED'}.` });
+  } catch (err) {
+    console.error('Toggle payment gate error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to update payment gate status.' });
+  }
+});
+
 export default router;
