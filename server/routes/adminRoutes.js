@@ -340,4 +340,16 @@ router.post('/email/test', async (req, res) => {
   }
 });
 
+// 11. Clear All Database Data
+router.post('/clear-all', async (req, res) => {
+  try {
+    await dbAdapter.clearAllData();
+    await dbAdapter.logAdminAction(req.user.email, 'CLEAR_DATABASE', null, 'Wiped all team registrations, payments, and submissions.');
+    return res.json({ success: true, message: 'Database successfully cleared!' });
+  } catch (err) {
+    console.error('Clear database error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to clear database.' });
+  }
+});
+
 export default router;

@@ -43,6 +43,9 @@ export class AdminPage {
               <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2 px-4 border-accent text-accent-dark hover:bg-accent hover:text-ink">
                 📥 EXPORT DATA CSV
               </a>
+              <button id="admin-clear-btn" class="btn-secondary text-xs py-2 px-3 border-error text-error hover:bg-error hover:text-white cursor-pointer font-bold">
+                🧹 CLEAR ALL DATA
+              </button>
               <button id="admin-logout-btn" class="btn-secondary text-xs py-2 px-3 border-line text-error hover:border-error">
                 LOGOUT
               </button>
@@ -274,6 +277,72 @@ export class AdminPage {
             </div>
           </div>
 
+          <!-- PPT PREVIEW MODAL -->
+          <div id="ppt-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-4">
+            <div class="tech-card p-6 border-accent bg-paper max-w-4xl w-full space-y-4 max-h-[95vh] overflow-y-auto shadow-2xl">
+              <div class="flex items-center justify-between border-b border-line pb-3">
+                <div>
+                  <div class="text-xs text-accent-dark font-bold font-mono">// PPT PITCH DECK PREVIEW & INTEL</div>
+                  <h2 class="font-sans text-xl font-bold text-ink uppercase" id="ppt-modal-team-title">PITCH DECK PREVIEW</h2>
+                </div>
+                <button id="close-ppt-modal-btn" class="text-ink hover:text-accent text-xl font-bold p-2 cursor-pointer">✕</button>
+              </div>
+
+              <!-- Metadata Grid -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono bg-canvas p-4 border border-line">
+                <div>REG ID: <strong id="ppt-modal-reg-id" class="text-accent-dark">--</strong></div>
+                <div>THEME: <strong id="ppt-modal-theme" class="text-ink">--</strong></div>
+                <div>VERSION: <strong id="ppt-modal-version" class="text-accent-dark font-bold">--</strong></div>
+                <div class="md:col-span-2">PROJECT TITLE: <strong id="ppt-modal-title" class="text-ink font-bold">--</strong></div>
+                <div>FILE: <span id="ppt-modal-filename" class="text-muted truncate inline-block max-w-full">--</span></div>
+              </div>
+
+              <!-- Project Summary & Links -->
+              <div id="ppt-modal-summary-box" class="p-4 bg-canvas border border-line text-xs font-sans space-y-2">
+                <div class="font-bold text-accent-dark font-mono text-[11px] uppercase">// PROJECT SUMMARY:</div>
+                <div id="ppt-modal-summary" class="text-muted leading-relaxed whitespace-pre-line">--</div>
+                <div id="ppt-modal-links" class="flex flex-wrap gap-4 pt-2 font-mono text-[11px]">
+                  <!-- Links injected dynamically -->
+                </div>
+              </div>
+
+              <!-- Interactive Document Viewer Frame -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs font-mono">
+                  <span class="text-accent-dark font-bold">// DOCUMENT PREVIEW VIEWPORT:</span>
+                  <a id="ppt-modal-direct-link" href="#" target="_blank" download class="text-ink hover:text-accent font-bold underline text-[11px]">
+                    📥 Download Original File
+                  </a>
+                </div>
+                <div class="relative border-2 border-accent bg-canvas min-h-[350px] flex flex-col items-center justify-center">
+                  <iframe id="ppt-modal-iframe" class="ppt-preview-frame hidden" src="" frameborder="0"></iframe>
+                  <div id="ppt-modal-fallback" class="p-8 text-center space-y-3">
+                    <div class="text-4xl text-accent-dark">📊</div>
+                    <div class="text-xs font-mono font-bold text-ink uppercase" id="ppt-fallback-text">
+                      Presentation Document Ready
+                    </div>
+                    <div class="flex items-center justify-center gap-3">
+                      <a id="ppt-fallback-open-btn" href="#" target="_blank" class="btn-primary text-xs py-2 px-5 uppercase font-bold">
+                        🔗 Open Document in New Tab
+                      </a>
+                      <a id="ppt-fallback-download-btn" href="#" download class="btn-secondary text-xs py-2 px-5 uppercase font-bold border-line">
+                        📥 Download File
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Controls -->
+              <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
+                <div class="text-xs font-mono text-muted" id="ppt-modal-submitted-at">Submitted at: --</div>
+                <button id="ppt-modal-close-bottom-btn" class="btn-secondary py-2 px-6 text-xs font-bold uppercase cursor-pointer">
+                  CLOSE PREVIEW
+                </button>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     `;
@@ -297,6 +366,23 @@ export class AdminPage {
         toast.show('Refreshing admin teams database...', 'info');
         await this.fetchDashboardData();
         toast.show('Dashboard data updated!', 'success');
+      });
+    }
+
+    const clearBtn = document.getElementById('admin-clear-btn');
+    if (clearBtn) {
+      clearBtn.addEventListener('click', async () => {
+        soundFx.playClick();
+        const confirmed = confirm("⚠️ ARE YOU SURE?\nThis will permanently delete all registered teams, payments, PPT submissions, and attendance logs from the database!");
+        if (!confirmed) return;
+        toast.show('Clearing database...', 'info');
+        const res = await api.clearAllData();
+        if (res.success) {
+          toast.show('Database wiped clean successfully!', 'success');
+          await this.fetchDashboardData();
+        } else {
+          toast.show(res.message || 'Failed to clear database.', 'error');
+        }
       });
     }
 
@@ -444,6 +530,17 @@ export class AdminPage {
     if (closeModal && modal) {
       closeModal.addEventListener('click', () => modal.classList.add('hidden'));
     }
+
+    const closePptModalBtn = document.getElementById('close-ppt-modal-btn');
+    const closePptModalBottomBtn = document.getElementById('ppt-modal-close-bottom-btn');
+    const pptModal = document.getElementById('ppt-modal');
+    const closePptModal = () => {
+      if (pptModal) pptModal.classList.add('hidden');
+      const iframe = document.getElementById('ppt-modal-iframe');
+      if (iframe) iframe.src = '';
+    };
+    if (closePptModalBtn) closePptModalBtn.addEventListener('click', closePptModal);
+    if (closePptModalBottomBtn) closePptModalBottomBtn.addEventListener('click', closePptModal);
 
     const annForm = document.getElementById('announcement-form');
     if (annForm) {
@@ -667,9 +764,14 @@ export class AdminPage {
 
           <td class="p-4 font-mono text-[11px]">
             ${ppt ? `
-              <a href="${ppt.file_url}" target="_blank" download class="text-ink hover:text-accent font-bold underline">
-                📥 ${ppt.original_filename} (v${ppt.version})
-              </a>
+              <div class="space-y-1">
+                <a href="${ppt.file_url}" target="_blank" download class="text-ink hover:text-accent font-bold underline block truncate max-w-[180px]">
+                  📥 ${ppt.original_filename} (v${ppt.version})
+                </a>
+                <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-0.5 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer">
+                  👁️ PREVIEW PPT
+                </button>
+              </div>
             ` : '<span class="text-muted">NOT SUBMITTED</span>'}
           </td>
 
@@ -682,6 +784,12 @@ export class AdminPage {
           </td>
 
           <td class="p-4 text-right space-x-2 font-mono">
+            ${ppt ? `
+              <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer font-bold">
+                👁️ PPT PREVIEW
+              </button>
+            ` : ''}
+
             ${pay ? `
               <button data-action="verify-pay" data-reg="${team.reg_id}" class="px-2 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer">
                 REVIEW PAYMENT
@@ -699,6 +807,16 @@ export class AdminPage {
         </tr>
       `;
     }).join('');
+
+    tbody.querySelectorAll('button[data-action="preview-ppt"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const regId = btn.getAttribute('data-reg');
+        const team = this.teams.find(t => t.reg_id === regId);
+        if (team && team.ppt) {
+          this.openPptModal(team);
+        }
+      });
+    });
 
     tbody.querySelectorAll('button[data-action="verify-pay"]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -740,6 +858,71 @@ export class AdminPage {
         }
       });
     });
+  }
+
+  openPptModal(team) {
+    this.selectedTeam = team;
+    const modal = document.getElementById('ppt-modal');
+    if (!modal || !team.ppt) return;
+
+    const ppt = team.ppt;
+    document.getElementById('ppt-modal-team-title').textContent = `PITCH DECK PREVIEW: ${team.team_name}`;
+    document.getElementById('ppt-modal-reg-id').textContent = team.reg_id;
+    document.getElementById('ppt-modal-theme').textContent = team.theme_id;
+    document.getElementById('ppt-modal-version').textContent = `v${ppt.version}`;
+    document.getElementById('ppt-modal-title').textContent = ppt.project_title || team.team_name;
+    document.getElementById('ppt-modal-filename').textContent = ppt.original_filename;
+    document.getElementById('ppt-modal-summary').textContent = ppt.summary || 'No project summary provided.';
+    document.getElementById('ppt-modal-submitted-at').textContent = `Submitted at: ${ppt.submitted_at || 'N/A'}`;
+
+    const linksBox = document.getElementById('ppt-modal-links');
+    if (linksBox) {
+      const links = [];
+      if (ppt.repo_link) {
+        links.push(`<a href="${ppt.repo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline">💻 Repository: ${ppt.repo_link}</a>`);
+      }
+      if (ppt.demo_link) {
+        links.push(`<a href="${ppt.demo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline">🚀 Demo Link: ${ppt.demo_link}</a>`);
+      }
+      linksBox.innerHTML = links.join(' | ') || '<span class="text-muted">No external links provided.</span>';
+    }
+
+    const directLink = document.getElementById('ppt-modal-direct-link');
+    if (directLink) {
+      directLink.href = ppt.file_url;
+    }
+
+    const iframe = document.getElementById('ppt-modal-iframe');
+    const fallbackBox = document.getElementById('ppt-modal-fallback');
+    const fallbackOpen = document.getElementById('ppt-fallback-open-btn');
+    const fallbackDownload = document.getElementById('ppt-fallback-download-btn');
+    const fallbackText = document.getElementById('ppt-fallback-text');
+
+    if (fallbackOpen) fallbackOpen.href = ppt.file_url;
+    if (fallbackDownload) fallbackDownload.href = ppt.file_url;
+
+    const fileUrl = ppt.file_url;
+    const lowerUrl = (fileUrl || '').toLowerCase();
+    const isPdf = lowerUrl.endsWith('.pdf') || lowerUrl.includes('pdf');
+
+    if (isPdf) {
+      iframe.src = fileUrl;
+      iframe.classList.remove('hidden');
+      if (fallbackBox) fallbackBox.classList.add('hidden');
+    } else if (fileUrl.startsWith('http://') || fileUrl.startsWith('https://')) {
+      const embedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileUrl)}`;
+      iframe.src = embedUrl;
+      iframe.classList.remove('hidden');
+      if (fallbackBox) fallbackBox.classList.add('hidden');
+    } else {
+      if (iframe) iframe.classList.add('hidden');
+      if (fallbackBox) {
+        fallbackBox.classList.remove('hidden');
+        if (fallbackText) fallbackText.textContent = `PITCH DECK (${ppt.original_filename}) READY FOR VIEWING`;
+      }
+    }
+
+    modal.classList.remove('hidden');
   }
 
   openPaymentModal(team) {

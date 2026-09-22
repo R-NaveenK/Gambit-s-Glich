@@ -15,13 +15,19 @@
   --font-spline: 'Spline Sans Mono', monospace;
 
   --canvas: #F2F0E9;
+  --paper: #E8E3D8;
   --ink: #10100E;
   --signal: #D79218;
   --signal-light: #E7B94F;
+  --accent: #D8971F;
+  --accent-light: #DCBC58;
+  --accent-dark: #735110;
   --muted: #77756F;
   --line: rgba(16, 16, 14, 0.18);
   --inverse: #10100E;
   --inverse-text: #F2F0E9;
+  --error: #9C2F25;
+  --success: #465A32;
 
   --font-serif: 'Instrument Serif', Georgia, serif;
   --font-sans: 'Space Grotesk', 'Outfit', sans-serif;
@@ -247,6 +253,21 @@ input:not([type='checkbox']):not([type='radio']), select, textarea {
   color: var(--ink);
 }
 :focus-visible { outline: 2px solid var(--ink); outline-offset: 4px; }
+
+/* PPT & DOCUMENT PREVIEW MODAL STYLES */
+.ppt-preview-frame {
+  width: 100%;
+  height: 520px;
+  background-color: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+  .ppt-preview-frame {
+    height: 380px;
+  }
+}
 
 @tailwind utilities;
 
