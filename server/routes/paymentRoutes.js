@@ -67,6 +67,7 @@ router.get('/lookup/:regId', async (req, res) => {
     const memberCount = Math.max(1, team.member_count || (team.members ? team.members.length : 1));
     const perHeadFee = 300;
     const calculatedTotal = memberCount * perHeadFee;
+    const isShortlisted = ['SHORTLISTED', 'PAYMENT_PENDING', 'PAYMENT_APPROVED'].includes(team.status);
 
     return res.json({
       success: true,
@@ -80,6 +81,7 @@ router.get('/lookup/:regId', async (req, res) => {
         per_head_fee: perHeadFee,
         calculated_total: calculatedTotal,
         status: team.status,
+        is_shortlisted: isShortlisted,
         has_paid: Boolean(team.payment && team.payment.status === 'APPROVED'),
         payment_status: team.payment ? team.payment.status : 'NOT_SUBMITTED'
       }
