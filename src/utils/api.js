@@ -158,5 +158,18 @@ export const api = {
 
   getExportCsvUrl() {
     return `${BASE_URL}/admin/export-csv`;
+  },
+
+  async testEmail(targetEmail) {
+    const token = this.getToken();
+    const res = await fetch(`${BASE_URL}/admin/email/test`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ email: targetEmail })
+    });
+    return res.json();
   }
 };

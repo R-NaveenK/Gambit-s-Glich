@@ -146,6 +146,28 @@ export class AdminPage {
             <div id="scanner-result-box" class="hidden p-6 bg-canvas border-2 border-accent space-y-4">
               <!-- Injected dynamically via JS -->
             </div>
+          <!-- EMAIL DIAGNOSTICS & TEST DISPATCH BOX -->
+          <div class="tech-card p-6 border-line bg-paper mb-8">
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4 border-b border-line pb-3">
+              <div>
+                <div class="text-xs text-accent-dark font-bold font-mono">// SMTP & EMAIL DISPATCH DIAGNOSTICS</div>
+                <h2 class="font-sans text-xl font-bold text-ink uppercase">
+                  ✉️ Email Service Verification & Test Sender
+                </h2>
+              </div>
+              <div class="text-xs text-muted font-mono">
+                Verify Nodemailer SMTP Relay Delivery Status
+              </div>
+            </div>
+
+            <form id="admin-test-email-form" class="flex flex-wrap items-center gap-3">
+              <div class="flex-1 min-w-[240px]">
+                <input type="email" id="test-email-input" required placeholder="Enter recipient email address..." value="gambitsglitch@gmail.com" class="w-full px-4 py-2.5 text-xs text-ink font-mono bg-canvas border border-line focus:border-accent outline-none" />
+              </div>
+              <button type="submit" id="send-test-email-btn" class="btn-primary py-2.5 px-6 text-xs uppercase font-bold tracking-wider cursor-pointer">
+                ✉️ SEND TEST EMAIL →
+              </button>
+            </form>
           </div>
 
           <!-- SEARCH & FILTER BAR -->
@@ -440,6 +462,36 @@ export class AdminPage {
           }
         } catch (err) {
           toast.show('Failed to post announcement.', 'error');
+        }
+      });
+    }
+
+    const testEmailForm = document.getElementById('admin-test-email-form');
+    if (testEmailForm) {
+      testEmailForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const emailInput = document.getElementById('test-email-input');
+        const sendBtn = document.getElementById('send-test-email-btn');
+        if (!emailInput || !emailInput.value) return;
+
+        const targetEmail = emailInput.value.trim();
+        const origText = sendBtn.innerHTML;
+        sendBtn.disabled = true;
+        sendBtn.innerHTML = '⏳ TRANSMITTING...';
+
+        try {
+          const res = await api.testEmail(targetEmail);
+          if (res.success) {
+            toast.show(res.message || `Test email sent successfully to ${targetEmail}`, 'success');
+            soundFx.playBeep();
+          } else {
+            toast.show(res.message || 'Failed to send test email.', 'error');
+          }
+        } catch (err) {
+          toast.show('Error executing test email dispatch.', 'error');
+        } finally {
+          sendBtn.disabled = false;
+          sendBtn.innerHTML = origText;
         }
       });
     }

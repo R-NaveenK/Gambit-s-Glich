@@ -4,13 +4,20 @@ import 'dotenv/config';
 const APP_BASE_URL = process.env.APP_BASE_URL || 'https://gambit-s-glich.onrender.com';
 const WHATSAPP_LINK = process.env.WHATSAPP_GROUP_URL || 'https://chat.whatsapp.com/Iox0gxqKgnSGgMTkYZZXwj';
 const SMTP_HOST = process.env.SMTP_HOST;
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
+let SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
+// Force Port 465 (SSL) for Brevo to prevent cloud firewall blocks on Port 587 (Render.com)
+if (SMTP_HOST && SMTP_HOST.includes('brevo.com')) {
+  SMTP_PORT = 465;
+}
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const EMAIL_FROM = process.env.EMAIL_FROM || `"GAMBIT'S GLITCH 2026" <${process.env.ADMIN_EMAIL || 'admin@gambitsglitch.tech'}>`;
+const EMAIL_FROM = process.env.EMAIL_FROM || `"GAMBIT'S GLITCH 2026" <${process.env.SMTP_USER || 'ba3a11001@smtp-brevo.com'}>`;
+const EMAIL_REPLY_TO = process.env.EMAIL_REPLY_TO || `"GAMBIT'S GLITCH 2026" <${process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com'}>`;
 
 // Initialize Nodemailer Transporter if SMTP credentials exist
 let transporter = null;
+let isTransporterVerified = false;
+
 if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
   const isSecure = SMTP_PORT === 465;
   try {
@@ -32,16 +39,111 @@ if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
 
     transporter.verify((error) => {
       if (error) {
+        isTransporterVerified = false;
         console.warn(`⚠️ SMTP Connection Note (${SMTP_HOST}:${SMTP_PORT}):`, error.message);
       } else {
+        isTransporterVerified = true;
         console.log(`✉️ Email Service initialized & verified with SMTP (${SMTP_HOST}:${SMTP_PORT} ${isSecure ? 'SSL' : 'STARTTLS'})`);
       }
     });
   } catch (err) {
+    isTransporterVerified = false;
     console.warn(`⚠️ Email Service transport initialization error:`, err.message);
   }
 } else {
   console.log(`ℹ️ Email Service running in Preview Mode (Set SMTP_HOST, SMTP_USER, SMTP_PASS in .env to send live emails).`);
+}
+
+/**
+ * Helper to extract unique valid email addresses for team leader & squad members
+ */
+function getEmailRecipients(team, members = []) {
+  const list = [];
+  if (team && team.leader_email) {
+    list.push(team.leader_email.trim());
+  }
+  if (Array.isArray(members)) {
+    members.forEach(m => {
+      if (m && m.email && typeof m.email === 'string' && m.email.trim()) {
+        list.push(m.email.trim());
+      }
+    });
+  }
+  const unique = [...new Set(list.filter(e => e.includes('@')))];
+  return unique.length > 0 ? unique : [team ? team.leader_email : ''];
+}
+
+/**
+ * Unified Email Dispatcher (Brevo REST API v3 -> Nodemailer SMTP -> Preview Fallback)
+ */
+async function sendMailMessage({ recipients, subject, html }) {
+  const recipientArray = Array.isArray(recipients) ? recipients : [recipients];
+  const validRecipients = [...new Set(recipientArray.filter(e => typeof e === 'string' && e.includes('@')))];
+
+  if (validRecipients.length === 0) {
+    return { success: false, error: 'No valid recipient email address provided.' };
+  }
+
+  // 1. Try Brevo HTTP API v3 if BREVO_API_KEY or an xkeysib- key is configured
+  const apiKey = process.env.BREVO_API_KEY || (process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith('xkeysib-') ? process.env.SMTP_PASS : null);
+
+  if (apiKey) {
+    try {
+      const senderEmail = (process.env.SMTP_USER || 'ba3a11001@smtp-brevo.com').trim();
+      const replyToEmail = (process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com').trim();
+
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'accept': 'application/json',
+          'content-type': 'application/json',
+          'api-key': apiKey
+        },
+        body: JSON.stringify({
+          sender: { name: "GAMBIT'S GLITCH 2026", email: senderEmail },
+          replyTo: { name: "GAMBIT'S GLITCH 2026", email: replyToEmail },
+          to: validRecipients.map(e => ({ email: e })),
+          subject,
+          htmlContent: html
+        })
+      });
+
+      const resData = await response.json();
+      if (response.ok && resData.messageId) {
+        console.log(`✉️ Email dispatched via Brevo REST API v3 to ${validRecipients.join(', ')} (ID: ${resData.messageId})`);
+        return { success: true, recipients: validRecipients, messageId: resData.messageId };
+      } else {
+        console.warn(`⚠️ Brevo API v3 response error (${response.status}):`, resData.message || JSON.stringify(resData));
+      }
+    } catch (err) {
+      console.warn(`⚠️ Brevo API v3 fetch failed:`, err.message);
+    }
+  }
+
+  // 2. Fallback to Nodemailer SMTP
+  if (transporter) {
+    try {
+      const info = await transporter.sendMail({
+        from: EMAIL_FROM,
+        replyTo: EMAIL_REPLY_TO,
+        to: validRecipients,
+        subject,
+        html
+      });
+      console.log(`✉️ Email dispatched via Nodemailer SMTP to ${validRecipients.join(', ')}`);
+      return { success: true, recipients: validRecipients, info };
+    } catch (err) {
+      console.error(`❌ SMTP dispatch failed for ${validRecipients.join(', ')}:`, err.message);
+      return { success: false, error: err.message };
+    }
+  }
+
+  // 3. Fallback to Preview Log Mode
+  console.log(`\n=================== [EMAIL PREVIEW MODE] ===================`);
+  console.log(`TO: ${validRecipients.join(', ')}`);
+  console.log(`SUBJECT: ${subject}`);
+  console.log(`============================================================\n`);
+  return { success: true, preview: true };
 }
 
 /**
@@ -161,20 +263,8 @@ export async function sendRegistrationConfirmation(team, members = [], ppt = nul
     ${getEmailFooter()}
   `;
 
-  if (transporter) {
-    try {
-      await transporter.sendMail({ from: EMAIL_FROM, to: team.leader_email, subject, html });
-      console.log(`✉️ Registration Email sent to ${team.leader_email}`);
-    } catch (err) {
-      console.error(`❌ Failed to send registration email to ${team.leader_email}:`, err.message);
-    }
-  } else {
-    console.log(`\n=================== [EMAIL PREVIEW: REGISTRATION] ===================`);
-    console.log(`TO: ${team.leader_email}`);
-    console.log(`SUBJECT: ${subject}`);
-    console.log(`REG ID: ${team.reg_id} | TEAM: ${team.team_name}`);
-    console.log(`======================================================================\n`);
-  }
+  const recipients = getEmailRecipients(team, members);
+  return sendMailMessage({ recipients, subject, html });
 }
 
 /**
@@ -241,21 +331,8 @@ export async function sendShortlistedEmail(team, members = []) {
     ${getEmailFooter()}
   `;
 
-  if (transporter) {
-    try {
-      await transporter.sendMail({ from: EMAIL_FROM, to: team.leader_email, subject, html });
-      console.log(`✉️ Shortlist Email sent to ${team.leader_email}`);
-    } catch (err) {
-      console.error(`❌ Failed to send shortlist email to ${team.leader_email}:`, err.message);
-    }
-  } else {
-    console.log(`\n=================== [EMAIL PREVIEW: SHORTLISTED] ===================`);
-    console.log(`TO: ${team.leader_email}`);
-    console.log(`SUBJECT: ${subject}`);
-    console.log(`REG ID: ${team.reg_id} | TEAM: ${team.team_name}`);
-    console.log(`PAYMENT URL: ${paymentUrl}`);
-    console.log(`=====================================================================\n`);
-  }
+  const recipients = getEmailRecipients(team, members);
+  return sendMailMessage({ recipients, subject, html });
 }
 
 /**
@@ -413,19 +490,32 @@ export async function sendPaymentInvoiceEmail(team, payment = null, ppt = null, 
     ${getEmailFooter()}
   `;
 
-  if (transporter) {
-    try {
-      await transporter.sendMail({ from: EMAIL_FROM, to: team.leader_email, subject, html });
-      console.log(`✉️ Payment Invoice & QR Pass Email sent to ${team.leader_email}`);
-    } catch (err) {
-      console.error(`❌ Failed to send invoice email to ${team.leader_email}:`, err.message);
-    }
-  } else {
-    console.log(`\n=================== [EMAIL PREVIEW: PAYMENT INVOICE & QR PASS] ===================`);
-    console.log(`TO: ${team.leader_email}`);
-    console.log(`SUBJECT: ${subject}`);
-    console.log(`INVOICE: ${invoiceId} | TEAM: ${team.team_name} | MEMBERS: ${members.length || team.member_count}`);
-    console.log(`ATTENDANCE QR DATA: ${qrTextData}`);
-    console.log(`===================================================================================\n`);
-  }
+  const recipients = getEmailRecipients(team, members);
+  return sendMailMessage({ recipients, subject, html });
+}
+
+/**
+ * DIAGNOSTIC: Send manual test email for admin SMTP verification
+ */
+export async function sendTestEmail(targetEmail) {
+  const subject = `[GAMBIT'S GLITCH 2026] SMTP Diagnostic & Test Email`;
+  const html = `
+    ${getEmailHeader('SMTP Service Verification', 'SYSTEM DIAGNOSTIC TEST')}
+    <p style="font-size: 15px; color: #10100E;">
+      This is an automated test email from <strong>GAMBIT'S GLITCH 2026</strong>.
+    </p>
+    <div style="background-color: #F8F7F2; border: 1px solid #C5BBA7; padding: 16px; margin: 20px 0; font-family: monospace; font-size: 13px;">
+      <div><strong>Status:</strong> SMTP Transmission Operational ✅</div>
+      <div><strong>Target Email:</strong> ${targetEmail}</div>
+      <div><strong>SMTP Host:</strong> ${SMTP_HOST || 'N/A'}</div>
+      <div><strong>Sender Address:</strong> ${EMAIL_FROM}</div>
+      <div><strong>Timestamp:</strong> ${new Date().toISOString()}</div>
+    </div>
+    <p style="font-size: 13px; color: #77756F;">
+      If you are receiving this message, your Nodemailer & SMTP credentials are functioning properly.
+    </p>
+    ${getEmailFooter()}
+  `;
+
+  return sendMailMessage({ recipients: targetEmail, subject, html });
 }

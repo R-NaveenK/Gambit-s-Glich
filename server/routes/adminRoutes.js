@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { dbAdapter } from '../db/dbAdapter.js';
-import { sendShortlistedEmail, sendPaymentInvoiceEmail } from '../services/emailService.js';
+import { sendShortlistedEmail, sendPaymentInvoiceEmail, sendTestEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -290,15 +290,26 @@ router.get('/export-csv', async (req, res) => {
   }
 });
 
-// 9. Clear All Test Data Endpoint
-router.post('/clear-all', async (req, res) => {
+// 10. Send Diagnostic Test Email Endpoint
+router.post('/email/test', async (req, res) => {
   try {
-    await dbAdapter.clearAllData();
-    await dbAdapter.logAdminAction(req.user.email, 'CLEAR_ALL_DATA', null, 'All test database records cleared.');
-    return res.json({ success: true, message: 'All test registrations, payments, and submissions have been cleared.' });
+    const { email } = req.body;
+    const targetEmail = (email || req.user.email).trim();
+    if (!targetEmail || !targetEmail.includes('@')) {
+      return res.status(400).json({ success: false, message: 'Valid recipient email address is required.' });
+    }
+
+    const result = await sendTestEmail(targetEmail);
+    await dbAdapter.logAdminAction(req.user.email, 'TEST_EMAIL_SENT', null, `Test email dispatched to ${targetEmail}. Result: ${result.success ? 'Success' : 'Failed'}`);
+
+    if (result.success) {
+      return res.json({ success: true, message: result.message, info: result.info });
+    } else {
+      return res.status(400).json({ success: false, message: result.message });
+    }
   } catch (err) {
-    console.error('Clear data error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to clear test data.' });
+    console.error('Test email route error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to execute test email dispatch.' });
   }
 });
 
