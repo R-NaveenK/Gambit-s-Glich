@@ -225,7 +225,7 @@ router.post('/team/mark-attendance', async (req, res) => {
   }
 });
 
-// 7. Post Announcement
+// 6. Post Announcement
 router.post('/announcements', async (req, res) => {
   try {
     const { title, content, priority } = req.body;
@@ -240,7 +240,7 @@ router.post('/announcements', async (req, res) => {
   }
 });
 
-// 8. Get Audit Logs
+// 7. Get Audit Logs
 router.get('/logs', async (req, res) => {
   try {
     const logs = await dbAdapter.getAdminLogs();
@@ -250,7 +250,7 @@ router.get('/logs', async (req, res) => {
   }
 });
 
-// 9. Export CSV
+// 8. Export CSV
 router.get('/export-csv', async (req, res) => {
   try {
     const teams = await dbAdapter.getAllTeams();
