@@ -171,16 +171,5 @@ export const api = {
       body: JSON.stringify({ email: targetEmail })
     });
     return res.json();
-  },
-
-  async clearAllData() {
-    const token = this.getToken();
-    const res = await fetch(`${BASE_URL}/admin/clear-all`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    return res.json();
   }
 };

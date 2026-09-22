@@ -18,6 +18,11 @@ const DATA_FILE = path.join(__dirname, 'data_store.json');
 
 // Initial seed structure for local database fallback
 const initialData = {
+  teams: [],
+  team_members: [],
+  payments: [],
+  ppt_submissions: [],
+  announcements: [],
   admin_logs: [
     {
       id: "log-1",
@@ -33,15 +38,31 @@ const initialData = {
 // Ensure JSON file store exists
 function loadLocalStore() {
   try {
+    let data;
     if (!fs.existsSync(DATA_FILE)) {
-      fs.writeFileSync(DATA_FILE, JSON.stringify(initialData, null, 2));
-      return initialData;
+      data = initialData;
+    } else {
+      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
+      data = JSON.parse(raw);
     }
-    const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-    return JSON.parse(raw);
+    data.teams = data.teams || [];
+    data.team_members = data.team_members || [];
+    data.payments = data.payments || [];
+    data.ppt_submissions = data.ppt_submissions || [];
+    data.announcements = data.announcements || [];
+    data.admin_logs = data.admin_logs || [];
+    saveLocalStore(data);
+    return data;
   } catch (err) {
     console.error("Local data store load error:", err);
-    return initialData;
+    return {
+      teams: [],
+      team_members: [],
+      payments: [],
+      ppt_submissions: [],
+      announcements: [],
+      admin_logs: []
+    };
   }
 }
 

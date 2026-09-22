@@ -60,16 +60,16 @@ router.get('/teams', async (req, res) => {
 
     const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
 
-    let filtered = fullTeams;
+    let filtered = fullTeams.filter(Boolean);
 
     if (search) {
       const q = search.toLowerCase();
       filtered = filtered.filter(t =>
-        t.reg_id.toLowerCase().includes(q) ||
-        t.team_name.toLowerCase().includes(q) ||
-        t.leader_name.toLowerCase().includes(q) ||
-        t.leader_email.toLowerCase().includes(q) ||
-        (t.payment && t.payment.utr_number.toLowerCase().includes(q))
+        (t.reg_id || '').toLowerCase().includes(q) ||
+        (t.team_name || '').toLowerCase().includes(q) ||
+        (t.leader_name || '').toLowerCase().includes(q) ||
+        (t.leader_email || '').toLowerCase().includes(q) ||
+        (t.payment && t.payment.utr_number && t.payment.utr_number.toLowerCase().includes(q))
       );
     }
 
@@ -82,7 +82,7 @@ router.get('/teams', async (req, res) => {
     }
 
     if (college && college !== 'ALL') {
-      filtered = filtered.filter(t => t.college.toLowerCase().includes(college.toLowerCase()));
+      filtered = filtered.filter(t => (t.college || '').toLowerCase().includes(college.toLowerCase()));
     }
 
     return res.json({ success: true, teams: filtered });
@@ -113,7 +113,17 @@ router.post('/payment/approve', async (req, res) => {
     }
 
     const updatedPayment = await dbAdapter.updatePaymentStatus(paymentId, 'APPROVED', null, req.user.email);
-    await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_APPROVED', targetTeam ? targetTeam.reg_id : reg_id, `Payment approved for payment ID ${paymentId}`);
+    
+    if (!targetTeam && updatedPayment && updatedPayment.team_id) {
+      const allTeams = await dbAdapter.getAllTeams();
+      const match = allTeams.find(t => t.id === updatedPayment.team_id);
+      if (match) {
+        targetTeam = await dbAdapter.getTeamByRegId(match.reg_id);
+      }
+    }
+
+    const targetRegId = targetTeam ? targetTeam.reg_id : (reg_id || paymentId);
+    await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_APPROVED', targetRegId, `Payment approved for payment ID ${paymentId}`);
 
     if (targetTeam) {
       const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
@@ -149,7 +159,17 @@ router.post('/payment/reject', async (req, res) => {
     }
 
     const updatedPayment = await dbAdapter.updatePaymentStatus(paymentId, 'REJECTED', reason.trim(), req.user.email);
-    await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_REJECTED', targetTeam ? targetTeam.reg_id : reg_id, `Reason: ${reason.trim()}`);
+
+    if (!targetTeam && updatedPayment && updatedPayment.team_id) {
+      const allTeams = await dbAdapter.getAllTeams();
+      const match = allTeams.find(t => t.id === updatedPayment.team_id);
+      if (match) {
+        targetTeam = await dbAdapter.getTeamByRegId(match.reg_id);
+      }
+    }
+
+    const targetRegId = targetTeam ? targetTeam.reg_id : (reg_id || paymentId);
+    await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_REJECTED', targetRegId, `Reason: ${reason.trim()}`);
 
     return res.json({ success: true, message: 'Payment rejected. Team informed via status tracker.', payment: updatedPayment });
   } catch (err) {
@@ -162,7 +182,7 @@ router.post('/payment/reject', async (req, res) => {
 router.post('/team/update-status', async (req, res) => {
   try {
     const { team_id, reg_id, new_status } = req.body;
-    const validStatuses = ['SHORTLISTED', 'UNDER_REVIEW', 'REJECTED', 'PAYMENT_APPROVED'];
+    const validStatuses = ['SHORTLISTED', 'UNDER_REVIEW', 'REJECTED', 'PAYMENT_APPROVED', 'PAYMENT_PENDING', 'PPT_SUBMITTED'];
 
     if (!validStatuses.includes(new_status)) {
       return res.status(400).json({ success: false, message: 'Invalid target team status.' });
@@ -187,8 +207,12 @@ router.post('/team/update-status', async (req, res) => {
       }
     }
 
+    if (!targetTeamId) {
+      return res.status(404).json({ success: false, message: 'Target team not found.' });
+    }
+
     await dbAdapter.updateTeamStatus(targetTeamId, new_status);
-    await dbAdapter.logAdminAction(req.user.email, `TEAM_STATUS_${new_status}`, targetRegId, `Status changed to ${new_status}`);
+    await dbAdapter.logAdminAction(req.user.email, `TEAM_STATUS_${new_status}`, targetRegId || targetTeamId, `Status changed to ${new_status}`);
 
     // Trigger Shortlisted Email with Attendance QR code & payment link if team is shortlisted
     if (new_status === 'SHORTLISTED' && targetTeam) {
@@ -258,24 +282,27 @@ router.get('/export-csv', async (req, res) => {
 
     let csvContent = 'Registration ID,Team Name,Theme,Leader Name,Leader Email,Leader Phone,College,Department,Year,Member Count,Status,UTR Number,Payer Name,Payment Status,PPT Title,PPT File URL\n';
 
+    const sanitize = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+
     for (const t of fullTeams) {
+      if (!t) continue;
       const row = [
-        `"${t.reg_id}"`,
-        `"${t.team_name.replace(/"/g, '""')}"`,
-        `"${t.theme_id}"`,
-        `"${t.leader_name.replace(/"/g, '""')}"`,
-        `"${t.leader_email}"`,
-        `"${t.leader_phone}"`,
-        `"${t.college.replace(/"/g, '""')}"`,
-        `"${t.department.replace(/"/g, '""')}"`,
-        `"${t.year}"`,
-        t.member_count,
-        `"${t.status}"`,
-        `"${t.payment ? t.payment.utr_number : 'N/A'}"`,
-        `"${t.payment ? t.payment.payer_name.replace(/"/g, '""') : 'N/A'}"`,
-        `"${t.payment ? t.payment.status : 'N/A'}"`,
-        `"${t.ppt ? t.ppt.project_title.replace(/"/g, '""') : 'N/A'}"`,
-        `"${t.ppt ? t.ppt.file_url : 'N/A'}"`
+        sanitize(t.reg_id),
+        sanitize(t.team_name),
+        sanitize(t.theme_id),
+        sanitize(t.leader_name),
+        sanitize(t.leader_email),
+        sanitize(t.leader_phone),
+        sanitize(t.college),
+        sanitize(t.department),
+        sanitize(t.year),
+        t.member_count || 1,
+        sanitize(t.status),
+        sanitize(t.payment ? t.payment.utr_number : 'N/A'),
+        sanitize(t.payment ? t.payment.payer_name : 'N/A'),
+        sanitize(t.payment ? t.payment.status : 'N/A'),
+        sanitize(t.ppt ? t.ppt.project_title : 'N/A'),
+        sanitize(t.ppt ? t.ppt.file_url : 'N/A')
       ].join(',');
       csvContent += row + '\n';
     }
@@ -310,18 +337,6 @@ router.post('/email/test', async (req, res) => {
   } catch (err) {
     console.error('Test email route error:', err);
     return res.status(500).json({ success: false, message: 'Failed to execute test email dispatch.' });
-  }
-});
-
-// 11. Clear All Database Data
-router.post('/clear-all', async (req, res) => {
-  try {
-    await dbAdapter.clearAllData();
-    await dbAdapter.logAdminAction(req.user.email, 'CLEAR_DATABASE', null, 'Wiped all team registrations, payments, and submissions.');
-    return res.json({ success: true, message: 'Database successfully cleared!' });
-  } catch (err) {
-    console.error('Clear database error:', err);
-    return res.status(500).json({ success: false, message: 'Failed to clear database.' });
   }
 });
 
