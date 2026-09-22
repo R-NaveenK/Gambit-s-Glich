@@ -51,10 +51,14 @@ class App {
       admin: AdminPage
     };
 
-    const initialHash = window.location.hash.replace('#', '');
-    if (initialHash && this.routes[initialHash]) {
-      this.currentRoute = initialHash;
-    }
+    const getInitialRoute = () => {
+      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      if (hash && this.routes[hash]) return hash;
+      const path = window.location.pathname.replace(/^\//, '').trim();
+      if (path && this.routes[path]) return path;
+      return 'home';
+    };
+    this.currentRoute = getInitialRoute();
   }
 
   init() {
@@ -107,11 +111,23 @@ class App {
       }
     });
 
+    // Handle Hash Changes dynamically (e.g., pasting #admin-portalGG)
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      if (hash && this.routes[hash] && this.currentRoute !== hash) {
+        this.currentRoute = hash;
+        this.renderCurrentRoute(true);
+      }
+    });
+
     // Handle Browser Back / Forward
     window.addEventListener('popstate', (e) => {
-      const route = e.state ? e.state.route : 'home';
-      this.currentRoute = route;
-      this.renderCurrentRoute(false);
+      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      const route = (e.state && e.state.route) || hash || 'home';
+      if (this.routes[route]) {
+        this.currentRoute = route;
+        this.renderCurrentRoute(false);
+      }
     });
   }
 
@@ -120,7 +136,7 @@ class App {
     this.currentRoute = route;
 
     if (updateHistory) {
-      window.history.pushState({ route }, '', route === 'home' ? '/' : `#${route}`);
+      window.location.hash = `#${route}`;
     }
 
     this.renderCurrentRoute();

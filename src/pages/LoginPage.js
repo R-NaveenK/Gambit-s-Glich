@@ -40,8 +40,8 @@ export class LoginPage {
                 Default Credentials: <code class="text-accent-dark font-bold">gambitsglitch@gmail.com</code> / <code class="text-accent-dark font-bold">admin#glitch2026</code>
               </div>
 
-              <button type="submit" id="login-btn" class="nav-link btn-primary w-full py-4 text-xs font-bold tracking-widest uppercase">
-                ⚡ AUTHENTICATE & ACCESS DASHBOARD →
+              <button type="submit" id="login-btn" class="btn-primary w-full py-4 text-xs font-bold tracking-widest uppercase">
+                AUTHENTICATE & ACCESS DASHBOARD
               </button>
             </form>
           </div>
@@ -71,16 +71,16 @@ export class LoginPage {
           if (res.success) {
             soundFx.playGlitch();
             toast.show('Admin authentication granted.', 'success');
-            this.navigate('admin');
+            this.navigate('admin-portalGG');
           } else {
             toast.show(res.message || 'Authentication failed.', 'error');
             btn.disabled = false;
-            btn.innerHTML = `⚡ AUTHENTICATE & ACCESS DASHBOARD →`;
+            btn.innerHTML = `AUTHENTICATE & ACCESS DASHBOARD`;
           }
         } catch (err) {
           toast.show('Network error during admin login.', 'error');
           btn.disabled = false;
-          btn.innerHTML = `⚡ AUTHENTICATE & ACCESS DASHBOARD →`;
+          btn.innerHTML = `AUTHENTICATE & ACCESS DASHBOARD`;
         }
       });
     }
