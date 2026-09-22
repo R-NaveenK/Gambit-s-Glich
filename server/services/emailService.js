@@ -11,7 +11,7 @@ if (SMTP_HOST && SMTP_HOST.includes('brevo.com')) {
 }
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-const EMAIL_FROM = process.env.EMAIL_FROM || `"GAMBIT'S GLITCH 2026" <${process.env.SMTP_USER || 'ba3a11001@smtp-brevo.com'}>`;
+const EMAIL_FROM = process.env.EMAIL_FROM || `"GAMBIT'S GLITCH 2026" <${process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com'}>`;
 const EMAIL_REPLY_TO = process.env.EMAIL_REPLY_TO || `"GAMBIT'S GLITCH 2026" <${process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com'}>`;
 
 // Check for Brevo REST API Key or SMTP credentials
@@ -93,7 +93,7 @@ async function sendMailMessage({ recipients, subject, html }) {
 
   if (apiKey) {
     try {
-      const senderEmail = (process.env.SMTP_USER || 'ba3a11001@smtp-brevo.com').trim();
+      const senderEmail = (process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com').trim();
       const replyToEmail = (process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com').trim();
 
       const response = await fetch('https://api.brevo.com/v3/smtp/email', {
