@@ -60,10 +60,6 @@ export class Footer {
             <div>
               © 2026 GAMBIT’S GLITCH. SWISS EDITORIAL MINIMALISM DISRUPTED BY CONTROLLED DIGITAL CHAOS.
             </div>
-            <div class="flex items-center gap-3">
-              <span class="w-2 h-2 bg-accent rounded-full inline-block"></span>
-              <span>ENGINE: <strong class="text-ink">EXPRESS + VITE + SUPABASE</strong></span>
-            </div>
           </div>
 
         </div>
