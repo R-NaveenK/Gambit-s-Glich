@@ -109,7 +109,7 @@ router.post('/', regUpload, async (req, res) => {
 
     // Check for duplicate leader email
     const allTeams = await dbAdapter.getAllTeams();
-    const existingLeader = allTeams.find(t => t.leader_email.toLowerCase() === leader_email.toLowerCase());
+    const existingLeader = allTeams.find(t => (t.leader_email || '').toLowerCase() === leader_email.toLowerCase());
     if (existingLeader) {
       return res.status(400).json({
         success: false,

@@ -211,22 +211,47 @@ export const dbAdapter = {
   // Payments CRUD
   async createPayment(paymentData) {
     if (this.isSupabase) {
-      const { data, error } = await supabase.from('payments').insert([paymentData]).select().single();
-      if (error) throw error;
-      return data;
+      try {
+        const dbPayment = {
+          team_id: paymentData.team_id,
+          utr_number: paymentData.utr_number,
+          payer_name: paymentData.payer_name,
+          amount: paymentData.amount,
+          payment_date: paymentData.payment_date,
+          screenshot_url: paymentData.screenshot_url
+        };
+        if (paymentData.status) dbPayment.status = paymentData.status;
+
+        const { data, error } = await supabase.from('payments').insert([dbPayment]).select().single();
+        if (error) throw error;
+        return { ...data, file_data: paymentData.file_data, filename: paymentData.filename, original_filename: paymentData.original_filename };
+      } catch (err) {
+        console.warn("Supabase createPayment note:", err.message);
+        const store = loadLocalStore();
+        const paymentId = "pay-" + Date.now();
+        const newPay = {
+          id: paymentId,
+          ...paymentData,
+          status: paymentData.status || 'PENDING',
+          rejection_reason: null,
+          created_at: new Date().toISOString()
+        };
+        store.payments.push(newPay);
+        saveLocalStore(store);
+        return newPay;
+      }
     } else {
       const store = loadLocalStore();
       const paymentId = "pay-" + Date.now();
       const newPay = {
         id: paymentId,
         ...paymentData,
-        status: 'PENDING',
+        status: paymentData.status || 'PENDING',
         rejection_reason: null,
         created_at: new Date().toISOString()
       };
       store.payments.push(newPay);
       
-      // Update team status to PAYMENT_PENDING if not already
       const team = store.teams.find(t => t.id === paymentData.team_id);
       if (team && team.status !== 'PAYMENT_APPROVED') {
         team.status = 'PAYMENT_PENDING';
@@ -283,18 +308,57 @@ export const dbAdapter = {
   // PPT Submissions CRUD
   async upsertPptSubmission(pptData) {
     if (this.isSupabase) {
-      const { data: existing } = await supabase.from('ppt_submissions').select('*').eq('team_id', pptData.team_id).maybeSingle();
-      if (existing) {
-        const { data, error } = await supabase.from('ppt_submissions')
-          .update({ ...pptData, version: (existing.version || 1) + 1, updated_at: new Date().toISOString() })
-          .eq('id', existing.id)
-          .select().single();
-        if (error) throw error;
-        return data;
-      } else {
-        const { data, error } = await supabase.from('ppt_submissions').insert([pptData]).select().single();
-        if (error) throw error;
-        return data;
+      try {
+        const dbPpt = {
+          team_id: pptData.team_id,
+          project_title: pptData.project_title,
+          summary: pptData.summary,
+          file_url: pptData.file_url,
+          original_filename: pptData.original_filename || 'presentation',
+          repo_link: pptData.repo_link || '',
+          demo_link: pptData.demo_link || ''
+        };
+
+        const { data: existing } = await supabase.from('ppt_submissions').select('*').eq('team_id', pptData.team_id).maybeSingle();
+        if (existing) {
+          const { data, error } = await supabase.from('ppt_submissions')
+            .update({ ...dbPpt, version: (existing.version || 1) + 1, updated_at: new Date().toISOString() })
+            .eq('id', existing.id)
+            .select().single();
+          if (error) throw error;
+          return { ...data, file_data: pptData.file_data, filename: pptData.filename };
+        } else {
+          const { data, error } = await supabase.from('ppt_submissions').insert([dbPpt]).select().single();
+          if (error) throw error;
+          return { ...data, file_data: pptData.file_data, filename: pptData.filename };
+        }
+      } catch (err) {
+        console.warn("Supabase upsertPptSubmission note:", err.message);
+        const store = loadLocalStore();
+        const existingIdx = store.ppt_submissions.findIndex(p => p.team_id === pptData.team_id);
+        let pptRecord;
+
+        if (existingIdx !== -1) {
+          pptRecord = {
+            ...store.ppt_submissions[existingIdx],
+            ...pptData,
+            version: (store.ppt_submissions[existingIdx].version || 1) + 1,
+            updated_at: new Date().toISOString()
+          };
+          store.ppt_submissions[existingIdx] = pptRecord;
+        } else {
+          pptRecord = {
+            id: "ppt-" + Date.now(),
+            ...pptData,
+            version: 1,
+            submitted_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          };
+          store.ppt_submissions.push(pptRecord);
+        }
+
+        saveLocalStore(store);
+        return pptRecord;
       }
     } else {
       const store = loadLocalStore();

@@ -18,8 +18,8 @@ router.post('/check', async (req, res) => {
 
     // Verify email matches leader or member email
     const cleanEmail = email.trim().toLowerCase();
-    const isLeaderMatch = team.leader_email.toLowerCase() === cleanEmail;
-    const isMemberMatch = team.members && team.members.some(m => m.email.toLowerCase() === cleanEmail);
+    const isLeaderMatch = (team.leader_email || '').toLowerCase() === cleanEmail;
+    const isMemberMatch = team.members && team.members.some(m => (m.email || '').toLowerCase() === cleanEmail);
 
     if (!isLeaderMatch && !isMemberMatch) {
       return res.status(401).json({ success: false, message: `Email "${email}" is not authorized for team ID ${reg_id}. Please check your registered email.` });
