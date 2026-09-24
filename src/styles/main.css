@@ -240,13 +240,31 @@ body {
   justify-content: center;
   gap: 0.5rem;
   padding: 0.85rem 1.25rem;
-  border: 1px solid var(--ink);
   text-decoration: none;
   cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.btn-primary { background: var(--ink); color: var(--inverse-text); }
-.btn-secondary { background: transparent; color: var(--ink); }
-.btn-primary:hover, .btn-secondary:hover { background: var(--signal); color: var(--ink); }
+.btn-primary {
+  background: var(--accent);
+  color: var(--ink);
+  border: 1px solid var(--accent);
+}
+.btn-primary:hover {
+  background: var(--ink);
+  color: var(--canvas);
+  border-color: var(--ink);
+}
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+}
+.btn-secondary:hover {
+  background: var(--accent);
+  color: var(--ink);
+  border-color: var(--accent);
+}
 input:not([type='checkbox']):not([type='radio']), select, textarea {
   border: 1px solid var(--line);
   background: var(--bg-color);
