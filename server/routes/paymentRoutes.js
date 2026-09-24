@@ -143,6 +143,16 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
       });
     }
 
+    let fileData = null;
+    try {
+      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        fileData = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
+      }
+    } catch (e) {
+      console.warn("Could not read screenshot buffer:", e.message);
+    }
+
     const screenshotUrl = `/uploads/${req.file.filename}`;
 
     const paymentData = {
@@ -151,7 +161,11 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
       payer_name: payer_name.trim(),
       amount: parseFloat(amount) || 499.00,
       payment_date,
-      screenshot_url: screenshotUrl
+      screenshot_url: screenshotUrl,
+      filename: req.file.filename,
+      original_filename: req.file.originalname,
+      mime_type: req.file.mimetype,
+      file_data: fileData
     };
 
     const payment = await dbAdapter.createPayment(paymentData);

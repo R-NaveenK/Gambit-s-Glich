@@ -72,12 +72,25 @@ router.post('/upload', upload.single('ppt_file'), async (req, res) => {
       });
     }
 
+    let fileData = null;
+    try {
+      if (req.file && req.file.path && fs.existsSync(req.file.path)) {
+        const fileBuffer = fs.readFileSync(req.file.path);
+        fileData = `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`;
+      }
+    } catch (e) {
+      console.warn("Could not read PPT file buffer:", e.message);
+    }
+
     const pptData = {
       team_id: team.id,
       project_title: project_title.trim(),
       summary: summary.trim(),
       file_url: `/uploads/${req.file.filename}`,
+      filename: req.file.filename,
       original_filename: req.file.originalname,
+      mime_type: req.file.mimetype,
+      file_data: fileData,
       repo_link: repo_link ? repo_link.trim() : '',
       demo_link: demo_link ? demo_link.trim() : ''
     };

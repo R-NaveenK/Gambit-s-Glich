@@ -417,5 +417,22 @@ export const dbAdapter = {
     store.payment_portal_open = Boolean(isOpen);
     saveLocalStore(store);
     return store.payment_portal_open;
+  },
+
+  async getFileByFilename(filename) {
+    if (this.isSupabase) {
+      const { data: pay } = await supabase.from('payments').select('*').eq('filename', filename).maybeSingle();
+      if (pay) return pay;
+      const { data: ppt } = await supabase.from('ppt_submissions').select('*').eq('filename', filename).maybeSingle();
+      if (ppt) return ppt;
+      return null;
+    } else {
+      const store = loadLocalStore();
+      const pay = (store.payments || []).find(p => p.filename === filename || (p.screenshot_url && p.screenshot_url.includes(filename)));
+      if (pay) return pay;
+      const ppt = (store.ppt_submissions || []).find(p => p.filename === filename || (p.file_url && p.file_url.includes(filename)));
+      if (ppt) return ppt;
+      return null;
+    }
   }
 };

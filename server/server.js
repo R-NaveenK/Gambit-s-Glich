@@ -46,10 +46,12 @@ const apiLimiter = rateLimit({
 app.use('/api/', apiLimiter);
 
 import fs from 'fs';
+import { dbAdapter } from './db/dbAdapter.js';
 
 const uploadDir = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadDir));
-app.get('/uploads/:filename', (req, res) => {
+
+const serveUploadFile = async (req, res) => {
   const filename = path.basename(req.params.filename);
   const tmpPath = path.join('/tmp', filename);
   const localPath = path.join(uploadDir, filename);
@@ -58,10 +60,34 @@ app.get('/uploads/:filename', (req, res) => {
     return res.sendFile(tmpPath);
   } else if (fs.existsSync(localPath)) {
     return res.sendFile(localPath);
-  } else {
-    return res.status(404).send('Uploaded file not found.');
   }
-});
+
+  try {
+    const record = await dbAdapter.getFileByFilename(filename);
+    if (record && record.file_data) {
+      const matches = record.file_data.match(/^data:(.+);base64,(.+)$/);
+      if (matches) {
+        const mimeType = matches[1];
+        const buffer = Buffer.from(matches[2], 'base64');
+        const originalName = record.original_filename || filename;
+        const isDownload = req.query.download === 'true' || req.query.download === '1';
+
+        res.setHeader('Content-Type', mimeType);
+        res.setHeader(
+          'Content-Disposition',
+          `${isDownload ? 'attachment' : 'inline'}; filename="${encodeURIComponent(originalName)}"`
+        );
+        return res.send(buffer);
+      }
+    }
+  } catch (err) {
+    console.error("Error serving uploaded file from DB:", err);
+  }
+
+  return res.status(404).send('Uploaded file not found.');
+};
+
+app.get('/uploads/:filename', serveUploadFile);
 
 // Also serve public assets if needed
 const publicDir = path.join(__dirname, '../public');

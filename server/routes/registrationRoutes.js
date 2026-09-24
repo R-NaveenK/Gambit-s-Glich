@@ -159,6 +159,13 @@ router.post('/', regUpload, async (req, res) => {
     // Process Payment Screenshot & Record if attached
     let paymentRecord = null;
     if (paymentFile && utr_number) {
+      let paymentFileData = null;
+      try {
+        if (paymentFile.path && fs.existsSync(paymentFile.path)) {
+          paymentFileData = `data:${paymentFile.mimetype};base64,${fs.readFileSync(paymentFile.path).toString('base64')}`;
+        }
+      } catch (e) {}
+
       const screenshotUrl = `/uploads/${paymentFile.filename}`;
       paymentRecord = await dbAdapter.createPayment({
         team_id: createdTeam.id,
@@ -166,17 +173,31 @@ router.post('/', regUpload, async (req, res) => {
         payer_name: (payer_name || leader_name).trim(),
         amount: parseFloat(amount) || ((memberArray.length + 1) * 300),
         payment_date: new Date().toISOString().split('T')[0],
-        screenshot_url: screenshotUrl
+        screenshot_url: screenshotUrl,
+        filename: paymentFile.filename,
+        original_filename: paymentFile.originalname,
+        mime_type: paymentFile.mimetype,
+        file_data: paymentFileData
       });
     }
 
     // Process PPT Pitch Deck
+    let pptFileData = null;
+    try {
+      if (pptFile.path && fs.existsSync(pptFile.path)) {
+        pptFileData = `data:${pptFile.mimetype};base64,${fs.readFileSync(pptFile.path).toString('base64')}`;
+      }
+    } catch (e) {}
+
     const pptRecord = await dbAdapter.upsertPptSubmission({
       team_id: createdTeam.id,
       project_title: project_title.trim(),
       summary: (summary || 'Submitted during team registration').trim(),
       file_url: `/uploads/${pptFile.filename}`,
+      filename: pptFile.filename,
       original_filename: pptFile.originalname,
+      mime_type: pptFile.mimetype,
+      file_data: pptFileData,
       repo_link: repo_link ? repo_link.trim() : '',
       demo_link: demo_link ? demo_link.trim() : ''
     });

@@ -800,7 +800,7 @@ export class AdminPage {
           <td class="p-4 font-mono text-[11px]">
             ${ppt ? `
               <div class="space-y-1">
-                <a href="${ppt.file_url}" target="_blank" download class="text-ink hover:text-accent font-bold underline block truncate max-w-[180px]">
+                <a href="${ppt.file_data && ppt.file_data.startsWith('data:') ? ppt.file_data : `${ppt.file_url}${ppt.file_url.includes('?') ? '&' : '?'}download=true`}" target="_blank" download="${ppt.original_filename || 'presentation'}" class="text-ink hover:text-accent font-bold underline block truncate max-w-[180px]">
                   ${ppt.original_filename} (v${ppt.version})
                 </a>
                 <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-0.5 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer">
@@ -901,10 +901,18 @@ export class AdminPage {
     if (!modal || !team.ppt) return;
 
     const ppt = team.ppt;
-    const fileUrl = ppt.file_url || '';
-    const fullUrl = fileUrl.startsWith('http') ? fileUrl : (window.location.origin + fileUrl);
-    const lowerFilename = (ppt.original_filename || fileUrl || '').toLowerCase();
-    const isPdf = lowerFilename.endsWith('.pdf') || lowerFilename.includes('.pdf');
+    const rawFileUrl = ppt.file_url || '';
+    const fullUrl = rawFileUrl.startsWith('http') ? rawFileUrl : (window.location.origin + (rawFileUrl.startsWith('/') ? '' : '/') + rawFileUrl);
+    const downloadUrl = (ppt.file_data && ppt.file_data.startsWith('data:'))
+      ? ppt.file_data
+      : `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}download=true`;
+    
+    const viewUrl = (ppt.file_data && ppt.file_data.startsWith('data:'))
+      ? ppt.file_data
+      : fullUrl;
+
+    const lowerFilename = (ppt.original_filename || rawFileUrl || '').toLowerCase();
+    const isPdf = lowerFilename.endsWith('.pdf') || lowerFilename.includes('.pdf') || (ppt.file_data && ppt.file_data.includes('application/pdf'));
 
     document.getElementById('ppt-modal-team-title').textContent = `PITCH DECK PREVIEW: ${team.team_name}`;
     document.getElementById('ppt-modal-reg-id').textContent = team.reg_id;
@@ -929,7 +937,8 @@ export class AdminPage {
 
     const directLink = document.getElementById('ppt-modal-direct-link');
     if (directLink) {
-      directLink.href = fullUrl;
+      directLink.href = downloadUrl;
+      directLink.download = ppt.original_filename || 'presentation';
     }
 
     const iframe = document.getElementById('ppt-modal-iframe');
@@ -938,14 +947,17 @@ export class AdminPage {
     const fallbackDownload = document.getElementById('ppt-fallback-download-btn');
     const fallbackText = document.getElementById('ppt-fallback-text');
 
-    if (fallbackOpen) fallbackOpen.href = fullUrl;
-    if (fallbackDownload) fallbackDownload.href = fullUrl;
+    if (fallbackOpen) fallbackOpen.href = viewUrl;
+    if (fallbackDownload) {
+      fallbackDownload.href = downloadUrl;
+      fallbackDownload.download = ppt.original_filename || 'presentation';
+    }
 
     const msEmbedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fullUrl)}`;
     const googleEmbedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true`;
 
     if (isPdf) {
-      iframe.src = fullUrl;
+      iframe.src = viewUrl;
       iframe.classList.remove('hidden');
       if (fallbackBox) fallbackBox.classList.add('hidden');
     } else if (fullUrl.startsWith('https://') || fullUrl.startsWith('http://')) {
