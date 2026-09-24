@@ -45,9 +45,23 @@ const apiLimiter = rateLimit({
 
 app.use('/api/', apiLimiter);
 
-// Serve uploads static folder
+import fs from 'fs';
+
 const uploadDir = path.join(__dirname, '../uploads');
 app.use('/uploads', express.static(uploadDir));
+app.get('/uploads/:filename', (req, res) => {
+  const filename = path.basename(req.params.filename);
+  const tmpPath = path.join('/tmp', filename);
+  const localPath = path.join(uploadDir, filename);
+
+  if (fs.existsSync(tmpPath)) {
+    return res.sendFile(tmpPath);
+  } else if (fs.existsSync(localPath)) {
+    return res.sendFile(localPath);
+  } else {
+    return res.status(404).send('Uploaded file not found.');
+  }
+});
 
 // Also serve public assets if needed
 const publicDir = path.join(__dirname, '../public');

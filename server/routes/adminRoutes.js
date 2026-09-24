@@ -78,7 +78,18 @@ router.get('/teams', async (req, res) => {
     }
 
     if (status && status !== 'ALL') {
-      filtered = filtered.filter(t => t.status === status);
+      filtered = filtered.filter(t => {
+        if (status === 'PAYMENT_APPROVED') {
+          return t.payment && t.payment.status === 'APPROVED';
+        }
+        if (status === 'PAYMENT_PENDING') {
+          return !t.payment || t.payment.status !== 'APPROVED';
+        }
+        if (status === 'PPT_SUBMITTED') {
+          return Boolean(t.ppt);
+        }
+        return t.status === status;
+      });
     }
 
     if (college && college !== 'ALL') {

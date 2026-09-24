@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import path from 'path';
+import fs from 'fs';
 
 import authRoutes from '../server/routes/authRoutes.js';
 import registrationRoutes from '../server/routes/registrationRoutes.js';
@@ -34,6 +36,24 @@ const apiLimiter = rateLimit({
 });
 
 app.use('/api/', apiLimiter);
+
+// Serve uploaded files dynamically from /tmp or ./uploads
+const serveUploadFile = (req, res) => {
+  const filename = path.basename(req.params.filename);
+  const tmpPath = path.join('/tmp', filename);
+  const localPath = path.join(process.cwd(), 'uploads', filename);
+
+  if (fs.existsSync(tmpPath)) {
+    return res.sendFile(tmpPath);
+  } else if (fs.existsSync(localPath)) {
+    return res.sendFile(localPath);
+  } else {
+    return res.status(404).send('Uploaded file not found.');
+  }
+};
+
+app.get('/uploads/:filename', serveUploadFile);
+app.get('/api/uploads/:filename', serveUploadFile);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/register', registrationRoutes);

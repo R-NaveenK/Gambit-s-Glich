@@ -15,6 +15,8 @@ export class AdminPage {
     this.logs = [];
     this.selectedTeam = null;
     this.scannedTeam = null;
+    this.currentFilters = { search: '', theme: 'ALL', status: 'ALL' };
+    this.searchDebounceTimer = null;
   }
 
   render() {
@@ -540,22 +542,32 @@ export class AdminPage {
     const statusFilter = document.getElementById('admin-status-filter');
     const resetBtn = document.getElementById('admin-filter-reset');
 
-    const applyFilters = async () => {
-      const search = searchInput.value;
-      const theme = themeFilter.value;
-      const status = statusFilter.value;
-      await this.fetchTeamsData({ search, theme, status });
+    const updateFiltersAndFetch = async () => {
+      this.currentFilters = {
+        search: searchInput ? searchInput.value.trim() : '',
+        theme: themeFilter ? themeFilter.value : 'ALL',
+        status: statusFilter ? statusFilter.value : 'ALL'
+      };
+      await this.fetchDashboardData(true);
     };
 
-    if (searchInput) searchInput.addEventListener('input', applyFilters);
-    if (themeFilter) themeFilter.addEventListener('change', applyFilters);
-    if (statusFilter) statusFilter.addEventListener('change', applyFilters);
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
+        this.searchDebounceTimer = setTimeout(updateFiltersAndFetch, 300);
+      });
+    }
+
+    if (themeFilter) themeFilter.addEventListener('change', updateFiltersAndFetch);
+    if (statusFilter) statusFilter.addEventListener('change', updateFiltersAndFetch);
+
     if (resetBtn) {
-      resetBtn.addEventListener('click', () => {
-        searchInput.value = '';
-        themeFilter.value = 'ALL';
-        statusFilter.value = 'ALL';
-        this.fetchTeamsData();
+      resetBtn.addEventListener('click', async () => {
+        if (searchInput) searchInput.value = '';
+        if (themeFilter) themeFilter.value = 'ALL';
+        if (statusFilter) statusFilter.value = 'ALL';
+        this.currentFilters = { search: '', theme: 'ALL', status: 'ALL' };
+        await this.fetchDashboardData();
       });
     }
 
@@ -575,6 +587,18 @@ export class AdminPage {
     };
     if (closePptModalBtn) closePptModalBtn.addEventListener('click', closePptModal);
     if (closePptModalBottomBtn) closePptModalBottomBtn.addEventListener('click', closePptModal);
+
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) modal.classList.add('hidden');
+      });
+    }
+
+    if (pptModal) {
+      pptModal.addEventListener('click', (e) => {
+        if (e.target === pptModal) closePptModal();
+      });
+    }
 
     const annForm = document.getElementById('announcement-form');
     if (annForm) {
@@ -974,8 +998,12 @@ export class AdminPage {
     document.getElementById('modal-reg-id').textContent = team.reg_id;
     document.getElementById('modal-utr').textContent = team.payment.utr_number;
     document.getElementById('modal-payer').textContent = team.payment.payer_name;
-    document.getElementById('modal-amount').textContent = `₹${team.payment.amount}`;
-    document.getElementById('modal-screenshot-img').src = team.payment.screenshot_url;
+    let screenshotUrl = team.payment.screenshot_url || '';
+    if (screenshotUrl && !screenshotUrl.startsWith('http') && !screenshotUrl.startsWith('data:')) {
+      screenshotUrl = window.location.origin + (screenshotUrl.startsWith('/') ? '' : '/') + screenshotUrl;
+    }
+    const imgEl = document.getElementById('modal-screenshot-img');
+    if (imgEl) imgEl.src = screenshotUrl;
 
     modal.classList.remove('hidden');
 
