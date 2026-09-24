@@ -895,6 +895,25 @@ export class AdminPage {
     });
   }
 
+  createBlobUrlFromData(dataUrl) {
+    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) return null;
+    try {
+      const parts = dataUrl.split(',');
+      const mimeMatch = parts[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
+      const bstr = atob(parts[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      const blob = new Blob([u8arr], { type: mime });
+      return URL.createObjectURL(blob);
+    } catch (e) {
+      return dataUrl;
+    }
+  }
+
   openPptModal(team) {
     this.selectedTeam = team;
     const modal = document.getElementById('ppt-modal');
@@ -903,13 +922,17 @@ export class AdminPage {
     const ppt = team.ppt;
     const rawFileUrl = ppt.file_url || '';
     const fullUrl = rawFileUrl.startsWith('http') ? rawFileUrl : (window.location.origin + (rawFileUrl.startsWith('/') ? '' : '/') + rawFileUrl);
-    const downloadUrl = (ppt.file_data && ppt.file_data.startsWith('data:'))
-      ? ppt.file_data
-      : `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}download=true`;
     
-    const viewUrl = (ppt.file_data && ppt.file_data.startsWith('data:'))
-      ? ppt.file_data
-      : fullUrl;
+    let downloadUrl = `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}download=true`;
+    let viewUrl = fullUrl;
+
+    if (ppt.file_data && ppt.file_data.startsWith('data:')) {
+      const blobUrl = this.createBlobUrlFromData(ppt.file_data);
+      if (blobUrl) {
+        downloadUrl = blobUrl;
+        viewUrl = blobUrl;
+      }
+    }
 
     const lowerFilename = (ppt.original_filename || rawFileUrl || '').toLowerCase();
     const isPdf = lowerFilename.endsWith('.pdf') || lowerFilename.includes('.pdf') || (ppt.file_data && ppt.file_data.includes('application/pdf'));
@@ -960,15 +983,11 @@ export class AdminPage {
       iframe.src = viewUrl;
       iframe.classList.remove('hidden');
       if (fallbackBox) fallbackBox.classList.add('hidden');
-    } else if (fullUrl.startsWith('https://') || fullUrl.startsWith('http://')) {
-      iframe.src = msEmbedUrl;
-      iframe.classList.remove('hidden');
-      if (fallbackBox) fallbackBox.classList.add('hidden');
     } else {
       if (iframe) iframe.classList.add('hidden');
       if (fallbackBox) {
         fallbackBox.classList.remove('hidden');
-        if (fallbackText) fallbackText.textContent = `PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW`;
+        if (fallbackText) fallbackText.textContent = `PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW & DOWNLOAD`;
       }
     }
 
@@ -992,7 +1011,7 @@ export class AdminPage {
     }
     if (directViewBtn) {
       directViewBtn.onclick = () => {
-        iframe.src = fullUrl;
+        iframe.src = viewUrl;
         iframe.classList.remove('hidden');
         if (fallbackBox) fallbackBox.classList.add('hidden');
       };
@@ -1010,10 +1029,16 @@ export class AdminPage {
     document.getElementById('modal-reg-id').textContent = team.reg_id;
     document.getElementById('modal-utr').textContent = team.payment.utr_number;
     document.getElementById('modal-payer').textContent = team.payment.payer_name;
+    document.getElementById('modal-amount').textContent = `₹${team.payment.amount}`;
+
     let screenshotUrl = team.payment.screenshot_url || '';
-    if (screenshotUrl && !screenshotUrl.startsWith('http') && !screenshotUrl.startsWith('data:')) {
+    if (team.payment.file_data && team.payment.file_data.startsWith('data:')) {
+      const blobUrl = this.createBlobUrlFromData(team.payment.file_data);
+      if (blobUrl) screenshotUrl = blobUrl;
+    } else if (screenshotUrl && !screenshotUrl.startsWith('http') && !screenshotUrl.startsWith('data:')) {
       screenshotUrl = window.location.origin + (screenshotUrl.startsWith('/') ? '' : '/') + screenshotUrl;
     }
+
     const imgEl = document.getElementById('modal-screenshot-img');
     if (imgEl) imgEl.src = screenshotUrl;
 
