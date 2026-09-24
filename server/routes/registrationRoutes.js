@@ -7,9 +7,13 @@ import { sendRegistrationConfirmation, sendPaymentInvoiceEmail } from '../servic
 
 const router = express.Router();
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || './uploads';
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+const UPLOAD_DIR = process.env.UPLOAD_DIR || (process.env.VERCEL ? '/tmp' : './uploads');
+try {
+  if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
+} catch (err) {
+  console.warn("Upload dir note:", err.message);
 }
 
 const storage = multer.diskStorage({
