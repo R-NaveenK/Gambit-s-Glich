@@ -10,28 +10,36 @@ import { eventConfig } from '../config/eventConfig.js';
 export async function triggerFileDownload(fileUrl, filename = 'download') {
   if (!fileUrl) return;
   try {
+    let blobUrl = fileUrl;
+    let shouldRevoke = false;
+
     if (fileUrl.startsWith('data:')) {
-      const a = document.createElement('a');
-      a.href = fileUrl;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      return;
+      // Convert Base64 data URI to Blob to bypass browser anchor data-URI length limits
+      const res = await fetch(fileUrl);
+      const blob = await res.blob();
+      blobUrl = URL.createObjectURL(blob);
+      shouldRevoke = true;
+    } else if (fileUrl.startsWith('blob:')) {
+      blobUrl = fileUrl;
+    } else {
+      const downloadUrl = fileUrl.includes('?') ? `${fileUrl}&download=true` : `${fileUrl}?download=true`;
+      const res = await fetch(downloadUrl);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const blob = await res.blob();
+      blobUrl = URL.createObjectURL(blob);
+      shouldRevoke = true;
     }
 
-    const downloadUrl = fileUrl.includes('?') ? `${fileUrl}&download=true` : `${fileUrl}?download=true`;
-    const res = await fetch(downloadUrl);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const blob = await res.blob();
-    const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = blobUrl;
-    a.download = filename;
+    a.download = filename || 'download';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+
+    if (shouldRevoke) {
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+    }
   } catch (err) {
     console.warn('Blob fetch download failed, falling back to direct link', err);
     const windowTarget = window.open(fileUrl, '_blank');
