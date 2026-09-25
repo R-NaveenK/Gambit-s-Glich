@@ -998,11 +998,19 @@ export class AdminPage {
       if (fallbackBox) fallbackBox.classList.add('hidden');
       setActiveEngine('native');
     } else {
-      // For PPTX/PPT/DOCX files, default to Office Embed viewer iframe
-      iframe.src = msEmbedUrl;
-      iframe.classList.remove('hidden');
-      if (fallbackBox) fallbackBox.classList.add('hidden');
-      setActiveEngine('office');
+      // For PPTX/PPT files, default to Native View (Instant Open & Download card)
+      // to avoid external cloud viewer timeouts on Render/serverless environments
+      if (iframe) iframe.classList.add('hidden');
+      if (fallbackBox) {
+        fallbackBox.classList.remove('hidden');
+        if (fallbackText) {
+          fallbackText.innerHTML = `
+            <div class="text-accent-dark font-bold">// PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW</div>
+            <div class="text-[11px] text-muted font-sans normal-case mt-1">Open directly in a new tab for instant full-screen review, or download the original presentation file below.</div>
+          `;
+        }
+      }
+      setActiveEngine('native');
     }
 
     if (msBtn) {
@@ -1029,10 +1037,15 @@ export class AdminPage {
           iframe.classList.remove('hidden');
           if (fallbackBox) fallbackBox.classList.add('hidden');
         } else {
-          iframe.classList.add('hidden');
+          if (iframe) iframe.classList.add('hidden');
           if (fallbackBox) {
             fallbackBox.classList.remove('hidden');
-            if (fallbackText) fallbackText.textContent = `PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW & DOWNLOAD`;
+            if (fallbackText) {
+              fallbackText.innerHTML = `
+                <div class="text-accent-dark font-bold">// PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW</div>
+                <div class="text-[11px] text-muted font-sans normal-case mt-1">Open directly in a new tab for instant full-screen review, or download the original presentation file below.</div>
+              `;
+            }
           }
         }
       };
