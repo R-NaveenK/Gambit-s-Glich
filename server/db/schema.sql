@@ -119,3 +119,25 @@ CREATE POLICY "Public payment insertion" ON payments FOR INSERT WITH CHECK (true
 CREATE POLICY "Public ppt insertion" ON ppt_submissions FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public status check on payments" ON payments FOR SELECT USING (true);
 CREATE POLICY "Public status check on ppt" ON ppt_submissions FOR SELECT USING (true);
+
+-- ALTER TABLE MIGRATIONS FOR FILE PERSISTENCE & BASE64 FALLBACK
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS filename VARCHAR(255);
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS original_filename VARCHAR(255);
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS file_data TEXT;
+
+ALTER TABLE ppt_submissions ADD COLUMN IF NOT EXISTS filename VARCHAR(255);
+ALTER TABLE ppt_submissions ADD COLUMN IF NOT EXISTS file_data TEXT;
+
+-- SUPABASE STORAGE BUCKET CONFIGURATION (Run in Supabase SQL Editor)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('uploads', 'uploads', true) 
+ON CONFLICT (id) DO UPDATE SET public = true;
+
+DO $$ BEGIN
+    CREATE POLICY "Public storage bucket access for uploads" ON storage.objects FOR SELECT USING (bucket_id = 'uploads');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+    CREATE POLICY "Public storage bucket insert for uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'uploads');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+

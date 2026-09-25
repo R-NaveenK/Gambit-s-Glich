@@ -208,23 +208,83 @@ export const dbAdapter = {
     }
   },
 
+  async uploadToSupabaseStorage(bucketName, filename, fileDataOrBuffer, mimeType) {
+    if (!this.isSupabase || !supabase) return null;
+    try {
+      try {
+        await supabase.storage.createBucket(bucketName, { public: true });
+      } catch (e) {}
+
+      let fileBuffer = null;
+      if (Buffer.isBuffer(fileDataOrBuffer)) {
+        fileBuffer = fileDataOrBuffer;
+      } else if (typeof fileDataOrBuffer === 'string' && fileDataOrBuffer.startsWith('data:')) {
+        const matches = fileDataOrBuffer.match(/^data:(.+);base64,(.+)$/);
+        if (matches) {
+          fileBuffer = Buffer.from(matches[2], 'base64');
+        }
+      }
+
+      if (!fileBuffer) return null;
+
+      const storagePath = `uploads/${filename}`;
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(storagePath, fileBuffer, {
+          contentType: mimeType || 'application/octet-stream',
+          upsert: true
+        });
+
+      if (error) {
+        console.warn(`Supabase Storage upload note (${bucketName}/${storagePath}):`, error.message);
+        return null;
+      }
+
+      const { data: publicUrlData } = supabase.storage.from(bucketName).getPublicUrl(storagePath);
+      return publicUrlData?.publicUrl || null;
+    } catch (err) {
+      console.warn("Supabase Storage upload error:", err.message);
+      return null;
+    }
+  },
+
   // Payments CRUD
   async createPayment(paymentData) {
     if (this.isSupabase) {
       try {
+        let storageUrl = null;
+        if (paymentData.filename && paymentData.file_data) {
+          storageUrl = await this.uploadToSupabaseStorage('uploads', paymentData.filename, paymentData.file_data, paymentData.mime_type);
+        }
+
+        const finalScreenshotUrl = storageUrl || paymentData.screenshot_url;
+
         const dbPayment = {
           team_id: paymentData.team_id,
           utr_number: paymentData.utr_number,
           payer_name: paymentData.payer_name,
           amount: paymentData.amount,
           payment_date: paymentData.payment_date,
-          screenshot_url: paymentData.screenshot_url
+          screenshot_url: finalScreenshotUrl,
+          filename: paymentData.filename,
+          original_filename: paymentData.original_filename,
+          file_data: paymentData.file_data
         };
         if (paymentData.status) dbPayment.status = paymentData.status;
 
+        let resData = null;
         const { data, error } = await supabase.from('payments').insert([dbPayment]).select().single();
-        if (error) throw error;
-        return { ...data, file_data: paymentData.file_data, filename: paymentData.filename, original_filename: paymentData.original_filename };
+        if (error) {
+          delete dbPayment.filename;
+          delete dbPayment.original_filename;
+          delete dbPayment.file_data;
+          const { data: retryData, error: retryError } = await supabase.from('payments').insert([dbPayment]).select().single();
+          if (retryError) throw retryError;
+          resData = retryData;
+        } else {
+          resData = data;
+        }
+        return { ...resData, file_data: paymentData.file_data, filename: paymentData.filename, original_filename: paymentData.original_filename };
       } catch (err) {
         console.warn("Supabase createPayment note:", err.message);
         const store = loadLocalStore();
@@ -309,29 +369,57 @@ export const dbAdapter = {
   async upsertPptSubmission(pptData) {
     if (this.isSupabase) {
       try {
+        let storageUrl = null;
+        if (pptData.filename && pptData.file_data) {
+          storageUrl = await this.uploadToSupabaseStorage('uploads', pptData.filename, pptData.file_data, pptData.mime_type);
+        }
+
+        const finalFileUrl = storageUrl || pptData.file_url;
+
         const dbPpt = {
           team_id: pptData.team_id,
           project_title: pptData.project_title,
           summary: pptData.summary,
-          file_url: pptData.file_url,
+          file_url: finalFileUrl,
+          filename: pptData.filename,
           original_filename: pptData.original_filename || 'presentation',
+          file_data: pptData.file_data,
           repo_link: pptData.repo_link || '',
           demo_link: pptData.demo_link || ''
         };
 
         const { data: existing } = await supabase.from('ppt_submissions').select('*').eq('team_id', pptData.team_id).maybeSingle();
+        let resData = null;
         if (existing) {
           const { data, error } = await supabase.from('ppt_submissions')
             .update({ ...dbPpt, version: (existing.version || 1) + 1, updated_at: new Date().toISOString() })
             .eq('id', existing.id)
             .select().single();
-          if (error) throw error;
-          return { ...data, file_data: pptData.file_data, filename: pptData.filename };
+          if (error) {
+            delete dbPpt.filename;
+            delete dbPpt.file_data;
+            const { data: rData, error: rErr } = await supabase.from('ppt_submissions')
+              .update({ ...dbPpt, version: (existing.version || 1) + 1, updated_at: new Date().toISOString() })
+              .eq('id', existing.id)
+              .select().single();
+            if (rErr) throw rErr;
+            resData = rData;
+          } else {
+            resData = data;
+          }
         } else {
           const { data, error } = await supabase.from('ppt_submissions').insert([dbPpt]).select().single();
-          if (error) throw error;
-          return { ...data, file_data: pptData.file_data, filename: pptData.filename };
+          if (error) {
+            delete dbPpt.filename;
+            delete dbPpt.file_data;
+            const { data: rData, error: rErr } = await supabase.from('ppt_submissions').insert([dbPpt]).select().single();
+            if (rErr) throw rErr;
+            resData = rData;
+          } else {
+            resData = data;
+          }
         }
+        return { ...resData, file_data: pptData.file_data, filename: pptData.filename };
       } catch (err) {
         console.warn("Supabase upsertPptSubmission note:", err.message);
         const store = loadLocalStore();
