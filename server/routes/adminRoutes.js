@@ -386,4 +386,43 @@ router.post('/payment-gate/toggle', async (req, res) => {
   }
 });
 
+// 13. Export Teams CSV
+router.get('/export-csv', async (req, res) => {
+  try {
+    const teams = await dbAdapter.getAllTeams();
+    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
+
+    const headers = [
+      'Reg ID', 'Team Name', 'Theme', 'Leader Name', 'Leader Email', 'Leader Phone',
+      'College', 'Status', 'Payment Status', 'UTR Number', 'PPT Submitted', 'PPT Version', 'Project Title', 'Created At'
+    ];
+
+    const rows = fullTeams.filter(Boolean).map(t => [
+      t.reg_id || '',
+      `"${(t.team_name || '').replace(/"/g, '""')}"`,
+      t.theme_id || '',
+      `"${(t.leader_name || '').replace(/"/g, '""')}"`,
+      t.leader_email || '',
+      t.leader_phone || '',
+      `"${(t.college || '').replace(/"/g, '""')}"`,
+      t.status || 'REGISTERED',
+      t.payment?.status || 'NOT_SUBMITTED',
+      t.payment?.utr_number || '',
+      t.ppt ? 'YES' : 'NO',
+      t.ppt?.version ? `v${t.ppt.version}` : '',
+      `"${(t.ppt?.project_title || '').replace(/"/g, '""')}"`,
+      t.created_at || ''
+    ]);
+
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', 'attachment; filename="gambits_glitch_registrations.csv"');
+    return res.send(csvContent);
+  } catch (err) {
+    console.error('Export CSV error:', err);
+    return res.status(500).send('Failed to generate CSV export.');
+  }
+});
+
 export default router;

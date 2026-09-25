@@ -173,6 +173,15 @@ export const api = {
     return `${BASE_URL}/admin/export-csv`;
   },
 
+  async downloadExportCsv() {
+    const token = this.getToken();
+    const res = await fetch(`${BASE_URL}/admin/export-csv`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Failed to export CSV');
+    return res.blob();
+  },
+
   async testEmail(targetEmail) {
     const token = this.getToken();
     const res = await fetch(`${BASE_URL}/admin/email/test`, {

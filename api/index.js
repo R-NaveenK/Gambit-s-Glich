@@ -43,22 +43,35 @@ const serveUploadFile = async (req, res) => {
   const filename = path.basename(req.params.filename);
   const tmpPath = path.join('/tmp', filename);
   const localPath = path.join(process.cwd(), 'uploads', filename);
+  const isDownload = req.query.download === 'true' || req.query.download === '1';
+
+  let record = null;
+  try {
+    record = await dbAdapter.getFileByFilename(filename);
+  } catch (err) {
+    console.error("Error checking file record in DB:", err);
+  }
+
+  const originalName = record?.original_filename || filename;
 
   if (fs.existsSync(tmpPath)) {
+    if (isDownload) {
+      return res.download(tmpPath, originalName);
+    }
     return res.sendFile(tmpPath);
   } else if (fs.existsSync(localPath)) {
+    if (isDownload) {
+      return res.download(localPath, originalName);
+    }
     return res.sendFile(localPath);
   }
 
   try {
-    const record = await dbAdapter.getFileByFilename(filename);
     if (record && record.file_data) {
       const matches = record.file_data.match(/^data:(.+);base64,(.+)$/);
       if (matches) {
         const mimeType = matches[1];
         const buffer = Buffer.from(matches[2], 'base64');
-        const originalName = record.original_filename || filename;
-        const isDownload = req.query.download === 'true' || req.query.download === '1';
 
         res.setHeader('Content-Type', mimeType);
         res.setHeader(

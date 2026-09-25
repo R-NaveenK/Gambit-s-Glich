@@ -7,6 +7,40 @@ import { toast } from '../utils/toast.js';
 import { soundFx } from '../utils/audio.js';
 import { eventConfig } from '../config/eventConfig.js';
 
+export async function triggerFileDownload(fileUrl, filename = 'download') {
+  if (!fileUrl) return;
+  try {
+    if (fileUrl.startsWith('data:')) {
+      const a = document.createElement('a');
+      a.href = fileUrl;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    const downloadUrl = fileUrl.includes('?') ? `${fileUrl}&download=true` : `${fileUrl}?download=true`;
+    const res = await fetch(downloadUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+  } catch (err) {
+    console.warn('Blob fetch download failed, falling back to direct link', err);
+    const windowTarget = window.open(fileUrl, '_blank');
+    if (!windowTarget) {
+      window.location.href = fileUrl;
+    }
+  }
+}
+
 export class AdminPage {
   constructor(navigate) {
     this.navigate = navigate;
@@ -45,9 +79,9 @@ export class AdminPage {
               <button id="admin-refresh-btn" type="button" class="btn-primary text-xs py-2.5 px-4 font-mono font-bold uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer">
                 REFRESH DATA
               </button>
-              <a href="${api.getExportCsvUrl()}" download class="btn-secondary text-xs py-2.5 px-4 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all">
+              <button id="admin-export-csv-btn" type="button" class="btn-secondary text-xs py-2.5 px-4 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all cursor-pointer">
                 EXPORT DATA CSV
-              </a>
+              </button>
               <button id="admin-clear-btn" type="button" class="btn-secondary text-xs py-2.5 px-3 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer">
                 CLEAR ALL DATA
               </button>
@@ -402,6 +436,29 @@ export class AdminPage {
         toast.show('Refreshing admin teams database...', 'info');
         await this.fetchDashboardData();
         toast.show('Dashboard data updated!', 'success');
+      });
+    }
+
+    const exportCsvBtn = document.getElementById('admin-export-csv-btn');
+    if (exportCsvBtn) {
+      exportCsvBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        toast.show('Generating & exporting CSV data...', 'info');
+        try {
+          const blob = await api.downloadExportCsv();
+          const blobUrl = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = blobUrl;
+          a.download = `gambits_glitch_registrations_${new Date().toISOString().slice(0, 10)}.csv`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          toast.show('CSV export downloaded successfully!', 'success');
+        } catch (err) {
+          toast.show('Failed to export CSV. Please check admin login session.', 'error');
+        }
       });
     }
 
@@ -800,9 +857,9 @@ export class AdminPage {
           <td class="p-4 font-mono text-[11px]">
             ${ppt ? `
               <div class="space-y-1">
-                <a href="${ppt.file_data && ppt.file_data.startsWith('data:') ? ppt.file_data : `${ppt.file_url}${ppt.file_url.includes('?') ? '&' : '?'}download=true`}" target="_blank" download="${ppt.original_filename || 'presentation'}" class="text-ink hover:text-accent font-bold underline block truncate max-w-[180px]">
+                <button type="button" data-action="download-ppt" data-reg="${team.reg_id}" class="text-ink hover:text-accent font-bold underline block truncate max-w-[180px] text-left cursor-pointer">
                   ${ppt.original_filename} (v${ppt.version})
-                </a>
+                </button>
                 <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-0.5 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer">
                   PREVIEW PPT
                 </button>
@@ -842,6 +899,21 @@ export class AdminPage {
         </tr>
       `;
     }).join('');
+
+    tbody.querySelectorAll('button[data-action="download-ppt"]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        const regId = btn.getAttribute('data-reg');
+        const team = this.teams.find(t => t.reg_id === regId);
+        if (team && team.ppt) {
+          const rawUrl = team.ppt.file_data && team.ppt.file_data.startsWith('data:')
+            ? team.ppt.file_data
+            : (team.ppt.file_url.startsWith('http') ? team.ppt.file_url : window.location.origin + (team.ppt.file_url.startsWith('/') ? '' : '/') + team.ppt.file_url);
+          triggerFileDownload(rawUrl, team.ppt.original_filename || 'presentation');
+        }
+      });
+    });
 
     tbody.querySelectorAll('button[data-action="preview-ppt"]').forEach(btn => {
       btn.addEventListener('click', () => {
@@ -923,18 +995,21 @@ export class AdminPage {
     const rawFileUrl = ppt.file_url || '';
     const fullUrl = rawFileUrl.startsWith('http') ? rawFileUrl : (window.location.origin + (rawFileUrl.startsWith('/') ? '' : '/') + rawFileUrl);
     
-    let downloadUrl = `${fullUrl}${fullUrl.includes('?') ? '&' : '?'}download=true`;
+    let downloadUrl = fullUrl;
     let viewUrl = fullUrl;
 
     if (ppt.file_data && ppt.file_data.startsWith('data:')) {
+      downloadUrl = ppt.file_data;
       const blobUrl = this.createBlobUrlFromData(ppt.file_data);
       if (blobUrl) {
-        downloadUrl = blobUrl;
         viewUrl = blobUrl;
+      } else {
+        viewUrl = ppt.file_data;
       }
     }
 
-    const lowerFilename = (ppt.original_filename || rawFileUrl || '').toLowerCase();
+    const fileNameToUse = ppt.original_filename || 'presentation';
+    const lowerFilename = (fileNameToUse || '').toLowerCase();
     const isPdf = lowerFilename.endsWith('.pdf') || lowerFilename.includes('.pdf') || (ppt.file_data && ppt.file_data.includes('application/pdf'));
 
     document.getElementById('ppt-modal-team-title').textContent = `PITCH DECK PREVIEW: ${team.team_name}`;
@@ -960,8 +1035,11 @@ export class AdminPage {
 
     const directLink = document.getElementById('ppt-modal-direct-link');
     if (directLink) {
-      directLink.href = downloadUrl;
-      directLink.download = ppt.original_filename || 'presentation';
+      directLink.onclick = (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        triggerFileDownload(downloadUrl, fileNameToUse);
+      };
     }
 
     const iframe = document.getElementById('ppt-modal-iframe');
@@ -970,14 +1048,24 @@ export class AdminPage {
     const fallbackDownload = document.getElementById('ppt-fallback-download-btn');
     const fallbackText = document.getElementById('ppt-fallback-text');
 
-    if (fallbackOpen) fallbackOpen.href = viewUrl;
+    if (fallbackOpen) {
+      fallbackOpen.onclick = (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        window.open(viewUrl, '_blank');
+      };
+    }
     if (fallbackDownload) {
-      fallbackDownload.href = downloadUrl;
-      fallbackDownload.download = ppt.original_filename || 'presentation';
+      fallbackDownload.onclick = (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        triggerFileDownload(downloadUrl, fileNameToUse);
+      };
     }
 
     const msEmbedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fullUrl)}`;
     const googleEmbedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true`;
+    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
 
     if (isPdf) {
       iframe.src = viewUrl;
@@ -987,7 +1075,21 @@ export class AdminPage {
       if (iframe) iframe.classList.add('hidden');
       if (fallbackBox) {
         fallbackBox.classList.remove('hidden');
-        if (fallbackText) fallbackText.textContent = `PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW & DOWNLOAD`;
+        if (fallbackText) {
+          fallbackText.innerHTML = `
+            <div class="space-y-3 max-w-lg mx-auto">
+              <div class="text-sm font-bold text-ink uppercase">PRESENTATION FILE (${fileNameToUse}) READY FOR REVIEW</div>
+              ${isLocalhost ? `
+                <div class="text-[11px] text-accent-dark bg-paper p-3 border border-line text-left leading-relaxed">
+                  📌 <strong>Note on PPT/PPTX Browser Preview:</strong> Cloud embed engines (Google Docs Viewer & Microsoft Office) require a live public domain (e.g. Vercel) to load slides remotely.
+                  On <strong>localhost</strong>, click <strong>"Download File"</strong> to view the PowerPoint presentation locally.
+                </div>
+              ` : `
+                <div class="text-xs text-muted">Use the buttons below to open or download the presentation deck.</div>
+              `}
+            </div>
+          `;
+        }
       }
     }
 
@@ -997,6 +1099,10 @@ export class AdminPage {
 
     if (msBtn) {
       msBtn.onclick = () => {
+        soundFx.playClick();
+        if (isLocalhost) {
+          toast.show('MS Office Embed requires a public web URL. Download file to view locally.', 'info');
+        }
         iframe.src = msEmbedUrl;
         iframe.classList.remove('hidden');
         if (fallbackBox) fallbackBox.classList.add('hidden');
@@ -1004,6 +1110,10 @@ export class AdminPage {
     }
     if (gDocsBtn) {
       gDocsBtn.onclick = () => {
+        soundFx.playClick();
+        if (isLocalhost) {
+          toast.show('Google Docs Viewer requires a public web URL. Download file to view locally.', 'info');
+        }
         iframe.src = googleEmbedUrl;
         iframe.classList.remove('hidden');
         if (fallbackBox) fallbackBox.classList.add('hidden');
@@ -1011,6 +1121,7 @@ export class AdminPage {
     }
     if (directViewBtn) {
       directViewBtn.onclick = () => {
+        soundFx.playClick();
         iframe.src = viewUrl;
         iframe.classList.remove('hidden');
         if (fallbackBox) fallbackBox.classList.add('hidden');
