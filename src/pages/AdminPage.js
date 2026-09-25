@@ -979,24 +979,35 @@ export class AdminPage {
     const msEmbedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fullUrl)}`;
     const googleEmbedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true`;
 
-    if (isPdf) {
-      iframe.src = viewUrl;
-      iframe.classList.remove('hidden');
-      if (fallbackBox) fallbackBox.classList.add('hidden');
-    } else {
-      if (iframe) iframe.classList.add('hidden');
-      if (fallbackBox) {
-        fallbackBox.classList.remove('hidden');
-        if (fallbackText) fallbackText.textContent = `PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW & DOWNLOAD`;
-      }
-    }
-
     const msBtn = document.getElementById('ppt-view-ms-btn');
     const gDocsBtn = document.getElementById('ppt-view-gdocs-btn');
     const directViewBtn = document.getElementById('ppt-view-direct-btn');
 
+    const activeBtnClass = "px-2.5 py-1 border border-accent bg-accent text-canvas font-mono text-[10px] font-bold uppercase transition-all cursor-pointer shadow-sm";
+    const inactiveBtnClass = "px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer opacity-70 hover:opacity-100";
+
+    const setActiveEngine = (engine) => {
+      if (directViewBtn) directViewBtn.className = engine === 'native' ? activeBtnClass : inactiveBtnClass;
+      if (msBtn) msBtn.className = engine === 'office' ? activeBtnClass : inactiveBtnClass;
+      if (gDocsBtn) gDocsBtn.className = engine === 'gdocs' ? activeBtnClass : inactiveBtnClass;
+    };
+
+    if (isPdf) {
+      iframe.src = viewUrl;
+      iframe.classList.remove('hidden');
+      if (fallbackBox) fallbackBox.classList.add('hidden');
+      setActiveEngine('native');
+    } else {
+      // For PPTX/PPT/DOCX files, default to Office Embed viewer iframe
+      iframe.src = msEmbedUrl;
+      iframe.classList.remove('hidden');
+      if (fallbackBox) fallbackBox.classList.add('hidden');
+      setActiveEngine('office');
+    }
+
     if (msBtn) {
       msBtn.onclick = () => {
+        setActiveEngine('office');
         iframe.src = msEmbedUrl;
         iframe.classList.remove('hidden');
         if (fallbackBox) fallbackBox.classList.add('hidden');
@@ -1004,6 +1015,7 @@ export class AdminPage {
     }
     if (gDocsBtn) {
       gDocsBtn.onclick = () => {
+        setActiveEngine('gdocs');
         iframe.src = googleEmbedUrl;
         iframe.classList.remove('hidden');
         if (fallbackBox) fallbackBox.classList.add('hidden');
@@ -1011,9 +1023,18 @@ export class AdminPage {
     }
     if (directViewBtn) {
       directViewBtn.onclick = () => {
-        iframe.src = viewUrl;
-        iframe.classList.remove('hidden');
-        if (fallbackBox) fallbackBox.classList.add('hidden');
+        setActiveEngine('native');
+        if (isPdf) {
+          iframe.src = viewUrl;
+          iframe.classList.remove('hidden');
+          if (fallbackBox) fallbackBox.classList.add('hidden');
+        } else {
+          iframe.classList.add('hidden');
+          if (fallbackBox) {
+            fallbackBox.classList.remove('hidden');
+            if (fallbackText) fallbackText.textContent = `PRESENTATION FILE (${ppt.original_filename}) READY FOR REVIEW & DOWNLOAD`;
+          }
+        }
       };
     }
 

@@ -56,9 +56,20 @@ const serveUploadFile = async (req, res) => {
   const tmpPath = path.join('/tmp', filename);
   const localPath = path.join(uploadDir, filename);
 
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+
+  const isDownload = req.query.download === 'true' || req.query.download === '1';
+
   if (fs.existsSync(tmpPath)) {
+    if (isDownload) {
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    }
     return res.sendFile(tmpPath);
   } else if (fs.existsSync(localPath)) {
+    if (isDownload) {
+      res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    }
     return res.sendFile(localPath);
   }
 
@@ -70,7 +81,6 @@ const serveUploadFile = async (req, res) => {
         const mimeType = matches[1];
         const buffer = Buffer.from(matches[2], 'base64');
         const originalName = record.original_filename || filename;
-        const isDownload = req.query.download === 'true' || req.query.download === '1';
 
         res.setHeader('Content-Type', mimeType);
         res.setHeader(
