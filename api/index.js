@@ -44,57 +44,10 @@ const serveUploadFile = async (req, res) => {
   const tmpPath = path.join('/tmp', filename);
   const localPath = path.join(process.cwd(), 'uploads', filename);
 
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', '*');
-  res.setHeader('Accept-Ranges', 'bytes');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-
-  const ext = path.extname(filename).toLowerCase();
-  const mimeTypes = {
-    '.pdf': 'application/pdf',
-    '.pptx': 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-    '.ppt': 'application/vnd.ms-powerpoint',
-    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    '.doc': 'application/msword',
-    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    '.png': 'image/png',
-    '.jpg': 'image/jpeg',
-    '.jpeg': 'image/jpeg',
-    '.webp': 'image/webp'
-  };
-
-  const isDownload = req.query.download === 'true' || req.query.download === '1';
-
-  let filePath = null;
   if (fs.existsSync(tmpPath)) {
-    filePath = tmpPath;
+    return res.sendFile(tmpPath);
   } else if (fs.existsSync(localPath)) {
-    filePath = localPath;
-  }
-
-  if (filePath) {
-    try {
-      const stat = fs.statSync(filePath);
-      const mimeType = mimeTypes[ext] || 'application/octet-stream';
-
-      res.setHeader('Content-Type', mimeType);
-      res.setHeader('Content-Length', stat.size);
-      res.setHeader(
-        'Content-Disposition',
-        `${isDownload ? 'attachment' : 'inline'}; filename="${encodeURIComponent(filename)}"`
-      );
-
-      if (req.method === 'HEAD') {
-        return res.status(200).end();
-      }
-      return res.sendFile(filePath);
-    } catch (e) {
-      console.warn("Error reading disk file:", e);
-    }
+    return res.sendFile(localPath);
   }
 
   try {
@@ -102,20 +55,16 @@ const serveUploadFile = async (req, res) => {
     if (record && record.file_data) {
       const matches = record.file_data.match(/^data:(.+);base64,(.+)$/);
       if (matches) {
-        const mimeType = mimeTypes[ext] || matches[1] || 'application/octet-stream';
+        const mimeType = matches[1];
         const buffer = Buffer.from(matches[2], 'base64');
         const originalName = record.original_filename || filename;
+        const isDownload = req.query.download === 'true' || req.query.download === '1';
 
         res.setHeader('Content-Type', mimeType);
-        res.setHeader('Content-Length', buffer.length);
         res.setHeader(
           'Content-Disposition',
           `${isDownload ? 'attachment' : 'inline'}; filename="${encodeURIComponent(originalName)}"`
         );
-
-        if (req.method === 'HEAD') {
-          return res.status(200).end();
-        }
         return res.send(buffer);
       }
     }
@@ -126,8 +75,8 @@ const serveUploadFile = async (req, res) => {
   return res.status(404).send('Uploaded file not found.');
 };
 
-app.all('/uploads/:filename', serveUploadFile);
-app.all('/api/uploads/:filename', serveUploadFile);
+app.get('/uploads/:filename', serveUploadFile);
+app.get('/api/uploads/:filename', serveUploadFile);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/register', registrationRoutes);
