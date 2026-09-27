@@ -103,9 +103,12 @@ class App {
       const link = e.target.closest('.nav-link');
       if (link) {
         const route = link.getAttribute('data-route');
+        const track = link.getAttribute('data-track');
         if (route && this.routes[route]) {
           e.preventDefault();
-          soundFx.playClick();
+          if (track) {
+            sessionStorage.setItem('selected_track_id', track);
+          }
           this.navigate(route);
         }
       }

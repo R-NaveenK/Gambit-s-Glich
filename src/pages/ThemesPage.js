@@ -30,7 +30,7 @@ export class ThemesPage {
                     <span class="text-xs font-bold text-muted uppercase">TRACK ${theme.number}</span>
                     <span class="text-xs px-2.5 py-0.5 border border-accent bg-accent/20 text-ink font-bold font-mono uppercase">OPEN FOR REGISTRATION</span>
                   </div>
-                  <a href="#" data-route="register" class="nav-link btn-primary text-xs py-2.5 px-5 border border-accent bg-accent text-ink font-mono font-bold uppercase tracking-wider hover:bg-ink hover:text-canvas hover:border-ink transition-all shadow-xs">
+                  <a href="#" data-route="register" data-track="${theme.id}" class="nav-link btn-primary text-xs py-2.5 px-5 border border-accent bg-accent text-ink font-mono font-bold uppercase tracking-wider hover:bg-ink hover:text-canvas hover:border-ink transition-all shadow-xs">
                     REGISTER FOR THIS TRACK →
                   </a>
                 </div>

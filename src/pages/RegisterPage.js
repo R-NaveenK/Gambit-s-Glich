@@ -14,6 +14,8 @@ export class RegisterPage {
   }
 
   render() {
+    const selectedTrackId = sessionStorage.getItem('selected_track_id');
+
     return `
       <div class="py-16 font-mono bg-canvas">
         <div class="container mx-auto px-4 max-w-4xl">
@@ -49,7 +51,10 @@ export class RegisterPage {
                 <div>
                   <label class="block text-xs text-ink mb-2">HACKATHON TRACK *</label>
                   <select name="theme_id" required class="w-full px-4 py-3 text-xs focus:border-accent outline-none">
-                    ${eventConfig.themes.map(t => `<option value="${t.id}">${t.number}. ${t.name}</option>`).join('')}
+                    ${eventConfig.themes.map(t => {
+                      const isSelected = selectedTrackId ? (t.id === selectedTrackId) : false;
+                      return `<option value="${t.id}" ${isSelected ? 'selected' : ''}>${t.number}. ${t.name}</option>`;
+                    }).join('')}
                   </select>
                 </div>
 
@@ -214,11 +219,35 @@ export class RegisterPage {
   }
 
   attachEvents() {
+    sessionStorage.removeItem('selected_track_id');
     const selectEl = document.getElementById('member-count-select');
     const containerEl = document.getElementById('members-input-container');
     const feeBadge = document.getElementById('calculated-fee-badge');
 
+    // In-memory data store for member input values so nothing is lost when changing squad size
+    const memberDataStore = {};
+
+    const saveCurrentMemberData = () => {
+      if (!containerEl) return;
+      const inputs = containerEl.querySelectorAll('input');
+      inputs.forEach(input => {
+        if (input.name) {
+          memberDataStore[input.name] = input.value;
+        }
+      });
+    };
+
+    if (containerEl) {
+      containerEl.addEventListener('input', (e) => {
+        if (e.target && e.target.name) {
+          memberDataStore[e.target.name] = e.target.value;
+        }
+      });
+    }
+
     const updateMemberInputs = (totalMembers) => {
+      saveCurrentMemberData();
+
       const feePerPerson = eventConfig.teamPolicy.registrationFee;
       const totalFee = totalMembers * feePerPerson;
 
@@ -230,21 +259,29 @@ export class RegisterPage {
       let html = '';
 
       for (let i = 1; i <= extraCount; i++) {
+        const nameKey = `member_${i}_name`;
+        const emailKey = `member_${i}_email`;
+        const phoneKey = `member_${i}_phone`;
+
+        const nameVal = (memberDataStore[nameKey] || '').replace(/"/g, '&quot;');
+        const emailVal = (memberDataStore[emailKey] || '').replace(/"/g, '&quot;');
+        const phoneVal = (memberDataStore[phoneKey] || '').replace(/"/g, '&quot;');
+
         html += `
           <div class="p-4 bg-canvas border border-line space-y-4">
             <div class="text-xs text-accent-dark font-bold">// MEMBER 0${i + 1} DETAILS</div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div>
                 <label class="block text-[11px] text-muted mb-1">MEMBER 0${i + 1} FULL NAME *</label>
-                <input type="text" name="member_${i}_name" required placeholder="Member Name" class="w-full px-3 py-2 text-xs focus:border-accent outline-none" />
+                <input type="text" name="member_${i}_name" required value="${nameVal}" placeholder="Member Name" class="w-full px-3 py-2 text-xs focus:border-accent outline-none" />
               </div>
               <div>
                 <label class="block text-[11px] text-muted mb-1">MEMBER 0${i + 1} EMAIL *</label>
-                <input type="email" name="member_${i}_email" required placeholder="member${i}@example.com" class="w-full px-3 py-2 text-xs focus:border-accent outline-none" />
+                <input type="email" name="member_${i}_email" required value="${emailVal}" placeholder="member${i}@example.com" class="w-full px-3 py-2 text-xs focus:border-accent outline-none" />
               </div>
               <div>
                 <label class="block text-[11px] text-muted mb-1">MEMBER 0${i + 1} PHONE *</label>
-                <input type="tel" name="member_${i}_phone" required placeholder="+91 9123456780" class="w-full px-3 py-2 text-xs focus:border-accent outline-none" />
+                <input type="tel" name="member_${i}_phone" required value="${phoneVal}" placeholder="+91 9123456780" class="w-full px-3 py-2 text-xs focus:border-accent outline-none" />
               </div>
             </div>
           </div>
@@ -268,7 +305,7 @@ export class RegisterPage {
 
         const submitBtn = document.getElementById('submit-reg-btn');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `TRANSMITTING REGISTRATION & PITCH DECK...`;
+        submitBtn.innerHTML = `⏳ TRANSMITTING REGISTRATION & PITCH DECK...`;
 
         const formData = new FormData(form);
         const memberCount = parseInt(selectEl.value);
