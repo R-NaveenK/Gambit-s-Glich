@@ -100,15 +100,19 @@ class App {
 
     // Global Click Router listener
     document.addEventListener('click', (e) => {
-      const link = e.target.closest('.nav-link');
+      const trackEl = e.target.closest('[data-track]');
+      if (trackEl) {
+        const trackVal = trackEl.getAttribute('data-track');
+        if (trackVal) {
+          sessionStorage.setItem('selected_track_id', trackVal);
+        }
+      }
+
+      const link = e.target.closest('.nav-link, [data-route]');
       if (link) {
         const route = link.getAttribute('data-route');
-        const track = link.getAttribute('data-track');
         if (route && this.routes[route]) {
           e.preventDefault();
-          if (track) {
-            sessionStorage.setItem('selected_track_id', track);
-          }
           this.navigate(route);
         }
       }

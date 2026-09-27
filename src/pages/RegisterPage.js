@@ -13,8 +13,33 @@ export class RegisterPage {
     this.memberCount = 3;
   }
 
+  findMatchingTrack(targetTrack) {
+    if (!targetTrack) return null;
+    const cleanTarget = String(targetTrack).trim().toLowerCase();
+    
+    return eventConfig.themes.find(t => {
+      const cleanId = String(t.id).trim().toLowerCase();          // e.g. "track-05"
+      const cleanNum = String(t.number).trim().toLowerCase();      // e.g. "05"
+      const cleanName = String(t.name).trim().toLowerCase();      // e.g. "education"
+      const numOnly = cleanNum.replace(/^0+/, '');                 // e.g. "5"
+
+      return (
+        cleanTarget === cleanId ||
+        cleanTarget === cleanNum ||
+        cleanTarget === cleanName ||
+        cleanTarget === numOnly ||
+        cleanTarget === `track-${cleanNum}` ||
+        cleanTarget === `track-${numOnly}` ||
+        cleanTarget.includes(cleanName) ||
+        cleanName.includes(cleanTarget)
+      );
+    }) || null;
+  }
+
   render() {
     const selectedTrackId = sessionStorage.getItem('selected_track_id');
+    const matchedTrack = this.findMatchingTrack(selectedTrackId);
+    const selectedValue = matchedTrack ? matchedTrack.id : 'track-01';
 
     return `
       <div class="py-16 font-mono bg-canvas">
@@ -50,10 +75,10 @@ export class RegisterPage {
 
                 <div>
                   <label class="block text-xs text-ink mb-2">HACKATHON TRACK *</label>
-                  <select name="theme_id" required class="w-full px-4 py-3 text-xs focus:border-accent outline-none">
+                  <select name="theme_id" id="theme-id-select" required class="w-full px-4 py-3 text-xs focus:border-accent outline-none">
                     ${eventConfig.themes.map(t => {
-                      const isSelected = selectedTrackId ? (t.id === selectedTrackId) : false;
-                      return `<option value="${t.id}" ${isSelected ? 'selected' : ''}>${t.number}. ${t.name}</option>`;
+                      const isSelected = (t.id === selectedValue);
+                      return `<option value="${t.id}" ${isSelected ? 'selected="selected"' : ''}>${t.number}. ${t.name}</option>`;
                     }).join('')}
                   </select>
                 </div>
@@ -219,7 +244,13 @@ export class RegisterPage {
   }
 
   attachEvents() {
-    sessionStorage.removeItem('selected_track_id');
+    const selectedTrackId = sessionStorage.getItem('selected_track_id');
+    const matchedTrack = this.findMatchingTrack(selectedTrackId);
+    const themeSelect = document.querySelector('select[name="theme_id"]') || document.getElementById('theme-id-select');
+    if (themeSelect && matchedTrack) {
+      themeSelect.value = matchedTrack.id;
+    }
+
     const selectEl = document.getElementById('member-count-select');
     const containerEl = document.getElementById('members-input-container');
     const feeBadge = document.getElementById('calculated-fee-badge');
