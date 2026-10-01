@@ -185,7 +185,7 @@ const getEmailFooter = () => `
       <!-- Brand Footer -->
       <div style="background-color: #F8F7F2; border-top: 1px solid #C5BBA7; padding: 20px 32px; text-align: center; font-size: 12px; color: #77756F; font-family: 'Space Grotesk', Arial, sans-serif;">
         <p style="margin: 0 0 6px 0;">Keep your Registration ID safe for status tracking on the portal.</p>
-        <p style="margin: 0; font-weight: 600; color: #10100E;">© 2026 GAMBIT'S GLITCH. All rights reserved. // Swiss Editorial Infrastructure</p>
+        <p style="margin: 0; font-weight: 600; color: #10100E;">© 2026 GAMBIT'S GLITCH. All rights reserved.</p>
       </div>
     </div>
   </div>

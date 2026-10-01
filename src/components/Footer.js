@@ -58,7 +58,7 @@ export class Footer {
           <!-- Bottom Footer -->
           <div class="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-[10px]">
             <div>
-              © 2026 GAMBIT’S GLITCH. SWISS EDITORIAL MINIMALISM DISRUPTED BY CONTROLLED DIGITAL CHAOS.
+              © 2026 GAMBIT’S GLITCH. ALL RIGHTS RESERVED.
             </div>
           </div>
 
