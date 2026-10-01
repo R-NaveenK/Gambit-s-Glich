@@ -1,7 +1,7 @@
 import nodemailer from 'nodemailer';
 import 'dotenv/config';
 
-const APP_BASE_URL = process.env.APP_BASE_URL || 'https://gambit-s-glich.onrender.com';
+const APP_BASE_URL = process.env.APP_BASE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'https://gambit-s-glich.vercel.app');
 const WHATSAPP_LINK = process.env.WHATSAPP_GROUP_URL || 'https://chat.whatsapp.com/Iox0gxqKgnSGgMTkYZZXwj';
 const SMTP_HOST = process.env.SMTP_HOST;
 let SMTP_PORT = parseInt(process.env.SMTP_PORT || '465', 10);
@@ -311,7 +311,7 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
  */
 export async function sendShortlistedEmail(team, members = []) {
   const subject = `[GAMBIT'S GLITCH 2026] Complete Your Payment to Lock Your Team Slot (FCFS) - Team ${team.team_name}`;
-  const paymentUrl = `${APP_BASE_URL}/#payment?reg_id=${team.reg_id}`;
+  const paymentUrl = `${APP_BASE_URL}/#register`;
 
   const html = `
     ${getEmailHeader('Slot Allocation', 'FIRST-COME, FIRST-SERVED NOTICE')}

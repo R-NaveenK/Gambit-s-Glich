@@ -91,14 +91,14 @@ const serveUploadFile = async (req, res) => {
 app.get('/uploads/:filename', serveUploadFile);
 app.get('/api/uploads/:filename', serveUploadFile);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/register', registrationRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/ppt', pptRoutes);
-app.use('/api/status', statusRoutes);
-app.use('/api/admin', adminRoutes);
+app.use(['/api/auth', '/auth'], authRoutes);
+app.use(['/api/register', '/register'], registrationRoutes);
+app.use(['/api/payment', '/payment'], paymentRoutes);
+app.use(['/api/ppt', '/ppt'], pptRoutes);
+app.use(['/api/status', '/status'], statusRoutes);
+app.use(['/api/admin', '/admin'], adminRoutes);
 
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health', '/api', '/'], (req, res) => {
   res.json({
     status: 'ONLINE',
     system: "GAMBIT'S GLITCH Engine",
