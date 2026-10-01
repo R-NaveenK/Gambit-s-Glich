@@ -26,9 +26,7 @@ export class AboutPage {
 
           <!-- Highlight Banner: Pure Code vs PPT Deck -->
           <div class="tech-card p-8 md:p-10 border-accent bg-paper relative overflow-hidden">
-            <div class="absolute -right-12 -bottom-12 text-8xl font-black text-line/20 select-none font-sans pointer-events-none">
-              BUILD
-            </div>
+
             <div class="relative z-10 space-y-4">
               <div class="text-xs text-accent font-bold tracking-wider">// THE GOLDEN STANDARD</div>
               <h2 class="font-sans text-2xl sm:text-3xl font-extrabold uppercase text-ink tracking-tight">
