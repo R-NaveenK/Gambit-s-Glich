@@ -180,33 +180,37 @@ router.post('/', regUpload, async (req, res) => {
 
     const createdTeam = await dbAdapter.createTeam(teamData, teamMembersData);
 
-    // Read payment screenshot buffer for persistence
+    // Read payment screenshot buffer for Supabase storage upload
     let fileData = null;
+    let storageUrl = null;
     try {
       if (paymentFile && paymentFile.path && fs.existsSync(paymentFile.path)) {
         const fileBuffer = fs.readFileSync(paymentFile.path);
-        fileData = `data:${paymentFile.mimetype};base64,${fileBuffer.toString('base64')}`;
+        // Only store base64 if file is under 4MB to avoid DB payload limits
+        if (fileBuffer.length < 4 * 1024 * 1024) {
+          fileData = `data:${paymentFile.mimetype};base64,${fileBuffer.toString('base64')}`;
+        }
       }
     } catch (e) {
-      console.warn("Could not read screenshot buffer:", e.message);
+      console.warn("Could not read screenshot buffer (non-fatal):", e.message);
     }
 
     // Create Payment Record linked to team
-    const screenshotUrl = `/uploads/${paymentFile.filename}`;
+    const screenshotUrl = paymentFile ? `/uploads/${paymentFile.filename}` : null;
     const paymentRecord = await dbAdapter.createPayment({
       team_id: createdTeam.id,
       utr_number: sanitizedUtr,
       payer_name: payer_name.trim(),
       amount: parseFloat(amount) || expectedAmount,
       payment_date: new Date().toISOString().split('T')[0],
-      screenshot_url: screenshotUrl,
-      filename: paymentFile.filename,
-      original_filename: paymentFile.originalname,
-      mime_type: paymentFile.mimetype,
+      screenshot_url: storageUrl || screenshotUrl,
+      filename: paymentFile ? paymentFile.filename : null,
+      original_filename: paymentFile ? paymentFile.originalname : null,
+      mime_type: paymentFile ? paymentFile.mimetype : null,
       file_data: fileData
     });
 
-    // Send Registration & Payment Confirmation Email (with on-spot problem statement notice)
+    // Send Registration & Payment Confirmation Email (fire and forget)
     sendRegistrationConfirmation(createdTeam, teamMembersData, paymentRecord).catch(err => console.error('Registration email dispatch error:', err));
 
     return res.status(201).json({
@@ -218,8 +222,11 @@ router.post('/', regUpload, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Registration server error:', err);
-    return res.status(500).json({ success: false, message: 'Internal server error during registration.' });
+    console.error('Registration server error:', err?.message || err, err?.stack);
+    return res.status(500).json({
+      success: false,
+      message: 'Registration could not be completed due to a server error. Please try again or contact support.'
+    });
   }
 });
 

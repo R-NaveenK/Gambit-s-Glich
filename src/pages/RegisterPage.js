@@ -166,7 +166,7 @@ export class RegisterPage {
                 Problem Statements Announced Live on Hackathon Morning
               </h3>
               <p class="text-xs text-muted leading-relaxed font-sans">
-                You do <strong class="text-ink">NOT</strong> need to submit any PPT pitch deck, slides, or pre-built code beforehand. Concrete, real-world challenge problem statements across all 5 tracks will be revealed live at the venue on <strong class="text-ink">October 13, 2026 at 09:30 AM IST (Auditorium, VSBCETC)</strong> right after inauguration. All architectural design, programming, and prototype engineering take place live during the 8-hour arena sprint (09:30 AM – 05:30 PM)!
+                You do <strong class="text-ink">NOT</strong> need to submit any PPT pitch deck, slides, or pre-built code beforehand. Challenge problem statements will be revealed live at the venue on <strong class="text-ink">October 13, 2026 at 09:30 AM IST (Auditorium, VSBCETC)</strong> right after inauguration. All architectural design, programming, and prototype engineering take place live during the 8-hour arena sprint (09:30 AM – 05:30 PM)!
               </p>
             </div>
 

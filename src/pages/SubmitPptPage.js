@@ -62,23 +62,21 @@ export class SubmitPptPage {
 
             <div class="space-y-4 text-xs font-sans text-muted leading-relaxed">
               <p>
-                To preserve technical integrity, prevent pre-coded boilerplate advantage, and simulate real-world high-pressure engineering sprints, <strong class="text-ink">all official problem statements across the 5 domains will be unveiled simultaneously at 09:30 AM IST</strong> (following the 09:00 AM Inauguration and 09:10 AM Keynote). Teams build live during the 8-hour arena sprint until 05:30 PM code freeze.
+                To preserve technical integrity, prevent pre-coded boilerplate advantage, and simulate real-world high-pressure engineering sprints, <strong class="text-ink">all official challenge problem statements will be unveiled simultaneously at 09:30 AM IST</strong> (following the 09:00 AM Inauguration and 09:10 AM Keynote). Teams build live during the 8-hour arena sprint until 05:30 PM code freeze.
               </p>
               <div class="p-4 bg-canvas border border-line font-mono text-xs text-ink space-y-2">
-                <div class="text-accent-dark font-bold">// THE 5 DOMAINS REVEALED ON SPOT:</div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
-                  <div>01. Health care Technology</div>
-                  <div>02. Smart Agriculture & Supply</div>
-                  <div>03. Next-Gen Fintech & Payments</div>
-                  <div>04. Defensive Cybersecurity</div>
-                  <div>05. Interactive Education Systems</div>
+                <div class="text-accent-dark font-bold">// CHALLENGE FORMAT</div>
+                <div class="text-[11px] text-muted space-y-1 font-sans">
+                  <div>⚡ Problem statements revealed strictly ON SPOT at 09:30 AM on event day.</div>
+                  <div>⚡ No pre-submission, no advance PPT, no prior briefing.</div>
+                  <div>⚡ All development takes place live during the 8-hour sprint.</div>
                 </div>
               </div>
             </div>
 
             <div class="pt-2 flex flex-wrap gap-4 font-mono">
               <a href="#" data-route="register" class="nav-link btn-primary py-3.5 px-6 text-xs font-bold uppercase tracking-wider">
-                ⚡ REGISTER SQUAD & PAY FEE (FCFS) →
+                ⚡ REGISTER SQUAD &amp; PAY FEE (FCFS) →
               </a>
               <a href="#" data-route="status" class="nav-link btn-secondary py-3.5 px-6 text-xs font-bold uppercase tracking-wider">
                 VIEW STATUS TRACKER →

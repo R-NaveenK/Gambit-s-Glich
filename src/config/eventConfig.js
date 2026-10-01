@@ -71,7 +71,7 @@ export const eventConfig = {
     announcementTime: "09:30 AM IST, OCTOBER 13, 2026",
     venue: "Auditorium, VSBCETC",
     duration: "8-HOUR BUILD (09:30 AM – 05:30 PM)",
-    details: "All specific challenge problem statements across the 5 domains are announced strictly ON SPOT during the 09:30 AM kickoff. No prior PPT or project presentation is required."
+    details: "All specific challenge problem statements are announced strictly ON SPOT during the 09:30 AM kickoff. No prior PPT or project presentation is required."
   },
 
   // Detailed Event Day Schedule (09:00 AM to 06:45 PM)
@@ -156,7 +156,7 @@ export const eventConfig = {
       date: "OCTOBER 13, 2026",
       time: "09:30 AM – 05:30 PM",
       status: "UPCOMING",
-      details: "8 hours of live coding with refreshments, lunch at 12:30 PM, and Milestone Evaluation 1 at 11:15 AM."
+      details: "8 hours of live coding with refreshments, lunch at 12:30 PM, and Milestone Evaluation 1 at 11:30 AM."
     },
     {
       phase: "05",
@@ -200,7 +200,6 @@ export const eventConfig = {
       category: "ON-SPOT PROBLEM STATEMENTS & HACKATHON FORMAT",
       items: [
         "NO advance PPT or pitch deck submission is required. All challenge problem statements are revealed strictly ON SPOT at 09:30 AM on hackathon morning.",
-        "Teams choose their track during registration and receive specific challenge statements live at the venue.",
         "All prototypes must be built live during the 8-hour arena sprint (09:30 AM – 05:30 PM). Open-source libraries and APIs are allowed.",
         "Pre-built applications or complete templates built prior to problem release are strictly prohibited and will result in disqualification."
       ]
@@ -248,8 +247,8 @@ export const eventConfig = {
     },
     {
       id: "faq-5",
-      question: "What are the 5 hackathon tracks?",
-      answer: "The 5 tracks are: Health care, Agriculture, Fintech, Cybersecurity, and Education. Teams select their track during registration, and receive track-specific problem statements on spot on event day."
+      question: "What happens after registration? When will we know our challenge?",
+      answer: "After your payment is verified, you will receive a confirmation email with your Team Registration ID. The actual challenge problem statement will be revealed ON SPOT at 09:30 AM IST on October 13, 2026 at the venue. There is no prior briefing or problem preview."
     },
     {
       id: "faq-6",
