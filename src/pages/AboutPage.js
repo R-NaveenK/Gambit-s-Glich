@@ -88,7 +88,7 @@ export class AboutPage {
               <div class="space-y-2 p-5 bg-canvas border border-line">
                 <div class="text-accent text-base font-bold font-mono">02 / 8-HOUR CONTINUOUS ARENA SPRINT</div>
                 <p class="text-xs text-muted leading-relaxed">
-                  A high-intensity 8-hour sprint (09:30 AM – 05:30 PM) at Auditorium, VSBCETC with gigabit connectivity, power infrastructure, meals, refreshments, and real-time leaderboard updates.
+                  A high-intensity 8-hour sprint (09:30 AM – 05:30 PM) at Auditorium, VSBCETC with power infrastructure, meals, refreshments, and real-time leaderboard updates.
                 </p>
               </div>
 
@@ -284,7 +284,7 @@ export class AboutPage {
               <div class="p-6 bg-paper border border-line space-y-3">
                 <div class="text-ink font-bold uppercase font-mono text-sm">// ON-SITE ARENA INFRASTRUCTURE</div>
                 <p class="leading-relaxed">
-                  High-speed gigabit Wi-Fi, power stations at every squad desk, continuous refreshments & snacks, quiet rest zones, line-by-line jury examination, and cash awards for top teams.
+                  Wi-Fi connectivity, power stations at every squad desk, continuous refreshments &amp; snacks, quiet rest zones, line-by-line jury examination, and cash awards for top teams.
                 </p>
               </div>
             </div>
