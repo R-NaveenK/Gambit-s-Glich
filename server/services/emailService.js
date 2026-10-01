@@ -262,7 +262,7 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
         No Advance PPT Deck Required — Problem Statements Revealed Live On-Spot!
       </h3>
       <p style="font-size: 13px; color: #C5BBA7; line-height: 1.6; margin: 0 0 10px 0;">
-        You do <strong>NOT</strong> need to submit any PowerPoint or slide deck before the event. Exact challenge statements for all 5 domains will be unlocked <strong>ON SPOT</strong> at sprint launch:
+        You do <strong>NOT</strong> need to submit any PowerPoint or slide deck before the event. Challenge problem statements will be unlocked <strong>ON SPOT</strong> at sprint launch:
       </p>
       <div style="font-family: monospace; font-size: 12px; color: #D79218; background-color: #1A1A18; padding: 10px 14px; border: 1px solid #333330;">
         📍 <strong>VENUE:</strong> Auditorium, VSBCETC, Coimbatore<br>

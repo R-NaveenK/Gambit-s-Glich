@@ -12,12 +12,12 @@ export class ThemesPage {
           
           <!-- Page Header -->
           <div class="border-b border-line pb-8 mb-8">
-            <div class="text-xs text-accent-dark tracking-widest uppercase mb-2">02 / CHOOSE YOUR DISRUPTION</div>
+            <div class="text-xs text-accent-dark tracking-widest uppercase mb-2">02 / HACKATHON CHALLENGE AREAS</div>
             <h1 class="font-serif text-5xl sm:text-7xl font-normal italic text-ink">
-              Hackathon Tracks
+              Challenge Areas
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Choose your domain during registration. <strong class="text-accent-dark font-bold">Important: Concrete problem statements are strictly revealed ON SPOT at 09:30 AM IST on October 13, 2026 (Inauguration at 09:00 AM). No prior PPT required.</strong>
+              <strong class="text-accent-dark font-bold">Concrete problem statements are strictly revealed ON SPOT at 09:30 AM IST on October 13, 2026.</strong> The areas below are for general reference only. No prior PPT required.
             </p>
           </div>
 
@@ -27,7 +27,7 @@ export class ThemesPage {
               <div class="text-xs text-accent-dark font-bold font-mono">// REAL-TIME ARENA CHALLENGE</div>
               <h2 class="font-sans text-xl font-bold text-ink uppercase">Exact Problem Statements Revealed On-Spot</h2>
               <p class="text-xs text-muted font-sans max-w-xl leading-relaxed">
-                Select your track during registration. On hackathon morning at 09:00 AM IST (Auditorium, VSBCETC), official challenge statements will be unveiled live. All brainstorming, system architecture, and code development are executed in real time.
+                Challenge problem statements will be revealed live at 09:30 AM IST (Auditorium, VSBCETC) on hackathon morning. All brainstorming, system architecture, and code development are executed in real time.
               </p>
             </div>
             <div class="px-4 py-2 border border-accent bg-accent/20 text-accent-dark font-mono font-bold text-xs uppercase whitespace-nowrap shrink-0">
