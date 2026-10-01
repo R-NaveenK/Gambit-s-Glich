@@ -17,8 +17,9 @@ const KEY = 'gg_loader_completed_v2';
 const PROGRESS = [[0, 0], [1.15, 0], [1.65, 8], [2.2, 27], [2.75, 55], [3.25, 79], [3.75, 94], [4.2, 100]];
 
 export class Loader {
-  constructor(onComplete) {
+  constructor(onComplete, isDirectSubpage = false) {
     this.onComplete = onComplete;
+    this.isDirectSubpage = isDirectSubpage;
     this.container = null;
     this.timeline = null;
     this.frameId = null;
@@ -26,23 +27,26 @@ export class Loader {
     this.notified = false;
     this.started = false;
     this.elapsed = 0;
+    this.safetyTimer = null;
     this.state = { reveal: 0, fade: 1 };
     this.motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    this.replay = new URLSearchParams(window.location.search).get('intro') === 'replay';
+    const searchParams = new URLSearchParams(window.location.search);
+    this.replay = searchParams.get('intro') === 'replay';
+    this.skipIntro = searchParams.get('intro') === 'skip';
     try { this.hasVisited = sessionStorage.getItem(KEY) === 'true'; }
     catch { this.hasVisited = false; }
     this.handleResize = () => this.resize();
-    this.handleKey = (event) => { if (event.key === 'Escape') this.finish(true); };
+    this.handleKey = (event) => { if (event.key === 'Escape') this.finish(false); };
     this.handleMotion = () => { if (this.motionQuery.matches) this.finish(true); };
   }
 
   render() {
-    // Rendering must not invoke the callback: that previously mounted the home twice.
-    if (this.motionQuery.matches || (this.hasVisited && !this.replay)) return '';
+    // Skip loader only if reduced motion is preferred, intro=skip param is set, or opening direct subpages
+    if (this.motionQuery.matches || this.skipIntro || this.isDirectSubpage) return '';
     return `
-      <div id="gg-loader" class="gg-intro" data-phase="preparing" aria-label="Gambit's Glitch introduction">
-        <span class="gg-intro__sr">Opening Gambit's Glitch. Press Escape to skip the introduction.</span>
-        <button class="gg-intro__skip" type="button">Skip introduction</button>
+      <div id="gg-loader" class="gg-intro cursor-pointer" data-phase="preparing" aria-label="Gambit's Glitch introduction">
+        <span class="gg-intro__sr">Opening Gambit's Glitch. Press Escape or click anywhere to transition into the arena.</span>
+        <button class="gg-intro__skip" type="button">Skip to arena</button>
         <canvas class="gg-intro__canvas" aria-hidden="true"></canvas>
         <div class="gg-intro__counter" role="progressbar" aria-label="Introduction progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">0%</div>
         <div class="gg-intro__reveal" aria-hidden="true">
@@ -67,17 +71,24 @@ export class Loader {
     this.app = document.getElementById('app');
     this.appWasInert = this.app?.inert || false;
     if (this.app) this.app.inert = true;
+
+    // Fast-skip listeners: always trigger the signature Frame Skip glitch transition into the arena
     const skipBtn = this.container.querySelector('button');
-    if (skipBtn) skipBtn.addEventListener('click', () => this.finish(true));
-    this.container.addEventListener('click', () => this.finish(true));
+    if (skipBtn) {
+      skipBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.finish(false);
+      });
+    }
+    this.container.addEventListener('click', () => this.finish(false));
     window.addEventListener('keydown', this.handleKey);
     window.addEventListener('resize', this.handleResize);
     this.motionQuery.addEventListener('change', this.handleMotion);
 
-    // Hard safety timeout: intro animation must never trap visitor longer than 9 seconds
-    setTimeout(() => {
-      if (!this.finished) this.finish(true);
-    }, 9000);
+    // Hard safety timeout: intro animation smoothly transitions into arena by 9.5s
+    this.safetyTimer = setTimeout(() => {
+      if (!this.finished) this.finish(false);
+    }, 9500);
 
     // Local fonts normally resolve immediately. Failure must never trap visitors.
     let fontTimeout;
@@ -238,7 +249,7 @@ export class Loader {
     this.timeline.to({}, { duration: 0.5 }, 8.2);
   }
 
-  skip() { this.finish(true); }
+  skip() { this.finish(false); }
 
   notify() {
     if (this.notified) return;
@@ -253,6 +264,7 @@ export class Loader {
   finish(immediate = false) {
     if (this.finished) return;
     this.finished = true;
+    if (this.safetyTimer) clearTimeout(this.safetyTimer);
     this.timeline?.pause();
     this.timeline?.kill();
     cancelAnimationFrame(this.frameId);

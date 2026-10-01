@@ -47,7 +47,6 @@ export function playFrameSkipTransition({ container, onMountHomepage, onComplete
     isCleanedUp = true;
 
     if (fallbackTimer) clearTimeout(fallbackTimer);
-    window.removeEventListener('resize', handleResize);
     if (timeline) timeline.kill();
 
     // Remove transition overlay layer
@@ -74,12 +73,7 @@ export function playFrameSkipTransition({ container, onMountHomepage, onComplete
     if (onComplete) onComplete();
   };
 
-  const handleResize = () => {
-    cleanup();
-  };
-
-  window.addEventListener('resize', handleResize);
-  fallbackTimer = setTimeout(cleanup, 750);
+  fallbackTimer = setTimeout(cleanup, 850);
 
   try {
     // 3. Create transition overlay container
@@ -113,17 +107,22 @@ export function playFrameSkipTransition({ container, onMountHomepage, onComplete
       const clone = container.cloneNode(true);
       clone.removeAttribute('id');
       clone.querySelectorAll('[id]').forEach((el) => el.removeAttribute('id'));
+      clone.querySelectorAll('button, .gg-intro__sr, .gg-intro__skip').forEach((el) => el.remove());
       clone.setAttribute('aria-hidden', 'true');
       clone.inert = true;
 
       // Copy HTML5 Canvas bitmap if present
       const clonedCanvas = clone.querySelector('canvas');
-      if (originalCanvas && clonedCanvas) {
+      if (originalCanvas && clonedCanvas && originalCanvas.width > 0 && originalCanvas.height > 0) {
         clonedCanvas.width = originalCanvas.width;
         clonedCanvas.height = originalCanvas.height;
         const ctx = clonedCanvas.getContext('2d');
         if (ctx) {
-          ctx.drawImage(originalCanvas, 0, 0);
+          try {
+            ctx.drawImage(originalCanvas, 0, 0);
+          } catch (e) {
+            // Ignore canvas draw error if tainted or zero dimension
+          }
         }
       }
 

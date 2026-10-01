@@ -52,6 +52,9 @@ export class Navbar {
 
         </div>
 
+        <!-- Digital Glitch Signal Line Transition Indicator -->
+        <div id="nav-signal-line" class="nav-signal-line absolute bottom-0 left-0 w-full h-[2px] opacity-0 pointer-events-none" aria-hidden="true"></div>
+
         <!-- Full-Screen Editorial Mobile Overlay Menu -->
         <div id="mobile-drawer" role="dialog" aria-modal="true" aria-label="Navigation" data-lenis-prevent class="hidden fixed inset-0 z-50 bg-canvas p-8 flex-col justify-between overflow-y-auto overscroll-contain font-mono text-sm tracking-wider uppercase">
           <div class="flex items-center justify-between pb-6 border-b border-line">

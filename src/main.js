@@ -84,10 +84,11 @@ class App {
     this.canvasEngine = new HeroCanvas('hero-bg-canvas');
 
     // 4. Mount one intro. Its callback runs exactly once.
+    const isDirectSubpage = this.currentRoute && this.currentRoute !== 'home';
     const loader = new Loader(() => {
-      this.renderCurrentRoute();
+      this.renderCurrentRoute(true, false);
       this.lenis?.start();
-    });
+    }, isDirectSubpage);
 
     const loaderHtml = loader.render();
     if (loaderHtml) {
@@ -95,7 +96,7 @@ class App {
       document.body.insertAdjacentHTML('afterbegin', loaderHtml);
       loader.startSequence();
     } else {
-      this.renderCurrentRoute();
+      this.renderCurrentRoute(true, false);
     }
 
     // Global Click Router listener
@@ -124,7 +125,7 @@ class App {
       if (hash === 'payment') hash = 'register';
       if (hash && this.routes[hash] && this.currentRoute !== hash) {
         this.currentRoute = hash;
-        this.renderCurrentRoute(true);
+        this.renderCurrentRoute(true, true);
       }
     });
 
@@ -135,7 +136,7 @@ class App {
       if (route === 'payment') route = 'register';
       if (this.routes[route]) {
         this.currentRoute = route;
-        this.renderCurrentRoute(false);
+        this.renderCurrentRoute(false, true);
       }
     });
   }
@@ -149,11 +150,10 @@ class App {
       window.location.hash = `#${route}`;
     }
 
-    this.renderCurrentRoute();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    this.renderCurrentRoute(true, true);
   }
 
-  renderCurrentRoute(scrollToTop = true) {
+  renderCurrentRoute(scrollToTop = true, animateTransition = true) {
     if (!this.appEl) return;
 
     const PageClass = this.routes[this.currentRoute] || HomePage;
@@ -164,7 +164,7 @@ class App {
 
     this.appEl.innerHTML = `
       ${navbar.render()}
-      <main id="main-content" class="flex-1">
+      <main id="main-content" class="flex-1 ${animateTransition ? 'opacity-0' : ''}">
         ${pageInstance.render()}
       </main>
       ${footer.render()}
@@ -183,6 +183,28 @@ class App {
     // Refresh Lucide Icons if available
     if (window.lucide) {
       window.lucide.createIcons();
+    }
+
+    // Smooth Page & Route Transition
+    const mainContent = document.getElementById('main-content');
+    const signalLine = document.getElementById('nav-signal-line');
+
+    if (mainContent) {
+      if (animateTransition && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        gsap.fromTo(mainContent, 
+          { opacity: 0, y: 10 }, 
+          { opacity: 1, y: 0, duration: 0.28, ease: 'power2.out', clearProps: 'transform' }
+        );
+
+        if (signalLine) {
+          gsap.fromTo(signalLine,
+            { scaleX: 0, opacity: 1, transformOrigin: '0% 50%' },
+            { scaleX: 1, opacity: 0, duration: 0.42, ease: 'power2.out' }
+          );
+        }
+      } else {
+        mainContent.style.opacity = '1';
+      }
     }
   }
 }
