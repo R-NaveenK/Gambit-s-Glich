@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS teams (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     reg_id VARCHAR(20) UNIQUE NOT NULL,
     team_name VARCHAR(100) NOT NULL,
-    theme_id VARCHAR(50) NOT NULL,
+    theme_id VARCHAR(50) NOT NULL DEFAULT 'TBD',
     college VARCHAR(200) NOT NULL,
     department VARCHAR(100) NOT NULL,
     year VARCHAR(20) NOT NULL,
@@ -54,9 +54,9 @@ CREATE TABLE IF NOT EXISTS payments (
     team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
     utr_number VARCHAR(50) NOT NULL,
     payer_name VARCHAR(100) NOT NULL,
-    amount DECIMAL(10, 2) NOT NULL DEFAULT 499.00,
+    amount DECIMAL(10, 2) NOT NULL DEFAULT 250.00,
     payment_date DATE NOT NULL,
-    screenshot_url TEXT NOT NULL,
+    screenshot_url TEXT,
     status payment_status_enum NOT NULL DEFAULT 'PENDING',
     rejection_reason TEXT,
     reviewed_at TIMESTAMP WITH TIME ZONE,
@@ -141,3 +141,9 @@ DO $$ BEGIN
     CREATE POLICY "Public storage bucket insert for uploads" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'uploads');
 EXCEPTION WHEN duplicate_object THEN null; END $$;
 
+-- MIGRATIONS: Run these in Supabase SQL Editor if schema was already applied
+-- (Safe to run multiple times)
+ALTER TABLE teams ALTER COLUMN theme_id DROP NOT NULL;
+ALTER TABLE teams ALTER COLUMN theme_id SET DEFAULT 'TBD';
+ALTER TABLE payments ALTER COLUMN screenshot_url DROP NOT NULL;
+ALTER TABLE payments ALTER COLUMN amount SET DEFAULT 250.00;

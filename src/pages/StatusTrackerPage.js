@@ -255,7 +255,7 @@ export class StatusTrackerPage {
           </div>
 
           <p class="text-xs text-muted font-sans leading-relaxed">
-            <strong class="text-ink">No prior PPT or deck submission is required.</strong> On the morning of October 13 at 09:30 AM IST, the official real-world problem statements for your selected track will be announced live. Teams will have 8 hours to build, architect, and deploy their prototype before final code freeze at 05:30 PM.
+            <strong class="text-ink">No prior PPT or deck submission is required.</strong> On the morning of October 13 at 09:30 AM IST, the official real-world challenge problem statements will be announced live at the venue. Teams will have 8 hours to build, architect, and deploy their prototype before final code freeze at 05:30 PM.
           </p>
         </div>
       </div>

@@ -150,7 +150,7 @@ router.post('/', regUpload, async (req, res) => {
     const teamData = {
       reg_id: regId,
       team_name: team_name.trim(),
-      theme_id,
+      theme_id: 'TBD',
       college: college.trim(),
       department: department.trim(),
       year: year.trim(),

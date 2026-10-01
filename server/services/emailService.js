@@ -227,7 +227,6 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
       <div style="font-size: 26px; font-family: monospace; font-weight: 700; color: #D79218; letter-spacing: 2px; margin: 4px 0;">${team.reg_id}</div>
       <div style="font-size: 13px; color: #10100E; margin-top: 6px;"><strong>Team Name:</strong> ${team.team_name}</div>
       <div style="font-size: 13px; color: #10100E;"><strong>Institution:</strong> ${team.college}</div>
-      <div style="font-size: 13px; color: #10100E;"><strong>Track:</strong> ${team.theme_id}</div>
     </div>
 
     <!-- PAYMENT RECEIPT DETAILS -->
@@ -394,7 +393,7 @@ export async function sendPaymentInvoiceEmail(team, payment = null, ppt = null, 
   const memberNamesStr = members.length ? members.map(m => m.name).join(', ') : team.leader_name;
 
   // Generate Scannable Attendance QR Code AFTER Payment
-  const qrTextData = `GAMBIT'S GLITCH 2026 ATTENDANCE PASS\n-----------------------------------\nReg ID: ${team.reg_id}\nTeam: ${team.team_name}\nLeader: ${team.leader_name} (${team.leader_phone})\nCollege: ${team.college}\nTrack: ${team.theme_id}\nMembers: ${memberNamesStr}\nPayment Status: PAID & VERIFIED (${invoiceId})`;
+  const qrTextData = `GAMBIT'S GLITCH 2026 ATTENDANCE PASS\n-----------------------------------\nReg ID: ${team.reg_id}\nTeam: ${team.team_name}\nLeader: ${team.leader_name} (${team.leader_phone})\nCollege: ${team.college}\nMembers: ${memberNamesStr}\nPayment Status: PAID & VERIFIED (${invoiceId})`;
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(qrTextData)}&color=10100E&bgcolor=F8F7F2`;
 
   // Build Full Squad Member List HTML Table for Invoice
