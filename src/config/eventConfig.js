@@ -25,6 +25,12 @@ export const eventConfig = {
     duration: "8-HOUR BUILD"
   },
 
+  duration: {
+    hours: 8,
+    timings: "09:00 AM – 06:45 PM",
+    format: "8-HOUR BUILD"
+  },
+
   // Venue & Location
   venue: {
     type: "ON-SITE",

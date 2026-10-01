@@ -25,7 +25,11 @@ export function playFrameSkipTransition({ container, onMountHomepage, onComplete
 
   // 1. Mount homepage underneath outgoing screen
   if (onMountHomepage) {
-    onMountHomepage();
+    try {
+      onMountHomepage();
+    } catch (err) {
+      console.error('Error mounting homepage during transition:', err);
+    }
   }
 
   const app = document.getElementById('app');

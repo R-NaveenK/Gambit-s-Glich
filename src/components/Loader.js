@@ -67,10 +67,17 @@ export class Loader {
     this.app = document.getElementById('app');
     this.appWasInert = this.app?.inert || false;
     if (this.app) this.app.inert = true;
-    this.container.querySelector('button').addEventListener('click', () => this.finish(true));
+    const skipBtn = this.container.querySelector('button');
+    if (skipBtn) skipBtn.addEventListener('click', () => this.finish(true));
+    this.container.addEventListener('click', () => this.finish(true));
     window.addEventListener('keydown', this.handleKey);
     window.addEventListener('resize', this.handleResize);
     this.motionQuery.addEventListener('change', this.handleMotion);
+
+    // Hard safety timeout: intro animation must never trap visitor longer than 9 seconds
+    setTimeout(() => {
+      if (!this.finished) this.finish(true);
+    }, 9000);
 
     // Local fonts normally resolve immediately. Failure must never trap visitors.
     let fontTimeout;
@@ -236,7 +243,11 @@ export class Loader {
   notify() {
     if (this.notified) return;
     this.notified = true;
-    this.onComplete?.();
+    try {
+      this.onComplete?.();
+    } catch (err) {
+      console.error('Error executing Loader onComplete callback:', err);
+    }
   }
 
   finish(immediate = false) {
