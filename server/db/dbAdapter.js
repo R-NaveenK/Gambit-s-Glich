@@ -92,6 +92,8 @@ if (isSupabaseConfigured) {
   console.log("ℹ️ Running with Local JSON Data Store (Set SUPABASE_URL in .env to use Supabase Cloud).");
 }
 
+const verifiedBuckets = new Set();
+
 export const dbAdapter = {
   isSupabase: isSupabaseConfigured && supabase !== null,
 
@@ -154,6 +156,35 @@ export const dbAdapter = {
     }
   },
 
+  // Fast: count active teams without fetching all data
+  async getActiveTeamCount() {
+    if (this.isSupabase) {
+      const { count } = await supabase
+        .from('teams')
+        .select('id', { count: 'exact', head: true })
+        .neq('status', 'REJECTED');
+      return count || 0;
+    } else {
+      const store = loadLocalStore();
+      return store.teams.filter(t => t.status !== 'REJECTED').length;
+    }
+  },
+
+  // Fast: look up a team by leader email only (no full table scan)
+  async getTeamByEmail(email) {
+    if (this.isSupabase) {
+      const { data } = await supabase
+        .from('teams')
+        .select('reg_id, team_name, leader_email')
+        .ilike('leader_email', email.trim())
+        .maybeSingle();
+      return data || null;
+    } else {
+      const store = loadLocalStore();
+      return store.teams.find(t => (t.leader_email || '').toLowerCase() === email.toLowerCase()) || null;
+    }
+  },
+
   async updateTeamStatus(teamId, newStatus) {
     if (this.isSupabase) {
       await supabase.from('teams').update({ status: newStatus, updated_at: new Date().toISOString() }).eq('id', teamId);
@@ -211,9 +242,12 @@ export const dbAdapter = {
   async uploadToSupabaseStorage(bucketName, filename, fileDataOrBuffer, mimeType) {
     if (!this.isSupabase || !supabase) return null;
     try {
-      try {
-        await supabase.storage.createBucket(bucketName, { public: true });
-      } catch (e) {}
+      if (!verifiedBuckets.has(bucketName)) {
+        try {
+          await supabase.storage.createBucket(bucketName, { public: true });
+        } catch (e) {}
+        verifiedBuckets.add(bucketName);
+      }
 
       let fileBuffer = null;
       if (Buffer.isBuffer(fileDataOrBuffer)) {
