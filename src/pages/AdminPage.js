@@ -106,8 +106,12 @@ export class AdminPage {
               <div id="stat-total" class="font-mono text-3xl font-bold text-ink">--</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">SHORTLISTED</div>
-              <div id="stat-shortlist" class="font-mono text-3xl font-bold text-accent">--</div>
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">CONFIRMED SLOTS (FCFS)</div>
+              <div class="flex items-baseline justify-center gap-1">
+                <span id="stat-confirmed" class="font-mono text-3xl font-bold text-success">--</span>
+                <span class="font-mono text-base text-muted font-bold">/ 40</span>
+              </div>
+              <div class="text-[9px] text-accent-dark font-mono font-bold uppercase mt-1">CAPACITY: 40 TEAMS</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
               <div class="text-[10px] text-muted uppercase font-mono font-bold">PAYMENT PENDING</div>
@@ -216,14 +220,14 @@ export class AdminPage {
               </select>
             </div>
 
-            <div class="w-40">
+            <div class="w-44">
               <select id="admin-status-filter" class="w-full px-3 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
                 <option value="ALL">All Statuses</option>
-                <option value="UNDER_REVIEW">PPT Under Review</option>
-                <option value="SHORTLISTED">Shortlisted</option>
-                <option value="PAYMENT_PENDING">Payment Pending</option>
-                <option value="PAYMENT_APPROVED">Payment Approved</option>
+                <option value="REGISTERED">Registered / FCFS</option>
                 <option value="PPT_SUBMITTED">PPT Submitted</option>
+                <option value="PAYMENT_PENDING">Payment Pending</option>
+                <option value="PAYMENT_APPROVED">Payment Approved (Confirmed)</option>
+                <option value="REJECTED">Rejected</option>
               </select>
             </div>
 
@@ -420,7 +424,7 @@ export class AdminPage {
         soundFx.playClick();
         const currentOpen = gateToggleBtn.getAttribute('data-open') === 'true';
         const newStatus = !currentOpen;
-        const confirmed = confirm(`Are you sure you want to ${newStatus ? 'OPEN' : 'LOCK'} the payment portal for shortlisted teams?`);
+        const confirmed = confirm(`Are you sure you want to ${newStatus ? 'OPEN' : 'LOCK'} the payment portal for participating teams (First-Come, First-Served)?`);
         if (!confirmed) return;
 
         try {
@@ -790,14 +794,14 @@ export class AdminPage {
         const pendingEl = document.getElementById('stat-pending');
         const approvedEl = document.getElementById('stat-approved');
         const pptEl = document.getElementById('stat-ppt');
-        const shortlistEl = document.getElementById('stat-shortlist');
+        const shortlistEl = document.getElementById('stat-confirmed') || document.getElementById('stat-shortlist');
         const attendedEl = document.getElementById('stat-attended');
 
         if (totalEl) totalEl.textContent = statsRes.stats.totalRegistrations;
         if (pendingEl) pendingEl.textContent = statsRes.stats.pendingPayments;
         if (approvedEl) approvedEl.textContent = statsRes.stats.approvedPayments;
         if (pptEl) pptEl.textContent = statsRes.stats.pptSubmissions;
-        if (shortlistEl) shortlistEl.textContent = statsRes.stats.shortlisted;
+        if (shortlistEl) shortlistEl.textContent = statsRes.stats.confirmedSlots ?? statsRes.stats.approvedPayments ?? statsRes.stats.shortlisted ?? 0;
         if (attendedEl) attendedEl.textContent = statsRes.stats.attendedCount || 0;
       }
 
@@ -877,9 +881,11 @@ export class AdminPage {
 
           <td class="p-4 font-mono text-[11px]">
             <span class="px-2 py-1 border ${
-              team.status === 'SHORTLISTED' ? 'border-accent text-accent-dark font-bold' : 'border-line text-ink'
+              team.status === 'PAYMENT_APPROVED' ? 'border-success text-success font-bold' :
+              team.status === 'PAYMENT_PENDING' ? 'border-accent text-accent-dark font-bold' :
+              team.status === 'REJECTED' ? 'border-error text-error font-bold' : 'border-line text-ink'
             }">
-              ${team.status}
+              ${team.status === 'PAYMENT_APPROVED' ? 'SLOT CONFIRMED' : team.status}
             </span>
           </td>
 
@@ -896,8 +902,8 @@ export class AdminPage {
               </button>
             ` : ''}
 
-            <button data-action="toggle-shortlist" data-reg="${team.reg_id}" data-current="${team.status}" class="px-2 py-1 border border-line text-ink hover:bg-paper text-[10px] cursor-pointer">
-              ${team.status === 'SHORTLISTED' ? 'UN-SHORTLIST' : 'SHORTLIST'}
+            <button data-action="toggle-slot" data-reg="${team.reg_id}" data-current="${team.status}" class="px-2 py-1 border ${team.status === 'PAYMENT_APPROVED' ? 'border-line text-muted' : 'border-accent text-accent-dark font-bold'} hover:bg-paper text-[10px] cursor-pointer">
+              ${team.status === 'PAYMENT_APPROVED' ? 'REVOKE SLOT' : 'CONFIRM SLOT'}
             </button>
 
             <button data-action="quick-scan" data-reg="${team.reg_id}" class="px-2 py-1 border border-success text-success hover:bg-success hover:text-canvas text-[10px] cursor-pointer">
@@ -956,16 +962,16 @@ export class AdminPage {
       });
     });
 
-    tbody.querySelectorAll('button[data-action="toggle-shortlist"]').forEach(btn => {
+    tbody.querySelectorAll('button[data-action="toggle-slot"], button[data-action="toggle-shortlist"]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const regId = btn.getAttribute('data-reg');
         const current = btn.getAttribute('data-current');
-        const nextStatus = current === 'SHORTLISTED' ? 'UNDER_REVIEW' : 'SHORTLISTED';
+        const nextStatus = current === 'PAYMENT_APPROVED' ? 'REGISTERED' : 'PAYMENT_APPROVED';
 
         try {
           const res = await api.updateTeamStatus(regId, nextStatus);
           if (res.success) {
-            toast.show(`Team status updated to ${nextStatus}`, 'success');
+            toast.show(`Team slot status updated to ${nextStatus === 'PAYMENT_APPROVED' ? 'SLOT CONFIRMED' : 'REGISTERED'}`, 'success');
             await this.fetchDashboardData();
           }
         } catch (err) {

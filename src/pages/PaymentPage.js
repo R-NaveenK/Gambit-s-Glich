@@ -26,7 +26,7 @@ export class PaymentPage {
               Payment Verification
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Enter your Team Registration ID. The system will instantly verify your shortlisting status, squad roster, and calculate the total fee (₹300 per member).
+              Enter your Team Registration ID. Slots are strictly limited to <strong class="text-ink font-bold">40 teams only</strong>, allocated on a <strong class="text-ink font-bold">First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait. Verify your squad roster, calculate the total fee (₹300 per member), and submit payment to lock your team's slot before capacity is reached.
             </p>
           </div>
 
@@ -38,13 +38,13 @@ export class PaymentPage {
             </div>
 
             <p class="text-xs text-muted font-mono leading-relaxed max-w-lg mx-auto">
-              The payment portal will be officially opened by administrators once team shortlisting is announced. 
-              If your team is shortlisted, you will receive an official notification to process payment.
+              The payment portal is currently closed or submissions are paused by administrators. 
+              All registered teams can process payment on a First-Come, First-Served basis when unlocked.
             </p>
 
             <div class="pt-4 flex flex-wrap items-center justify-center gap-4">
               <button id="gate-view-status-btn" type="button" class="btn-primary py-3 px-8 text-xs font-mono font-bold uppercase tracking-wider cursor-pointer">
-                CHECK SHORTLIST STATUS
+                CHECK REGISTRATION STATUS
               </button>
             </div>
           </div>
@@ -110,7 +110,7 @@ export class PaymentPage {
                   <div class="text-[10px] text-muted mt-1 font-sans">Details & fee calculation load automatically as you type.</div>
                 </div>
 
-                <!-- DYNAMIC SHORTLISTED TEAM INTEL & CALCULATED FEE CARD -->
+                <!-- DYNAMIC REGISTERED TEAM INTEL & CALCULATED FEE CARD (FCFS) -->
                 <div id="team-intel-card" class="hidden p-5 bg-canvas border-2 border-accent space-y-4 font-mono text-xs shadow-xs">
                   <div class="flex items-center justify-between border-b border-line pb-3">
                     <div>
@@ -118,7 +118,7 @@ export class PaymentPage {
                       <div id="intel-team-name" class="font-sans text-lg font-extrabold text-ink uppercase">--</div>
                     </div>
                     <div id="intel-status-badge" class="px-3 py-1 text-[10px] font-bold border border-success text-success uppercase bg-paper">
-                      SHORTLISTED
+                      FIRST-COME, FIRST-SERVED (ELIGIBLE)
                     </div>
                   </div>
                   
@@ -138,17 +138,17 @@ export class PaymentPage {
                   </div>
                 </div>
 
-                <!-- NOT SHORTLISTED WARNING NOTICE -->
-                <div id="team-not-shortlisted-card" class="hidden p-5 bg-canvas border-2 border-error/70 space-y-3 font-mono text-xs">
+                <!-- STATUS ALERT NOTICE (Already Paid or Rejected) -->
+                <div id="team-status-alert-card" class="hidden p-5 bg-canvas border-2 border-accent space-y-3 font-mono text-xs">
                   <div class="flex items-center justify-between border-b border-line pb-2">
-                    <div class="text-error font-bold uppercase text-xs">// STATUS: NOT YET SHORTLISTED</div>
-                    <span class="px-2.5 py-0.5 text-[10px] font-bold border border-error text-error bg-paper uppercase" id="not-shortlist-badge">
-                      UNDER REVIEW
+                    <div class="text-accent-dark font-bold uppercase text-xs" id="status-alert-heading">// STATUS NOTICE</div>
+                    <span class="px-2.5 py-0.5 text-[10px] font-bold border border-accent text-accent-dark bg-paper uppercase" id="status-alert-badge">
+                      STATUS
                     </span>
                   </div>
-                  <div id="not-shortlist-team-info" class="font-sans text-sm font-bold text-ink uppercase">--</div>
-                  <p class="text-[11px] text-muted font-mono leading-relaxed">
-                    ⚠️ Payment is strictly reserved for teams that have been officially shortlisted by hackathon organizers. Your team is currently undergoing review.
+                  <div id="status-alert-team-info" class="font-sans text-sm font-bold text-ink uppercase">--</div>
+                  <p id="status-alert-desc" class="text-[11px] text-muted font-mono leading-relaxed">
+                    --
                   </p>
                 </div>
 
@@ -230,11 +230,11 @@ export class PaymentPage {
       });
     }
 
-    // REAL-TIME AUTOMATIC TEAM FETCH & SHORTLIST VERIFICATION
+    // REAL-TIME AUTOMATIC TEAM FETCH & FCFS ELIGIBILITY VERIFICATION
     const regIdInput = document.getElementById('pay-reg-id-input');
     const statusIndicator = document.getElementById('pay-id-status-indicator');
     const intelCard = document.getElementById('team-intel-card');
-    const notShortlistedCard = document.getElementById('team-not-shortlisted-card');
+    const statusAlertCard = document.getElementById('team-status-alert-card');
     const submitBtn = document.getElementById('submit-payment-btn');
     const amountInput = document.querySelector('input[name="amount"]');
     const upiTotalDisplay = document.getElementById('upi-calculated-total');
@@ -249,7 +249,7 @@ export class PaymentPage {
         if (statusIndicator) statusIndicator.textContent = 'TYPE ID TO VERIFY';
         if (statusIndicator) statusIndicator.className = 'text-[10px] font-mono font-bold text-muted uppercase';
         if (intelCard) intelCard.classList.add('hidden');
-        if (notShortlistedCard) notShortlistedCard.classList.add('hidden');
+        if (statusAlertCard) statusAlertCard.classList.add('hidden');
         if (upiTotalDisplay) upiTotalDisplay.textContent = 'TOTAL: ENTER TEAM ID FOR AUTO-CALCULATION';
         if (submitBtn) submitBtn.disabled = false;
         return;
@@ -266,68 +266,130 @@ export class PaymentPage {
         if (res && res.success && res.team) {
           const t = res.team;
 
-          if (t.is_shortlisted) {
-            // TEAM IS SHORTLISTED AND ELIGIBLE
+          // Check if team was rejected
+          if (t.status === 'REJECTED') {
             if (statusIndicator) {
-              statusIndicator.textContent = '✔ SHORTLISTED & VERIFIED';
+              statusIndicator.textContent = '❌ REGISTRATION REJECTED';
+              statusIndicator.className = 'text-[10px] font-mono font-bold text-error uppercase';
+            }
+            if (intelCard) intelCard.classList.add('hidden');
+            if (statusAlertCard) {
+              document.getElementById('status-alert-heading').textContent = '// REGISTRATION REJECTED';
+              document.getElementById('status-alert-badge').textContent = 'REJECTED';
+              document.getElementById('status-alert-badge').className = 'px-2.5 py-0.5 text-[10px] font-bold border border-error text-error bg-paper uppercase';
+              document.getElementById('status-alert-team-info').textContent = `${t.team_name} (${t.reg_id}) — Leader: ${t.leader_name}`;
+              document.getElementById('status-alert-desc').textContent = 'This team registration has been rejected or disqualified by administrators.';
+              statusAlertCard.classList.remove('hidden');
+            }
+            if (upiTotalDisplay) upiTotalDisplay.textContent = 'STATUS: REGISTRATION REJECTED';
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.textContent = 'REGISTRATION REJECTED';
+            }
+            if (showNotifications) {
+              toast.show(`Team "${t.team_name}" registration has been rejected.`, 'error');
+            }
+            return;
+          }
+
+          // Check if payment already approved
+          if (t.has_paid) {
+            if (statusIndicator) {
+              statusIndicator.textContent = '✔ PAYMENT APPROVED (SLOT LOCKED)';
               statusIndicator.className = 'text-[10px] font-mono font-bold text-success uppercase';
             }
-
             if (intelCard) {
               document.getElementById('intel-team-name').textContent = t.team_name;
               document.getElementById('intel-college').textContent = t.college;
               document.getElementById('intel-leader').textContent = t.leader_name;
               document.getElementById('intel-members').textContent = `${t.member_count} Members`;
-              document.getElementById('intel-calculation-formula').textContent = `${t.member_count} Members × ₹300 per head`;
+              document.getElementById('intel-calculation-formula').textContent = `${t.member_count} Members × ₹300 (PAID)`;
               document.getElementById('intel-total-display').textContent = `₹${t.calculated_total}`;
+              document.getElementById('intel-status-badge').textContent = 'SLOT CONFIRMED';
+              document.getElementById('intel-status-badge').className = 'px-3 py-1 text-[10px] font-bold border border-success text-success uppercase bg-paper';
               intelCard.classList.remove('hidden');
             }
-
-            if (notShortlistedCard) notShortlistedCard.classList.add('hidden');
-
+            if (statusAlertCard) statusAlertCard.classList.add('hidden');
             if (amountInput) amountInput.value = t.calculated_total;
-
-            if (upiTotalDisplay) {
-              upiTotalDisplay.textContent = `TOTAL PAYABLE: ₹${t.calculated_total} (${t.member_count} MEMBERS × ₹300)`;
-            }
-
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.textContent = `SUBMIT ₹${t.calculated_total} PAYMENT FOR VERIFICATION`;
-            }
-
-            if (showNotifications) {
-              toast.show(`Team "${t.team_name}" is Shortlisted! Total fee: ₹${t.calculated_total}`, 'success');
-            }
-
-          } else {
-            // TEAM EXISTS BUT IS NOT YET SHORTLISTED
-            if (statusIndicator) {
-              statusIndicator.textContent = '❌ NOT SHORTLISTED YET';
-              statusIndicator.className = 'text-[10px] font-mono font-bold text-error uppercase';
-            }
-
-            if (intelCard) intelCard.classList.add('hidden');
-
-            if (notShortlistedCard) {
-              document.getElementById('not-shortlist-badge').textContent = t.status;
-              document.getElementById('not-shortlist-team-info').textContent = `${t.team_name} (${t.reg_id}) — Leader: ${t.leader_name}`;
-              notShortlistedCard.classList.remove('hidden');
-            }
-
-            if (upiTotalDisplay) {
-              upiTotalDisplay.textContent = `STATUS: NOT YET SHORTLISTED`;
-            }
-
+            if (upiTotalDisplay) upiTotalDisplay.textContent = `SLOT CONFIRMED // TOTAL PAID: ₹${t.calculated_total}`;
             if (submitBtn) {
               submitBtn.disabled = true;
-              submitBtn.textContent = `PAYMENT LOCKED — TEAM NOT SHORTLISTED`;
+              submitBtn.textContent = 'PAYMENT APPROVED // ENTRY PASS ISSUED';
             }
-
             if (showNotifications) {
-              toast.show(`Team "${t.team_name}" has not been shortlisted yet. Payment is locked.`, 'error');
+              toast.show(`Team "${t.team_name}" payment is already approved! Entry pass issued.`, 'success');
             }
+            return;
           }
+
+          // Check if event capacity of 40 confirmed teams is reached
+          if (t.capacity_full) {
+            if (statusIndicator) {
+              statusIndicator.textContent = '❌ EVENT CAPACITY FULL (40/40 SLOTS CONFIRMED)';
+              statusIndicator.className = 'text-[10px] font-mono font-bold text-error uppercase';
+            }
+            if (intelCard) intelCard.classList.add('hidden');
+            if (statusAlertCard) {
+              document.getElementById('status-alert-heading').textContent = '// EVENT CAPACITY REACHED';
+              document.getElementById('status-alert-badge').textContent = '40/40 SLOTS FULL';
+              document.getElementById('status-alert-badge').className = 'px-2.5 py-0.5 text-[10px] font-bold border border-error text-error bg-paper uppercase';
+              document.getElementById('status-alert-team-info').textContent = `${t.team_name} (${t.reg_id}) — Leader: ${t.leader_name}`;
+              document.getElementById('status-alert-desc').textContent = 'All 40 participation slots for Gambit\'s Glitch 2026 have been locked and confirmed on a First-Come, First-Served basis. No further payments can be accepted.';
+              statusAlertCard.classList.remove('hidden');
+            }
+            if (upiTotalDisplay) upiTotalDisplay.textContent = 'STATUS: EVENT CAPACITY REACHED (40 TEAMS)';
+            if (submitBtn) {
+              submitBtn.disabled = true;
+              submitBtn.textContent = 'ALL 40 SLOTS CONFIRMED (EVENT FULL)';
+            }
+            if (showNotifications) {
+              toast.show('Event capacity reached: All 40 slots are locked.', 'error');
+            }
+            return;
+          }
+
+          // Check if payment submitted and pending verification
+          const isPending = t.payment_status === 'PENDING' || t.status === 'PAYMENT_PENDING';
+
+          if (statusIndicator) {
+            statusIndicator.textContent = isPending ? '⏳ PAYMENT VERIFICATION PENDING' : '✔ SQUAD VERIFIED (FCFS)';
+            statusIndicator.className = isPending
+              ? 'text-[10px] font-mono font-bold text-accent-dark uppercase'
+              : 'text-[10px] font-mono font-bold text-success uppercase';
+          }
+
+          if (intelCard) {
+            document.getElementById('intel-team-name').textContent = t.team_name;
+            document.getElementById('intel-college').textContent = t.college;
+            document.getElementById('intel-leader').textContent = t.leader_name;
+            document.getElementById('intel-members').textContent = `${t.member_count} Members`;
+            document.getElementById('intel-calculation-formula').textContent = `${t.member_count} Members × ₹300 per head`;
+            document.getElementById('intel-total-display').textContent = `₹${t.calculated_total}`;
+            document.getElementById('intel-status-badge').textContent = isPending
+              ? 'PAYMENT UNDER REVIEW'
+              : 'FIRST-COME, FIRST-SERVED (ELIGIBLE)';
+            document.getElementById('intel-status-badge').className = 'px-3 py-1 text-[10px] font-bold border border-success text-success uppercase bg-paper';
+            intelCard.classList.remove('hidden');
+          }
+
+          if (statusAlertCard) statusAlertCard.classList.add('hidden');
+          if (amountInput) amountInput.value = t.calculated_total;
+
+          if (upiTotalDisplay) {
+            upiTotalDisplay.textContent = `TOTAL PAYABLE: ₹${t.calculated_total} (${t.member_count} MEMBERS × ₹300)`;
+          }
+
+          if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.textContent = isPending
+              ? `RE-SUBMIT ₹${t.calculated_total} PAYMENT PROOF`
+              : `SUBMIT ₹${t.calculated_total} PAYMENT (CONFIRM FCFS SLOT)`;
+          }
+
+          if (showNotifications) {
+            toast.show(`Team "${t.team_name}" verified! Total fee: ₹${t.calculated_total}. Submit to secure your FCFS slot.`, 'success');
+          }
+
         } else {
           // INVALID OR UNREGISTERED TEAM ID
           if (statusIndicator) {
@@ -336,8 +398,8 @@ export class PaymentPage {
           }
 
           if (intelCard) intelCard.classList.add('hidden');
-          if (notShortlistedCard) notShortlistedCard.classList.add('hidden');
-          if (upiTotalDisplay) upiTotalDisplay.textContent = `TOTAL: ENTER TEAM ID FOR AUTO-CALCULATION`;
+          if (statusAlertCard) statusAlertCard.classList.add('hidden');
+          if (upiTotalDisplay) upiTotalDisplay.textContent = 'TOTAL: ENTER TEAM ID FOR AUTO-CALCULATION';
           if (submitBtn) submitBtn.disabled = false;
 
           if (showNotifications) {

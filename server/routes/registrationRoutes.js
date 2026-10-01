@@ -89,7 +89,7 @@ router.post('/', regUpload, async (req, res) => {
     if (!pptFile || !project_title || !project_title.trim() || !summary || !summary.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Registration requirement: Presentation pitch deck file (.ppt, .pptx, .pdf), project title, and summary must be submitted for jury evaluation.'
+        message: 'Registration requirement: Presentation pitch deck file (.ppt, .pptx, .pdf), project title, and summary must be submitted.'
       });
     }
 
@@ -107,8 +107,19 @@ router.post('/', regUpload, async (req, res) => {
       memberArray = members;
     }
 
-    // Check for duplicate leader email
+    // Enforce 40 teams event capacity limit
+    const MAX_TEAMS_CAPACITY = 40;
     const allTeams = await dbAdapter.getAllTeams();
+    const activeTeams = allTeams.filter(t => t.status !== 'REJECTED');
+    if (activeTeams.length >= MAX_TEAMS_CAPACITY) {
+      return res.status(403).json({
+        success: false,
+        message: 'Registration is closed: Maximum event capacity of 40 teams has been reached.',
+        capacityFull: true
+      });
+    }
+
+    // Check for duplicate leader email
     const existingLeader = allTeams.find(t => (t.leader_email || '').toLowerCase() === leader_email.toLowerCase());
     if (existingLeader) {
       return res.status(400).json({
@@ -135,7 +146,7 @@ router.post('/', regUpload, async (req, res) => {
       leader_email: leader_email.trim().toLowerCase(),
       leader_phone: leader_phone.trim(),
       member_count: memberArray.length + 1,
-      status: 'UNDER_REVIEW',
+      status: paymentFile && utr_number ? 'PAYMENT_PENDING' : 'REGISTERED',
       rules_agreed: true
     };
 
@@ -196,7 +207,7 @@ router.post('/', regUpload, async (req, res) => {
 
     return res.status(201).json({
       success: true,
-      message: 'Team successfully registered with Payment & PPT pitch deck!',
+      message: 'Team successfully registered on a First-Come, First-Served basis! Submit payment to lock your slot.',
       reg_id: regId,
       team: createdTeam,
       payment: paymentRecord,

@@ -211,13 +211,13 @@ export async function sendRegistrationConfirmation(team, members = [], ppt = nul
   const subject = `[GAMBIT'S GLITCH 2026] Registration Received - Team ${team.team_name} (${team.reg_id})`;
 
   const html = `
-    ${getEmailHeader('Registration & Deck Received', 'ENTRY INDEXED FOR JURY REVIEW')}
+    ${getEmailHeader('Registration & Deck Received', 'FIRST-COME, FIRST-SERVED ALLOCATION')}
 
     <p style="font-size: 15px; color: #10100E; line-height: 1.6; margin-top: 0;">
       Greetings <strong>${team.leader_name}</strong>,
     </p>
     <p style="font-size: 14px; color: #44433F; line-height: 1.6;">
-      Your team registration and pitch deck presentation for <strong>GAMBIT'S GLITCH 2026</strong> have been received and successfully indexed. Our jury panel is evaluating all submitted pitch decks.
+      Your team registration and pitch deck presentation for <strong>GAMBIT'S GLITCH 2026</strong> have been received and successfully indexed. Participation slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting phase.
     </p>
 
     <!-- REGISTRATION KEY DATA -->
@@ -237,16 +237,16 @@ export async function sendRegistrationConfirmation(team, members = [], ppt = nul
     <div style="border: 1px solid #C5BBA7; background-color: #FFFFFF; padding: 16px; margin-bottom: 24px;">
       <div style="font-size: 13px; color: #10100E;"><strong>Project Title:</strong> ${pptTitle}</div>
       <div style="font-size: 13px; color: #10100E; margin-top: 4px;"><strong>Presentation File:</strong> ${pptFile}</div>
-      <div style="font-size: 12px; color: #D79218; font-weight: bold; margin-top: 8px;">⏳ Status: UNDER JURY EVALUATION</div>
+      <div style="font-size: 12px; color: #D79218; font-weight: bold; margin-top: 8px;">⚡ Allocation: FIRST-COME, FIRST-SERVED (MAX 40 TEAMS)</div>
     </div>
 
     <!-- NEXT STEPS -->
     <div style="background-color: #F8F7F2; border: 1px solid #C5BBA7; padding: 16px; margin-bottom: 28px; font-size: 13px; color: #44433F; line-height: 1.6;">
       <strong style="color: #10100E;">📋 What Happens Next?</strong>
       <ol style="margin: 8px 0 0 0; padding-left: 20px;">
-        <li>Our technical jury will evaluate your presentation pitch deck.</li>
-        <li>If your team is <strong>SHORTLISTED</strong>, you will receive a shortlist notification email containing your <strong>Fee Payment Link</strong>.</li>
-        <li>After fee payment approval, your official <strong>Payment Invoice & Scannable Attendance QR Pass</strong> will be generated and dispatched to your email.</li>
+        <li>Hackathon slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait.</li>
+        <li>Proceed immediately to the <strong>Payment Portal</strong> using your Team ID to submit your registration fee (₹300/person).</li>
+        <li>Upon payment approval, your official <strong>Payment Invoice & Scannable Attendance QR Pass</strong> will be generated and dispatched, locking your team's confirmed slot.</li>
       </ol>
     </div>
 
@@ -259,8 +259,8 @@ export async function sendRegistrationConfirmation(team, members = [], ppt = nul
     </table>
 
     <div style="text-align: center; margin: 32px 0 16px 0;">
-      <a href="${APP_BASE_URL}/#status" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; border: 1px solid #10100E;">
-        CHECK PIPELINE STATUS TRACKER →
+      <a href="${APP_BASE_URL}/#payment?reg_id=${team.reg_id}" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; border: 1px solid #10100E;">
+        💳 PROCEED TO PAYMENT (CONFIRM FCFS SLOT) →
       </a>
     </div>
 
@@ -272,21 +272,21 @@ export async function sendRegistrationConfirmation(team, members = [], ppt = nul
 }
 
 /**
- * STAGE 2: Shortlisted Team Email with Payment Link & WhatsApp Link
+ * STAGE 2: Team Slot Payment Reminder Email with Payment Link & WhatsApp Link (FCFS)
  */
 export async function sendShortlistedEmail(team, members = []) {
-  const subject = `[GAMBIT'S GLITCH 2026] Congratulations! Team ${team.team_name} is SHORTLISTED 🎉`;
+  const subject = `[GAMBIT'S GLITCH 2026] Complete Your Payment to Lock Your Team Slot (FCFS) - Team ${team.team_name}`;
   const paymentUrl = `${APP_BASE_URL}/#payment?reg_id=${team.reg_id}`;
 
   const html = `
-    ${getEmailHeader('Pipeline Status Tracker', 'OFFICIAL SHORTLIST ANNOUNCEMENT')}
+    ${getEmailHeader('Slot Allocation', 'FIRST-COME, FIRST-SERVED NOTICE')}
 
     <div style="background-color: #F8F7F2; border-left: 4px solid #D79218; border: 1px solid #C5BBA7; padding: 20px; margin-bottom: 24px; text-align: center;">
       <h2 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 28px; font-weight: normal; color: #10100E; margin: 0 0 6px 0;">
-        Pipeline Status: SHORTLISTED FOR FINALS
+        First-Come, First-Served Slot Allocation
       </h2>
       <div style="font-size: 13px; color: #D79218; font-weight: 700; letter-spacing: 1px;">
-        CONGRATULATIONS TEAM ${team.team_name.toUpperCase()} (ID: ${team.reg_id})
+        TEAM ${team.team_name.toUpperCase()} (ID: ${team.reg_id})
       </div>
     </div>
 
@@ -294,22 +294,22 @@ export async function sendShortlistedEmail(team, members = []) {
       Dear <strong>${team.leader_name}</strong> and Squad Members,
     </p>
     <p style="font-size: 14px; color: #44433F; line-height: 1.6;">
-      We are thrilled to announce that after evaluating your pitch presentation, your team has been officially <strong>SHORTLISTED</strong> for the grand finals of <strong>GAMBIT'S GLITCH 2026</strong>!
+      Seats for the grand finals of <strong>GAMBIT'S GLITCH 2026</strong> at Auditorium, VSBCETC are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis. Complete your fee payment now to guarantee your team's confirmed slot before the 40-team limit is reached!
     </p>
 
     <!-- ACTION ITEM 1: FEE PAYMENT LINK -->
     <div style="background-color: #FFFFFF; border: 2px solid #10100E; padding: 24px; margin: 28px 0; text-align: center;">
       <div style="font-size: 11px; font-weight: 700; color: #D79218; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
-        MANDATORY FINAL STEP TO CONFIRM SEAT
+        MANDATORY STEP TO CONFIRM SEAT (FCFS)
       </div>
       <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 24px; margin: 4px 0 12px 0; color: #10100E;">
         Submit Participant Registration Fee (₹300 / person)
       </h3>
       <p style="font-size: 13px; color: #44433F; margin-bottom: 18px; line-height: 1.5;">
-        To lock your finalist team slot, please complete the registration fee payment for your team (${team.member_count || 1} members × ₹300 = ₹${(team.member_count || 1) * 300}) and submit your 12-digit UTR payment proof.
+        To lock your team slot, please complete the registration fee payment for your team (${team.member_count || 1} members × ₹300 = ₹${(team.member_count || 1) * 300}) and submit your 12-digit UTR payment proof.
       </p>
       <a href="${paymentUrl}" target="_blank" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #10100E;">
-        👉 PAY FEE & SUBMIT PAYMENT PROOF →
+        👉 PAY FEE & CONFIRM FCFS SLOT →
       </a>
       <div style="margin-top: 10px; font-size: 11px; color: #77756F;">
         Upon payment approval, your official Payment Invoice & Scannable Attendance QR Pass will be dispatched.
@@ -319,13 +319,13 @@ export async function sendShortlistedEmail(team, members = []) {
     <!-- ACTION ITEM 2: WHATSAPP CALLOUT -->
     <div style="background-color: #FFFFFF; border: 2px solid #D79218; padding: 20px; margin: 24px 0; text-align: center;">
       <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 22px; margin-top: 0; color: #10100E;">
-        Join Shortlisted Teams WhatsApp Group
+        Join Official Participants WhatsApp Group
       </h3>
       <p style="color: #44433F; font-size: 13px; margin-bottom: 16px;">
-        Join our official shortlisted communications channel for live schedule updates, mentorship allocation, and venue guidelines.
+        Join our official hackathon communications channel for live schedule updates, mentorship allocation, and venue guidelines.
       </p>
       <a href="${WHATSAPP_LINK}" target="_blank" style="background-color: #D79218; color: #10100E; text-decoration: none; font-weight: 700; padding: 12px 24px; font-size: 13px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">
-        👉 JOIN SHORTLISTED WHATSAPP GROUP NOW
+        👉 JOIN PARTICIPANTS WHATSAPP GROUP NOW
       </a>
       <div style="margin-top: 12px; font-size: 11px; color: #77756F; word-break: break-all;">
         Direct Link: <a href="${WHATSAPP_LINK}" style="color: #D79218;">${WHATSAPP_LINK}</a>
@@ -338,6 +338,8 @@ export async function sendShortlistedEmail(team, members = []) {
   const recipients = getEmailRecipients(team, members);
   return sendMailMessage({ recipients, subject, html });
 }
+
+export const sendSlotPaymentReminderEmail = sendShortlistedEmail;
 
 /**
  * STAGE 3: Official Payment Invoice & Attendance QR Pass Email (Triggered AFTER Payment Approval)

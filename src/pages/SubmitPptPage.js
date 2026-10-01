@@ -26,7 +26,7 @@ export class SubmitPptPage {
               Submit Pitch Deck
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Upload your initial pitch presentation (.ppt, .pptx, .pdf). <strong class="text-accent-dark font-bold">Note: Gate access is unlocked only for teams with APPROVED payment status.</strong>
+              Upload or update your pitch presentation (.ppt, .pptx, .pdf). <strong class="text-accent-dark font-bold">All registered teams can update their pitch deck before the deadline.</strong>
             </p>
           </div>
 
@@ -43,7 +43,7 @@ export class SubmitPptPage {
             <div>
               <label class="block text-xs text-ink mb-2">TEAM REGISTRATION ID *</label>
               <input type="text" name="reg_id" required value="${defaultRegId}" placeholder="e.g. GG26-8F92" class="w-full px-4 py-3 text-xs text-accent-dark font-bold uppercase tracking-wider focus:border-accent outline-none" />
-              <div class="text-[10px] text-muted mt-1 font-sans">Your registered Team ID. Payment must be approved first.</div>
+              <div class="text-[10px] text-muted mt-1 font-sans">Your registered Team ID (provided at initial registration).</div>
             </div>
 
             <div>
@@ -117,7 +117,7 @@ export class SubmitPptPage {
 
         const submitBtn = document.getElementById('submit-ppt-btn');
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `VERIFYING PAYMENT & UPLOADING...`;
+        submitBtn.innerHTML = `UPLOADING PITCH DECK...`;
 
         const formData = new FormData(form);
 

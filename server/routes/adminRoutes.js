@@ -18,7 +18,7 @@ router.get('/dashboard', async (req, res) => {
     let pendingPayments = 0;
     let approvedPayments = 0;
     let pptSubmissions = 0;
-    let shortlisted = 0;
+    let confirmedSlots = 0;
     let attendedCount = 0;
 
     for (const fullTeam of fullTeams) {
@@ -31,7 +31,7 @@ router.get('/dashboard', async (req, res) => {
       }
 
       if (fullTeam.ppt) pptSubmissions++;
-      if (fullTeam.status === 'SHORTLISTED') shortlisted++;
+      if (fullTeam.status === 'PAYMENT_APPROVED' || (fullTeam.payment && fullTeam.payment.status === 'APPROVED')) confirmedSlots++;
       if (fullTeam.attended) attendedCount++;
     }
 
@@ -42,7 +42,10 @@ router.get('/dashboard', async (req, res) => {
         pendingPayments,
         approvedPayments,
         pptSubmissions,
-        shortlisted,
+        confirmedSlots,
+        shortlisted: confirmedSlots, // for backwards compatibility
+        maxCapacity: 40,
+        remainingSlots: Math.max(0, 40 - confirmedSlots),
         attendedCount
       }
     });
@@ -189,11 +192,11 @@ router.post('/payment/reject', async (req, res) => {
   }
 });
 
-// 5. Shortlist or Reject Team
+// 5. Update Team Slot Status or Reject Team
 router.post('/team/update-status', async (req, res) => {
   try {
     const { team_id, reg_id, new_status } = req.body;
-    const validStatuses = ['SHORTLISTED', 'UNDER_REVIEW', 'REJECTED', 'PAYMENT_APPROVED', 'PAYMENT_PENDING', 'PPT_SUBMITTED'];
+    const validStatuses = ['PAYMENT_APPROVED', 'PAYMENT_PENDING', 'REGISTERED', 'PPT_SUBMITTED', 'REJECTED', 'UNDER_REVIEW', 'SHORTLISTED'];
 
     if (!validStatuses.includes(new_status)) {
       return res.status(400).json({ success: false, message: 'Invalid target team status.' });
@@ -225,9 +228,14 @@ router.post('/team/update-status', async (req, res) => {
     await dbAdapter.updateTeamStatus(targetTeamId, new_status);
     await dbAdapter.logAdminAction(req.user.email, `TEAM_STATUS_${new_status}`, targetRegId || targetTeamId, `Status changed to ${new_status}`);
 
-    // Trigger Shortlisted Email with Attendance QR code & payment link if team is shortlisted
+    // Trigger emails: Payment Invoice & QR pass if PAYMENT_APPROVED, or FCFS reminder if SHORTLISTED
     if (new_status === 'SHORTLISTED' && targetTeam) {
-      sendShortlistedEmail(targetTeam, targetTeam.members || []).catch(err => console.error('Shortlist email dispatch error:', err));
+      sendShortlistedEmail(targetTeam, targetTeam.members || []).catch(err => console.error('Slot reminder email dispatch error:', err));
+    } else if (new_status === 'PAYMENT_APPROVED' && targetTeam) {
+      const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
+      if (fullTeam && fullTeam.payment) {
+        sendPaymentInvoiceEmail(fullTeam, fullTeam.payment, fullTeam.ppt, fullTeam.members || []).catch(err => console.error('Approved payment invoice dispatch error:', err));
+      }
     }
 
     return res.json({ success: true, message: `Team status updated to ${new_status}.` });

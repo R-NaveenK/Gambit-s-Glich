@@ -17,7 +17,7 @@ export class TimelinePage {
               Schedule & Milestones
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Track the exact progression of registration, screening, physical sprint check-ins, and final judging.
+              Track the exact progression of registration, first-come first-served payment verification, physical sprint check-ins, and final judging.
             </p>
           </div>
 

@@ -38,6 +38,7 @@ export const eventConfig = {
   teamPolicy: {
     minMembers: 2,
     maxMembers: 4,
+    maxTeams: 40, // Strict event capacity: only 40 teams permitted
     registrationFee: 300, // Per person in INR (₹)
     feeType: "₹300 / per person",
     currency: "INR (₹)",
@@ -118,11 +119,11 @@ export const eventConfig = {
     },
     {
       phase: "03",
-      title: "SHORTLIST ANNOUNCEMENT & PAYMENT GATEWAY OPEN",
+      title: "FIRST-COME, FIRST-SERVED PAYMENT & SLOT CONFIRMATION (ONLY 40 TEAMS)",
       date: "OCTOBER 07, 2026",
       time: "06:00 PM IST",
       status: "UPCOMING",
-      details: "Selected finalist teams announced. Payment portal unlocks for shortlisted teams to process ₹300/person fee."
+      details: "Payment portal active. Strictly capped at only 40 teams. Registered squads confirm their participation slots strictly on a First-Come, First-Served (FCFS) basis by submitting the ₹300/person fee before capacity is full."
     },
     {
       phase: "04",
@@ -130,7 +131,7 @@ export const eventConfig = {
       date: "OCTOBER 10, 2026",
       time: "09:00 AM IST",
       status: "UPCOMING",
-      details: "10-hour continuous build sprint begins at Auditorium, VSBCETC. Live check-ins and mentor guidance."
+      details: "10-hour continuous build sprint begins at Auditorium, VSBCETC for the 40 confirmed teams. Live check-ins and mentor guidance."
     },
     {
       phase: "05",
@@ -147,6 +148,7 @@ export const eventConfig = {
     {
       category: "TEAM ELIGIBILITY",
       items: [
+        "Event capacity is strictly limited to 40 teams only. Once 40 slots are locked, entries close immediately.",
         "Teams must consist of 2 to 4 members. Cross-college and cross-department squads are welcome.",
         "All team members must be enrolled Undergraduate (UG) students (1st to 4th Year) carrying valid institutional IDs.",
         "A student can only participate in one registered team."
@@ -156,7 +158,7 @@ export const eventConfig = {
       category: "FEE & PAYMENT POLICY",
       items: [
         "Registration fee is ₹300 per person (e.g., 2 members = ₹600, 3 members = ₹900, 4 members = ₹1,200).",
-        "Initial registration is free. Payment is processed via the Payment Portal once shortlisted teams are announced.",
+        "Event slots are strictly limited to only 40 teams, allocated on a First-Come, First-Served (FCFS) basis with no shortlisting phase. Teams must complete payment via the Payment Portal to lock their confirmed slot.",
         "Entering your Team Registration ID in the Payment Portal automatically fetches your squad size and calculates your total fee.",
         "A clear payment receipt screenshot showing the 12-digit UTR/Reference number must be uploaded for verification.",
         "Registration fees are non-refundable once payment verification is confirmed by the organizers."
@@ -195,7 +197,7 @@ export const eventConfig = {
     {
       id: "faq-1",
       question: "What is Gambit's Glitch and who can participate?",
-      answer: "Gambit's Glitch is a high-intensity 10-hour hackathon taking place at Auditorium, VSBCETC on October 10, 2026. Any college student can register a team of 2 to 4 members."
+      answer: "Gambit's Glitch is a high-intensity 10-hour hackathon taking place at Auditorium, VSBCETC on October 10, 2026. Any college student can register a team of 2 to 4 members. Event capacity is strictly limited to only 40 teams."
     },
     {
       id: "faq-2",
@@ -205,12 +207,12 @@ export const eventConfig = {
     {
       id: "faq-3",
       question: "How and when do I pay the registration fee and submit our PPT?",
-      answer: "Initial team registration is completely free! You can upload your project PPT pitch deck anytime on the 'Submit PPT' page. Once shortlisted teams are officially announced, the Payment Portal opens. Shortlisted teams enter their Team ID on the Payment Portal, pay via UPI, and submit their 12-digit UTR reference number."
+      answer: "Slots are allocated strictly on a First-Come, First-Served (FCFS) basis with a strict cap of ONLY 40 TEAMS. You submit your project PPT pitch deck during registration. Then, enter your Team ID on the Payment Portal, pay via UPI (₹300 per member), and submit your 12-digit UTR reference number to lock your team's confirmed entry before all 40 spots fill up."
     },
     {
       id: "faq-4",
       question: "Why does the Payment Portal show 'PAYMENT SUBMISSION NOT YET OPEN' or locked status?",
-      answer: "The Payment Portal is controlled by organizers and remains locked until team shortlisting is completed. Only shortlisted teams are eligible to process payment once administrators unlock the portal."
+      answer: "The Payment Portal is controlled by organizers. If locked, administrators have temporarily paused new payment submissions or the maximum event capacity of 40 confirmed teams has been reached. When unlocked, any registered team can process payment on a First-Come, First-Served (FCFS) basis."
     },
     {
       id: "faq-5",

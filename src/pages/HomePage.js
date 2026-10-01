@@ -22,7 +22,7 @@ export class HomePage {
         <div class="flex items-center justify-between font-mono text-meta text-muted pb-4 border-b border-line">
           <div class="flex items-center gap-3">
             <span class="w-2 h-2 bg-signal inline-block"></span>
-            <span class="font-bold text-ink tracking-widest uppercase">AN INTER-COLLEGIATE HACKATHON</span>
+            <span class="font-bold text-ink tracking-widest uppercase">AN INTER-COLLEGIATE HACKATHON // STRICTLY 40 SQUADS ONLY</span>
           </div>
           <div class="hidden sm:block">
             <span>EDITION: <strong class="text-ink">2026</strong></span>
@@ -53,7 +53,7 @@ export class HomePage {
                 ${eventConfig.tagline}
               </div>
               <p class="text-hero-desc font-sans leading-relaxed">
-                A high-intensity build challenge for teams prepared to question assumptions, prototype rapidly, and turn unstable ideas into working technology.
+                A high-intensity build challenge for exactly 40 teams prepared to question assumptions, prototype rapidly, and turn unstable ideas into working technology.
               </p>
             </div>
 
@@ -72,15 +72,16 @@ export class HomePage {
           <!-- Right Baseline Countdown Rail -->
           <div class="lg:col-span-4 flex flex-col justify-end gap-6 border-l-0 lg:border-l border-line lg:pl-8">
             
-            <div class="font-mono text-xs text-muted tracking-widest uppercase pb-2 border-b border-line">
-              // COUNTDOWN TO REGISTRATION DEADLINE (05/10/2026)
+            <div class="font-mono text-xs text-muted tracking-widest uppercase pb-2 border-b border-line flex justify-between items-center">
+              <span>// COUNTDOWN TO DEADLINE</span>
+              <span class="text-accent-dark font-bold">40 SLOTS ONLY</span>
             </div>
 
             <!-- Large Monospace Numerals Aligned on One Baseline -->
             ${this.countdown.render()}
 
             <div class="pt-4 border-t border-line font-mono text-meta text-muted flex justify-between items-center">
-              <span>DEADLINE: <strong class="text-ink">${eventConfig.dates.displayDeadline}</strong></span>
+              <span>SLOTS: <strong class="text-accent-dark font-bold">40 TEAMS (FCFS)</strong></span>
               <span class="text-signal font-bold">FEE: ${eventConfig.teamPolicy.feeType.toUpperCase()}</span>
             </div>
 
@@ -93,7 +94,7 @@ export class HomePage {
           <div>DATE &nbsp;<strong class="text-ink">${eventConfig.dates.displayDateRange}</strong></div>
           <div>FORMAT &nbsp;<strong class="text-ink">10-HOUR BUILD</strong></div>
           <div>VENUE &nbsp;<strong class="text-ink">${eventConfig.venue.name}, ${eventConfig.venue.city}</strong></div>
-          <div class="text-right sm:text-left">STATUS &nbsp;<strong class="text-signal uppercase">${isRegOpen ? 'REGISTRATIONS OPEN' : 'CLOSED'}</strong></div>
+          <div class="text-right sm:text-left">CAPACITY &nbsp;<strong class="text-signal uppercase">40 TEAMS ONLY</strong></div>
         </div>
 
       </section>

@@ -68,10 +68,16 @@ router.get('/lookup/:regId', async (req, res) => {
       return res.status(404).json({ success: false, message: `No registered team found matching "${regId}".` });
     }
 
+    const MAX_CONFIRMED_TEAMS = 40;
+    const allTeams = await dbAdapter.getAllTeams();
+    const confirmedCount = allTeams.filter(t => t.payment && t.payment.status === 'APPROVED').length;
+    const isPaid = Boolean(team.payment && team.payment.status === 'APPROVED');
+    const isCapacityFull = confirmedCount >= MAX_CONFIRMED_TEAMS && !isPaid;
+    const isEligible = team.status !== 'REJECTED' && !isCapacityFull;
+
     const memberCount = Math.max(1, team.member_count || (team.members ? team.members.length : 1));
     const perHeadFee = 300;
     const calculatedTotal = memberCount * perHeadFee;
-    const isShortlisted = ['SHORTLISTED', 'PAYMENT_PENDING', 'PAYMENT_APPROVED'].includes(team.status);
 
     return res.json({
       success: true,
@@ -85,9 +91,14 @@ router.get('/lookup/:regId', async (req, res) => {
         per_head_fee: perHeadFee,
         calculated_total: calculatedTotal,
         status: team.status,
-        is_shortlisted: isShortlisted,
-        has_paid: Boolean(team.payment && team.payment.status === 'APPROVED'),
-        payment_status: team.payment ? team.payment.status : 'NOT_SUBMITTED'
+        is_shortlisted: isEligible, // FCFS: Any non-rejected team is eligible
+        is_eligible: isEligible,
+        fcfs_eligible: isEligible,
+        has_paid: isPaid,
+        payment_status: team.payment ? team.payment.status : 'NOT_SUBMITTED',
+        confirmed_count: confirmedCount,
+        max_capacity: MAX_CONFIRMED_TEAMS,
+        capacity_full: isCapacityFull
       }
     });
   } catch (err) {
@@ -103,7 +114,7 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
     if (!isGateOpen) {
       return res.status(403).json({
         success: false,
-        message: 'Payment portal is currently locked by administrators. It will open once shortlisted teams are officially announced.',
+        message: 'Payment portal is currently locked by administrators or capacity has been reached. Please contact organizers.',
         isLocked: true
       });
     }
@@ -122,13 +133,26 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
       return res.status(404).json({ success: false, message: `No registered team found with Registration ID: "${reg_id}". Please check your ID.` });
     }
 
-    // Shortlist Gating Check: Only SHORTLISTED teams are permitted to submit payment
-    const allowedStatuses = ['SHORTLISTED', 'PAYMENT_PENDING', 'PAYMENT_APPROVED'];
-    if (!allowedStatuses.includes(team.status)) {
+    // FCFS Check: Only REJECTED teams are blocked from paying
+    if (team.status === 'REJECTED') {
       return res.status(403).json({
         success: false,
-        message: `Payment is locked for team ${team.reg_id}. The payment portal unlocks only after your team has been SHORTLISTED by the organizers. Current Status: ${team.status}.`,
+        message: `Payment cannot be processed for team ${team.reg_id} because the registration has been rejected or cancelled.`,
         isLocked: true
+      });
+    }
+
+    // Enforce 40 confirmed teams capacity limit
+    const MAX_CONFIRMED_TEAMS = 40;
+    const allTeams = await dbAdapter.getAllTeams();
+    const confirmedCount = allTeams.filter(t => t.payment && t.payment.status === 'APPROVED').length;
+    const isAlreadyPaid = team.payment && team.payment.status === 'APPROVED';
+    if (confirmedCount >= MAX_CONFIRMED_TEAMS && !isAlreadyPaid) {
+      return res.status(403).json({
+        success: false,
+        message: 'Payment submission closed: Maximum event capacity of 40 confirmed teams has been reached.',
+        isLocked: true,
+        capacityFull: true
       });
     }
 
@@ -169,6 +193,7 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
     };
 
     const payment = await dbAdapter.createPayment(paymentData);
+    await dbAdapter.updateTeamStatus(team.id, 'PAYMENT_PENDING');
 
     return res.status(201).json({
       success: true,

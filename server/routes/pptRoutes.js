@@ -63,11 +63,11 @@ router.post('/upload', upload.single('ppt_file'), async (req, res) => {
       return res.status(404).json({ success: false, message: `No registered team found with Registration ID: "${reg_id}".` });
     }
 
-    // CRITICAL SECURITY RULE: PPT Submission is strictly locked until payment is approved!
-    if (team.status !== 'PAYMENT_APPROVED' && team.status !== 'PPT_SUBMITTED' && team.status !== 'UNDER_REVIEW' && team.status !== 'SHORTLISTED') {
+    // Verify team is not rejected
+    if (team.status === 'REJECTED') {
       return res.status(403).json({
         success: false,
-        message: `PPT submission is locked. Payment status for Team ${reg_id} is currently "${team.status.replace('_', ' ')}". Payment approval is required before uploading presentation files.`,
+        message: `PPT submission is locked because Team ${reg_id} registration has been rejected or cancelled.`,
         locked: true
       });
     }

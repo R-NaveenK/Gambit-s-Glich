@@ -25,7 +25,7 @@ export class StatusTrackerPage {
               Pipeline Status Tracker
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Enter your Team Registration ID and Leader's email to verify real-time status across registration, payment approval, PPT submission, and shortlist decisions.
+              Enter your Team Registration ID and Leader's email to verify real-time status across registration, PPT pitch deck submission, payment approval, and confirmed entry pass allocation.
             </p>
           </div>
 
@@ -104,13 +104,13 @@ export class StatusTrackerPage {
     const isPaymentApproved = payment && payment.status === 'APPROVED';
     const isPaymentRejected = payment && payment.status === 'REJECTED';
     const isPptSubmitted = Boolean(ppt);
-    const isShortlisted = pipelineStatus === 'SHORTLISTED';
+    const isSlotConfirmed = isPaymentApproved || pipelineStatus === 'PAYMENT_APPROVED';
 
-    const pipelineBadge = isShortlisted
-      ? 'border-accent text-accent-dark bg-paper font-bold'
+    const pipelineBadge = isSlotConfirmed
+      ? 'border-success text-success bg-paper font-bold'
       : pipelineStatus === 'REJECTED'
       ? 'border-error text-error bg-paper'
-      : 'border-line text-ink bg-paper';
+      : 'border-accent text-accent-dark bg-paper font-bold';
 
     resultsContainer.innerHTML = `
       <!-- Overview Card -->
@@ -121,66 +121,71 @@ export class StatusTrackerPage {
             <div class="text-xs text-accent-dark font-bold mt-1">ID: ${data.reg_id} // ${data.college}</div>
           </div>
           <div class="px-4 py-2 border ${pipelineBadge} text-xs tracking-widest uppercase font-mono">
-            PIPELINE STATE: ${pipelineStatus.replace('_', ' ')}
+            SLOT STATUS: ${isSlotConfirmed ? 'SLOT CONFIRMED' : pipelineStatus.replace('_', ' ')}
           </div>
         </div>
 
-        <!-- 4-STEP PIPELINE TRACKER VISUALIZER -->
+        <!-- 4-STEP PIPELINE TRACKER VISUALIZER (FIRST-COME, FIRST-SERVED) -->
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-3 text-center text-xs font-mono">
           
           <div class="p-3 border border-accent bg-canvas text-accent-dark">
             <div class="font-bold">STEP 01</div>
-            <div class="text-[10px]">REGISTERED</div>
+            <div class="text-[10px]">SQUAD REGISTERED</div>
             <div class="text-accent text-xs mt-1">✔ OK</div>
           </div>
 
-          <div class="p-3 border ${isPaymentApproved ? 'border-accent text-accent-dark bg-canvas' : isPaymentRejected ? 'border-error text-error bg-canvas' : 'border-line text-muted bg-paper'}">
+          <div class="p-3 border ${isPptSubmitted ? 'border-accent text-accent-dark bg-canvas' : 'border-line text-muted bg-paper'}">
             <div class="font-bold">STEP 02</div>
-            <div class="text-[10px]">PAYMENT PROOF</div>
-            <div class="text-xs mt-1 font-bold">
-              ${isPaymentApproved ? '✔ APPROVED' : isPaymentRejected ? '❌ REJECTED' : payment ? '⏳ PENDING' : '❌ MISSING'}
-            </div>
-          </div>
-
-          <div class="p-3 border ${isPptSubmitted ? 'border-accent text-accent-dark bg-canvas' : isPaymentApproved ? 'border-line text-ink bg-canvas' : 'border-line text-muted bg-paper'}">
-            <div class="font-bold">STEP 03</div>
             <div class="text-[10px]">PPT PITCH DECK</div>
             <div class="text-xs mt-1 font-bold">
-              ${isPptSubmitted ? '✔ SUBMITTED' : isPaymentApproved ? '🔓 UNLOCKED' : '🔒 LOCKED'}
+              ${isPptSubmitted ? '✔ SUBMITTED' : '⏳ PENDING'}
             </div>
           </div>
 
-          <div class="p-3 border ${isShortlisted ? 'border-accent text-accent-dark bg-canvas' : 'border-line text-muted bg-paper'}">
-            <div class="font-bold">STEP 04</div>
-            <div class="text-[10px]">SHORTLIST STATUS</div>
+          <div class="p-3 border ${isPaymentApproved ? 'border-accent text-accent-dark bg-canvas' : isPaymentRejected ? 'border-error text-error bg-canvas' : payment ? 'border-accent text-accent-dark bg-canvas' : 'border-line text-muted bg-paper'}">
+            <div class="font-bold">STEP 03</div>
+            <div class="text-[10px]">PAYMENT (FCFS)</div>
             <div class="text-xs mt-1 font-bold">
-              ${isShortlisted ? '⭐ SHORTLISTED' : 'PENDING JURY'}
+              ${isPaymentApproved ? '✔ APPROVED' : isPaymentRejected ? '❌ REJECTED' : payment ? '⏳ PENDING' : '❌ UNPAID'}
+            </div>
+          </div>
+
+          <div class="p-3 border ${isSlotConfirmed ? 'border-success text-success bg-canvas font-bold' : 'border-line text-muted bg-paper'}">
+            <div class="font-bold">STEP 04</div>
+            <div class="text-[10px]">ENTRY PASS</div>
+            <div class="text-xs mt-1 font-bold">
+              ${isSlotConfirmed ? '⭐ CONFIRMED' : '⏳ PENDING PAYMENT'}
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- Shortlisted Team Payment Banner Callout -->
-      ${isShortlisted && !isPaymentApproved ? `
-        <div class="tech-card p-6 border-2 border-accent bg-paper space-y-4 shadow-md">
-          <div class="text-xs text-accent-dark font-bold font-mono">// OFFICIAL SHORTLIST ANNOUNCEMENT</div>
+      <!-- FCFS Team Action Banner Callout -->
+      ${isSlotConfirmed ? `
+        <div class="tech-card p-6 border-2 border-success bg-paper space-y-3 shadow-md">
+          <div class="text-xs text-success font-bold font-mono">// PARTICIPATION SLOT CONFIRMED</div>
           <h3 class="font-sans text-2xl font-bold text-ink uppercase">
-            🎉 CONGRATULATIONS! TEAM ${data.team_name} HAS BEEN SHORTLISTED!
+            🎉 CONGRATULATIONS! TEAM ${data.team_name} HAS A CONFIRMED SLOT!
           </h3>
           <p class="text-xs text-ink font-sans leading-relaxed">
-            Your project pitch deck has been selected by our jury panel for the grand finals at <strong>Auditorium, VSBCETC</strong>! Please complete your team fee payment to lock your slot and receive your official Attendance QR pass.
+            Your registration fee has been verified and your team's slot (out of strictly 40 slots) for the grand finals at <strong>Auditorium, VSBCETC</strong> is secured! Your official Attendance QR Pass and invoice have been issued.
+          </p>
+        </div>
+      ` : `
+        <div class="tech-card p-6 border-2 border-accent bg-paper space-y-4 shadow-md">
+          <div class="text-xs text-accent-dark font-bold font-mono">// FIRST-COME, FIRST-SERVED ALLOCATION (ONLY 40 TEAMS)</div>
+          <h3 class="font-sans text-2xl font-bold text-ink uppercase">
+            ⚡ SECURE YOUR TEAM SLOT FOR GAMBIT'S GLITCH 2026
+          </h3>
+          <p class="text-xs text-ink font-sans leading-relaxed">
+            There is no shortlisting wait—slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis! Complete your registration fee payment (₹300/person) now to confirm your team's seat before the 40-team limit is reached.
           </p>
           <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-3.5 px-6 inline-block font-mono font-bold tracking-widest uppercase cursor-pointer">
-            💳 TEAM SHORTLISTED! PROCEED TO PAYMENT PORTAL →
+            💳 PROCEED TO PAYMENT PORTAL (FCFS) →
           </a>
         </div>
-      ` : !isShortlisted && !isPaymentApproved ? `
-        <div class="tech-card p-4 border border-line bg-paper text-xs font-sans text-muted space-y-1">
-          <div class="font-bold text-ink">ℹ️ STATUS: JURY REVIEW IN PROGRESS</div>
-          <p>Pitch decks are currently being evaluated by the technical jury. Once your team is <strong>SHORTLISTED</strong> by the organizers, the payment portal will unlock for your team.</p>
-        </div>
-      ` : ''}
+      `}
 
       <!-- Payment Detail Box -->
       <div class="tech-card p-6 border-line bg-paper space-y-4">
@@ -209,12 +214,10 @@ export class StatusTrackerPage {
 
         ` : `
           <div class="text-xs text-muted space-y-3 font-sans">
-            <p>${isShortlisted ? 'Your team is shortlisted! Submit your payment screenshot below to obtain entry pass.' : 'No payment proof submitted yet for this team. Payment unlocks upon shortlisting.'}</p>
-            ${isShortlisted ? `
-              <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
-                SUBMIT PAYMENT PROOF NOW →
-              </a>
-            ` : ''}
+            <p>No payment proof submitted yet for this team. Slots are filled on a First-Come, First-Served basis—submit payment to secure your slot.</p>
+            <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
+              SUBMIT PAYMENT PROOF NOW →
+            </a>
           </div>
         `}
       </div>

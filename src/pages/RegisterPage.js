@@ -53,7 +53,7 @@ export class RegisterPage {
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
               Register your squad and upload your presentation pitch deck (.ppt, .pptx, .pdf). 
-              Our technical jury evaluates all pitch decks. <strong class="text-accent-dark font-bold">Shortlisted teams will receive an official notification email with their fee payment link.</strong>
+              Participation slots are strictly limited to <strong class="text-accent-dark font-bold">only 40 teams</strong> on a <strong class="text-accent-dark font-bold">First-Come, First-Served (FCFS)</strong> basis with no shortlisting phase. Complete registration and submit fee payment to guarantee your squad's slot before all 40 spots are claimed.
             </p>
           </div>
 
@@ -166,7 +166,7 @@ export class RegisterPage {
                 <h2 class="font-sans text-lg font-bold text-ink uppercase">
                   04 / PPT PRESENTATION SUBMISSION
                 </h2>
-                <span class="text-xs text-accent-dark font-bold">MANDATORY FOR JURY EVALUATION</span>
+                <span class="text-xs text-accent-dark font-bold">MANDATORY FOR HACKATHON ENTRY</span>
               </div>
 
               <div>
@@ -223,15 +223,18 @@ export class RegisterPage {
               <div class="p-4 bg-canvas border border-accent text-center space-y-2">
                 <div class="text-xs text-muted">YOUR UNIQUE REGISTRATION ID</div>
                 <div id="success-reg-id" class="font-mono text-3xl font-bold text-accent-dark tracking-wider">GG26-XXXX</div>
-                <div class="text-[11px] text-muted">SAVE THIS ID FOR STATUS TRACKING!</div>
+                <div class="text-[11px] text-muted">SAVE THIS ID FOR PAYMENT & STATUS TRACKING!</div>
               </div>
 
               <p class="text-xs text-muted leading-relaxed font-sans">
-                Team registration and PPT presentation pitch deck have been submitted successfully. Our technical jury is evaluating all pitch decks. If shortlisted, you will receive an official email with your fee payment link!
+                Team registration and PPT pitch deck have been submitted successfully. Event slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait. Proceed to the Payment Portal now to lock your team's slot before all 40 spots are claimed!
               </p>
 
               <div class="flex flex-col gap-3 pt-2">
-                <button id="modal-check-status" class="nav-link btn-primary w-full py-3 text-xs">
+                <button id="modal-proceed-payment" class="nav-link btn-primary w-full py-3.5 text-xs font-bold tracking-wider uppercase">
+                  💳 PROCEED TO PAYMENT (FCFS) →
+                </button>
+                <button id="modal-check-status" class="btn-secondary w-full py-2.5 text-xs font-mono font-bold uppercase border border-line hover:border-accent">
                   ⚡ VIEW STATUS TRACKER →
                 </button>
               </div>
@@ -371,12 +374,26 @@ export class RegisterPage {
               modal.classList.add('flex');
             }
 
-            document.getElementById('modal-check-status').addEventListener('click', () => {
-              this.navigate('status');
-            });
+            const proceedPayBtn = document.getElementById('modal-proceed-payment');
+            if (proceedPayBtn) {
+              proceedPayBtn.addEventListener('click', () => {
+                this.navigate('payment');
+              });
+            }
+
+            const checkStatusBtn = document.getElementById('modal-check-status');
+            if (checkStatusBtn) {
+              checkStatusBtn.addEventListener('click', () => {
+                this.navigate('status');
+              });
+            }
 
           } else {
-            toast.show(res.message || 'Registration failed.', 'error');
+            if (res.capacityFull) {
+              toast.show(`REGISTRATION CLOSED: ${res.message}`, 'error', 8000);
+            } else {
+              toast.show(res.message || 'Registration failed.', 'error');
+            }
             submitBtn.disabled = false;
             submitBtn.innerHTML = `⚡ SUBMIT SQUAD REGISTRATION & PITCH DECK →`;
           }
