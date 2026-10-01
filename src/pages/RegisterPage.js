@@ -59,7 +59,7 @@ export class RegisterPage {
               Team Registration & Payment
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Register your squad and submit your UPI fee payment in one step. Participation slots are strictly limited to <strong class="text-accent-dark font-bold">only 40 teams</strong> on a <strong class="text-accent-dark font-bold">First-Come, First-Served (FCFS)</strong> basis. <strong class="text-ink">No advance PPT pitch deck is required</strong>—concrete challenge problem statements will be revealed <strong class="text-signal">ON SPOT</strong> on hackathon morning at 09:00 AM IST!
+              Register your squad and submit your UPI fee payment in one step. Participation slots are strictly limited to <strong class="text-accent-dark font-bold">only 40 teams</strong> on a <strong class="text-accent-dark font-bold">First-Come, First-Served (FCFS)</strong> basis. <strong class="text-ink">No advance PPT pitch deck is required</strong>—concrete challenge problem statements will be revealed <strong class="text-signal">ON SPOT</strong> on hackathon morning at 09:30 AM IST (Inauguration at 09:00 AM)!
             </p>
           </div>
 
@@ -178,7 +178,7 @@ export class RegisterPage {
                 Problem Statements Announced Live on Hackathon Morning
               </h3>
               <p class="text-xs text-muted leading-relaxed font-sans">
-                You do <strong class="text-ink">NOT</strong> need to submit any PPT pitch deck, slides, or pre-built code beforehand. Concrete, real-world challenge problem statements across all 5 tracks will be revealed live at the venue on <strong class="text-ink">October 10, 2026 at 09:00 AM IST (Auditorium, VSBCETC)</strong>. All architectural design, programming, and prototype engineering take place live during the 10-hour arena sprint!
+                You do <strong class="text-ink">NOT</strong> need to submit any PPT pitch deck, slides, or pre-built code beforehand. Concrete, real-world challenge problem statements across all 5 tracks will be revealed live at the venue on <strong class="text-ink">October 10, 2026 at 09:30 AM IST (Auditorium, VSBCETC)</strong> right after inauguration. All architectural design, programming, and prototype engineering take place live during the 8-hour arena sprint (09:30 AM – 05:30 PM)!
               </p>
             </div>
 
@@ -286,7 +286,7 @@ export class RegisterPage {
               <div class="p-3 bg-canvas border border-line text-left text-xs space-y-1">
                 <div class="text-accent-dark font-bold">// ON-SPOT PROBLEM STATEMENT REMINDER:</div>
                 <div class="text-muted text-[11px]">
-                  Exact problem statements will be revealed live at <strong>09:00 AM IST on October 10, 2026 at Auditorium, VSBCETC</strong>. No advance PPT submission is required.
+                  Exact problem statements will be revealed live at <strong>09:30 AM IST on October 10, 2026 at Auditorium, VSBCETC</strong> (following Inauguration at 09:00 AM). No advance PPT submission is required.
                 </div>
               </div>
 

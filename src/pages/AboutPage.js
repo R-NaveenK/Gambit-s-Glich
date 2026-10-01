@@ -20,7 +20,7 @@ export class AboutPage {
               About Gambit’s Glitch
             </h1>
             <p class="text-base sm:text-lg text-muted mt-4 max-w-3xl leading-relaxed font-sans font-normal">
-              A high-stakes, 10-hour continuous hackathon engineered for developers, system architects, UI designers, and hardware creators who build functional software and real-world technology.
+              A high-stakes, 8-hour continuous hackathon (09:00 AM – 06:45 PM) engineered for developers, system architects, UI designers, and hardware creators who build functional software and real-world technology.
             </p>
           </div>
 
@@ -88,9 +88,9 @@ export class AboutPage {
               </div>
 
               <div class="space-y-2 p-5 bg-canvas border border-line">
-                <div class="text-accent text-base font-bold font-mono">02 / 10-HOUR CONTINUOUS ARENA SPRINT</div>
+                <div class="text-accent text-base font-bold font-mono">02 / 8-HOUR CONTINUOUS ARENA SPRINT</div>
                 <p class="text-xs text-muted leading-relaxed">
-                  A continuous 10-hour sprint at Auditorium, VSBCETC with gigabit connectivity, power infrastructure, meals, and real-time leaderboard updates.
+                  A high-intensity 8-hour sprint (09:30 AM – 05:30 PM) at Auditorium, VSBCETC with gigabit connectivity, power infrastructure, meals, refreshments, and real-time leaderboard updates.
                 </p>
               </div>
 
@@ -111,63 +111,161 @@ export class AboutPage {
             </div>
           </div>
 
-          <!-- Section 4: Live Arena 10-Hour Schedule -->
+          <!-- Section 4: Live Arena 8-Hour Schedule (09:00 AM – 06:45 PM) -->
           <div class="space-y-6">
-            <div class="border-b border-line pb-4">
-              <div class="text-xs text-accent-dark font-bold mb-1">// HACKATHON DAY SPRINT STRUCTURE</div>
-              <h2 class="font-serif text-4xl text-ink font-normal italic">The 10-Hour Arena Sprint</h2>
+            <div class="border-b border-line pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+              <div>
+                <div class="text-xs text-accent-dark font-bold mb-1">// HACKATHON DAY SPRINT STRUCTURE</div>
+                <h2 class="font-serif text-4xl text-ink font-normal italic">The 8-Hour Arena Timetable</h2>
+              </div>
+              <div class="font-mono text-xs text-muted">
+                OCTOBER 10, 2026 • 09:00 AM – 06:45 PM IST
+              </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 text-xs font-mono">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 text-xs font-mono">
               
-              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-4">
-                <div>
-                  <div class="text-accent font-bold mb-1">09:00 AM IST</div>
-                  <div class="text-ink font-extrabold uppercase font-sans text-sm">KICKOFF & BRIEFING</div>
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-accent font-bold">09:00 AM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-accent text-accent">OPENING</span>
                 </div>
-                <p class="text-muted font-sans text-[11px] leading-relaxed">
-                  Track briefing, repository setup, and live environment configuration.
-                </p>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">INAUGRATION</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Arena gates open, squad desk allocations, kit handover & opening ceremony.
+                  </p>
+                </div>
               </div>
 
-              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-4">
-                <div>
-                  <div class="text-accent-dark font-bold mb-1">10:00 AM IST</div>
-                  <div class="text-ink font-extrabold uppercase font-sans text-sm">CORE BUILD PHASE</div>
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-accent-dark font-bold">09:10 AM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line text-muted">KEYNOTE</span>
                 </div>
-                <p class="text-muted font-sans text-[11px] leading-relaxed">
-                  Database schemas built, core business logic written, API endpoints hooked up.
-                </p>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">GUEST SPEECH</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Industry keynote & jury address on high-impact engineering and innovation.
+                  </p>
+                </div>
               </div>
 
-              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-4">
-                <div>
-                  <div class="text-accent font-bold mb-1">01:00 PM IST</div>
-                  <div class="text-ink font-extrabold uppercase font-sans text-sm">MENTOR CHECKPOINT</div>
+              <div class="p-5 bg-paper border-2 border-accent flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-accent font-bold">09:30 AM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-accent text-paper font-bold">START</span>
                 </div>
-                <p class="text-muted font-sans text-[11px] leading-relaxed">
-                  Live architectural sanity check with senior engineers. Edge-case debugging.
-                </p>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">HACKATHON KICK OFF</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Live on-spot problem statement briefing! 8-Hour sprint timer begins.
+                  </p>
+                </div>
               </div>
 
-              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-4">
-                <div>
-                  <div class="text-accent-dark font-bold mb-1">04:00 PM IST</div>
-                  <div class="text-ink font-extrabold uppercase font-sans text-sm">SYSTEM POLISH</div>
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-accent font-bold">11:15 AM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-accent text-accent">MILESTONE</span>
                 </div>
-                <p class="text-muted font-sans text-[11px] leading-relaxed">
-                  Frontend UI integration, error handling, performance tuning, and build packaging.
-                </p>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">REFRESHMENT 1 & EVALUATION 1</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Tea, coffee & light snacks served. First jury checkpoint on schema & architecture.
+                  </p>
+                </div>
               </div>
 
-              <div class="p-5 bg-paper border border-accent flex flex-col justify-between gap-4">
-                <div>
-                  <div class="text-signal font-bold mb-1">07:00 PM IST</div>
-                  <div class="text-ink font-extrabold uppercase font-sans text-sm">CODE FREEZE & DEMO</div>
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-ink font-bold">12:30 PM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line text-muted">MEAL</span>
                 </div>
-                <p class="text-muted font-sans text-[11px] leading-relaxed">
-                  Repository freeze. Live terminal & prototype demonstration to jury panel.
-                </p>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">LUNCH BREAK</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Hot lunch served to all registered participants in the dining hall.
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-accent font-bold">01:15 PM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-accent text-accent">RESUME</span>
+                </div>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">LUNCH ENDS & SPRINT RESUMES</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Back to desks. Core coding, API integrations, and feature development sprint.
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-accent font-bold">03:20 PM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line text-muted">ENERGY</span>
+                </div>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">REFRESHMENT 2</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Beverages & energy boosters served. Sprint polish & bug bashing.
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-5 bg-paper border-2 border-signal flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-signal font-bold">05:30 PM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-signal text-paper font-bold">FREEZE</span>
+                </div>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">HACKATHON ENDS</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Hard code freeze. 8 hours of continuous building completed! Repositories submitted.
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-signal font-bold">05:30 – 06:30 PM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-signal text-signal">DEFENSE</span>
+                </div>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">FINAL EVALUATION START</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Live prototype demonstrations, terminal defense, and line-by-line jury examination.
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-5 bg-paper border border-line flex flex-col justify-between gap-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-accent font-bold">06:35 PM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 border border-line text-muted">CHILL</span>
+                </div>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-sm">REFRESHMENT 3</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Evening tea & snacks while the jury tabulates final scores.
+                  </p>
+                </div>
+              </div>
+
+              <div class="p-5 bg-paper border-2 border-ink flex flex-col justify-between gap-3 sm:col-span-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-ink font-bold">06:45 PM</span>
+                  <span class="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-ink text-paper font-bold">VICTORY</span>
+                </div>
+                <div>
+                  <div class="text-ink font-extrabold uppercase font-sans text-base">PRIZE DISTRIBUTION & CLOSING CEREMONY</div>
+                  <p class="text-muted font-sans text-[11px] leading-relaxed mt-1">
+                    Awarding cash prizes, championship trophies, certificates, and closing address.
+                  </p>
+                </div>
               </div>
 
             </div>

@@ -96,7 +96,7 @@ export class HomePage {
         <!-- Bottom Horizontal Metadata Rail -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 font-mono text-meta text-muted pt-4 border-t border-line">
           <div>DATE &nbsp;<strong class="text-ink">${eventConfig.dates.displayDateRange}</strong></div>
-          <div>FORMAT &nbsp;<strong class="text-ink">10-HOUR BUILD</strong></div>
+          <div>FORMAT &nbsp;<strong class="text-ink">${eventConfig.duration.hours}-HOUR BUILD</strong></div>
           <div>VENUE &nbsp;<strong class="text-ink">${eventConfig.venue.name}, ${eventConfig.venue.city}</strong></div>
           <div class="text-right sm:text-left">CAPACITY &nbsp;<strong class="text-signal uppercase">40 TEAMS ONLY</strong></div>
         </div>

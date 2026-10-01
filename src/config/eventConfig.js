@@ -10,17 +10,19 @@ export const eventConfig = {
   // Core Branding
   eventName: "GAMBIT’S GLITCH",
   tagline: "BREAK THE SYSTEM. BUILD THE FUTURE.",
-  proposition: "A high-intensity 10-hour hackathon for thinkers and creators who turn unstable ideas into working systems.",
+  proposition: "A high-intensity 8-hour hackathon (09:00 AM – 06:45 PM) for thinkers and creators who turn unstable ideas into working systems.",
   edition: "HACKATHON 2026",
   spirit: "We are not here to participate quietly. We are here to build boldly, challenge expectations, and create an event experience people will remember.",
 
   // Dates & Countdown
   dates: {
     startDate: "2026-10-10T09:00:00+05:30",
-    endDate: "2026-10-10T19:00:00+05:30",
+    endDate: "2026-10-10T18:45:00+05:30",
     registrationDeadline: "2026-10-07T23:59:59+05:30",
     displayDateRange: "OCTOBER 10, 2026",
     displayDeadline: "07/10/2026",
+    timings: "09:00 AM – 06:45 PM",
+    duration: "8-HOUR BUILD"
   },
 
   // Venue & Location
@@ -60,10 +62,26 @@ export const eventConfig = {
   // On-Spot Problem Statement Policy (No PPT Submission)
   problemStatementPolicy: {
     format: "ON-SPOT PROBLEM STATEMENT RELEASE",
-    announcementTime: "09:00 AM IST, OCTOBER 10, 2026",
+    announcementTime: "09:30 AM IST, OCTOBER 10, 2026",
     venue: "Auditorium, VSBCETC",
-    details: "All specific challenge problem statements across the 5 domains are announced strictly ON SPOT on hackathon morning. No prior PPT or project presentation is required."
+    duration: "8-HOUR BUILD (09:30 AM – 05:30 PM)",
+    details: "All specific challenge problem statements across the 5 domains are announced strictly ON SPOT during the 09:30 AM kickoff. No prior PPT or project presentation is required."
   },
+
+  // Detailed Event Day Schedule (09:00 AM to 06:45 PM)
+  eventDaySchedule: [
+    { time: "09:00 AM", title: "INAUGURATION CEREMONY", desc: "Official opening ceremony, welcome address, and arena orientation at Auditorium, VSBCETC." },
+    { time: "09:10 AM", title: "CHIEF GUEST SPEECH", desc: "Keynote address and industry insights by the distinguished chief guest." },
+    { time: "09:30 AM", title: "HACKATHON KICK OFF", desc: "Exact real-world problem statements revealed live across all 5 tracks. The 8-hour sprint begins!" },
+    { time: "11:15 AM", title: "REFRESHMENT 1 & EVALUATION 1", desc: "Morning tea & refreshments served. First round jury evaluation commences at team stations." },
+    { time: "12:30 PM", title: "LUNCH BREAK", desc: "Grand buffet lunch served for all registered participants and mentors." },
+    { time: "01:15 PM", title: "LUNCH BREAK ENDS", desc: "Sprint resumes. Teams continue core development, architectural hardening, and feature integration." },
+    { time: "03:20 PM", title: "REFRESHMENT 2", desc: "Afternoon refreshments served to keep builder momentum high." },
+    { time: "05:30 PM", title: "HACKATHON SPRINT ENDS", desc: "Strict code freeze! Final Git commits, build packaging, and environment freeze." },
+    { time: "05:30 PM – 06:30 PM", title: "FINAL EVALUATION START", desc: "Comprehensive technical demonstration, prototype walkthrough, and defense before the jury panel." },
+    { time: "06:35 PM", title: "REFRESHMENT 3", desc: "Evening refreshments while jury tabulates official final scores." },
+    { time: "06:45 PM", title: "PRIZE DISTRIBUTION", desc: "Valedictory ceremony, announcement of winners, and grand trophy & cash prize distribution." }
+  ],
 
   // Hackathon Themes / Tracks (Exactly 5 Tracks)
   themes: [
@@ -119,27 +137,35 @@ export const eventConfig = {
     },
     {
       phase: "03",
-      title: "ON-SPOT PROBLEM STATEMENT RELEASE & SPRINT KICKOFF",
+      title: "INAUGURATION & ON-SPOT KICKOFF (09:00 AM – 09:30 AM)",
       date: "OCTOBER 10, 2026",
       time: "09:00 AM IST",
       status: "UPCOMING",
-      details: "All 40 confirmed squads assemble at Auditorium, VSBCETC. Official problem statements across all 5 tracks are revealed ON SPOT! 10-hour continuous build sprint begins."
+      details: "All 40 confirmed squads assemble at Auditorium, VSBCETC. Inauguration at 09:00 AM, Chief Guest speech at 09:10 AM, and on-spot problem statement release at 09:30 AM."
     },
     {
       phase: "04",
-      title: "MENTOR CHECKPOINT & SYSTEM DEFENSE",
+      title: "8-HOUR ARENA SPRINT & EVALUATION 1",
       date: "OCTOBER 10, 2026",
-      time: "01:00 PM IST",
+      time: "09:30 AM – 05:30 PM",
       status: "UPCOMING",
-      details: "Live architecture sanity check, edge-case debugging, and guidance with industry mentors."
+      details: "8 hours of live coding with refreshments, lunch at 12:30 PM, and Milestone Evaluation 1 at 11:15 AM."
     },
     {
       phase: "05",
-      title: "CODE FREEZE & TECHNICAL JURY DEMO",
+      title: "CODE FREEZE & FINAL EVALUATION (05:30 PM – 06:30 PM)",
       date: "OCTOBER 10, 2026",
-      time: "07:00 PM IST",
+      time: "05:30 PM IST",
       status: "UPCOMING",
-      details: "Project code freeze and live prototype demonstrations to jury panel."
+      details: "Development ends at 05:30 PM sharp. Final jury prototype defense and technical judging until 06:30 PM."
+    },
+    {
+      phase: "06",
+      title: "VALEDICTORY & PRIZE DISTRIBUTION",
+      date: "OCTOBER 10, 2026",
+      time: "06:45 PM IST",
+      status: "UPCOMING",
+      details: "Refreshment 3 at 06:35 PM followed by the grand valedictory and prize distribution ceremony at 06:45 PM."
     }
   ],
 
@@ -166,9 +192,9 @@ export const eventConfig = {
     {
       category: "ON-SPOT PROBLEM STATEMENTS & HACKATHON FORMAT",
       items: [
-        "NO advance PPT or pitch deck submission is required. All challenge problem statements are revealed strictly ON SPOT at 09:00 AM on hackathon morning.",
+        "NO advance PPT or pitch deck submission is required. All challenge problem statements are revealed strictly ON SPOT at 09:30 AM on hackathon morning.",
         "Teams choose their track during registration and receive specific challenge statements live at the venue.",
-        "All prototypes must be built live during the 10-hour arena sprint. Open-source libraries and APIs are allowed.",
+        "All prototypes must be built live during the 8-hour arena sprint (09:30 AM – 05:30 PM). Open-source libraries and APIs are allowed.",
         "Pre-built applications or complete templates built prior to problem release are strictly prohibited and will result in disqualification."
       ]
     },
@@ -196,7 +222,7 @@ export const eventConfig = {
     {
       id: "faq-1",
       question: "What is Gambit's Glitch and who can participate?",
-      answer: "Gambit's Glitch is a high-intensity 10-hour on-site hackathon taking place at Auditorium, VSBCETC on October 10, 2026. Any college student can register a team of 2 to 4 members. Event capacity is strictly limited to only 40 teams."
+      answer: "Gambit's Glitch is a high-intensity 8-hour on-site hackathon (09:00 AM – 06:45 PM) taking place at Auditorium, VSBCETC on October 10, 2026. Any college student can register a team of 2 to 4 members. Event capacity is strictly limited to only 40 teams."
     },
     {
       id: "faq-2",
@@ -206,7 +232,7 @@ export const eventConfig = {
     {
       id: "faq-3",
       question: "Do we need to submit a PPT pitch deck beforehand?",
-      answer: "NO! There is NO PPT or presentation submission prior to the event. All challenge problem statements are revealed strictly ON SPOT on hackathon morning (October 10, 2026 at 09:00 AM IST). All ideation, design, and code development take place live during the 10-hour arena sprint."
+      answer: "NO! There is NO PPT or presentation submission prior to the event. All challenge problem statements are revealed strictly ON SPOT during kickoff at 09:30 AM IST on October 10, 2026. All ideation, design, and code development take place live during the 8-hour arena sprint."
     },
     {
       id: "faq-4",

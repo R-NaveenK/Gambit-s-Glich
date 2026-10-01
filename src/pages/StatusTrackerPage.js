@@ -249,13 +249,13 @@ export class StatusTrackerPage {
         <div class="space-y-3 text-xs font-mono">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-canvas p-4 border border-line">
             <div>SELECTED TRACK: <strong class="text-accent-dark font-bold">${data.theme_id}</strong></div>
-            <div>CHALLENGE RELEASE: <strong class="text-ink">09:00 AM IST // OCT 10, 2026</strong></div>
+            <div>CHALLENGE RELEASE: <strong class="text-ink">09:30 AM IST // OCT 10, 2026</strong></div>
             <div>VENUE: <strong class="text-ink">Auditorium, VSBCETC</strong></div>
-            <div>SPRINT DURATION: <strong class="text-ink">10 HOURS CONTINUOUS BUILD</strong></div>
+            <div>SPRINT DURATION: <strong class="text-ink">8 HOURS CONTINUOUS BUILD (09:30 AM – 05:30 PM)</strong></div>
           </div>
 
           <p class="text-xs text-muted font-sans leading-relaxed">
-            <strong class="text-ink">No prior PPT or deck submission is required.</strong> On the morning of October 10 at 09:00 AM IST, the official real-world problem statements for your selected track will be announced live. Teams will have 10 hours to build, architect, and deploy their prototype before final code freeze.
+            <strong class="text-ink">No prior PPT or deck submission is required.</strong> On the morning of October 10 at 09:30 AM IST, the official real-world problem statements for your selected track will be announced live. Teams will have 8 hours to build, architect, and deploy their prototype before final code freeze at 05:30 PM.
           </p>
         </div>
       </div>

@@ -41,7 +41,7 @@ export class SubmitPptPage {
               </div>
               <div class="text-right">
                 <div class="text-xs text-accent font-mono font-bold">RELEASE TIME</div>
-                <div class="font-mono text-sm text-ink font-bold">09:00 AM IST</div>
+                <div class="font-mono text-sm text-ink font-bold">09:30 AM IST</div>
               </div>
             </div>
 
@@ -62,7 +62,7 @@ export class SubmitPptPage {
 
             <div class="space-y-4 text-xs font-sans text-muted leading-relaxed">
               <p>
-                To preserve technical integrity, prevent pre-coded boilerplate advantage, and simulate real-world high-pressure engineering sprints, <strong class="text-ink">all official problem statements across the 5 domains will be unveiled simultaneously at 09:00 AM IST</strong>.
+                To preserve technical integrity, prevent pre-coded boilerplate advantage, and simulate real-world high-pressure engineering sprints, <strong class="text-ink">all official problem statements across the 5 domains will be unveiled simultaneously at 09:30 AM IST</strong> (following the 09:00 AM Inauguration and 09:10 AM Keynote). Teams build live during the 8-hour arena sprint until 05:30 PM code freeze.
               </p>
               <div class="p-4 bg-canvas border border-line font-mono text-xs text-ink space-y-2">
                 <div class="text-accent-dark font-bold">// THE 5 DOMAINS REVEALED ON SPOT:</div>

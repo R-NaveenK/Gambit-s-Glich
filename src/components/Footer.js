@@ -39,7 +39,8 @@ export class Footer {
                 <div class="text-ink font-bold uppercase tracking-widest mb-1 border-b border-line pb-2">02 / EVENT INTEL</div>
                 <div>CAPACITY: <strong class="text-signal font-bold">40 TEAMS ONLY (FCFS)</strong></div>
                 <div>DATE: <strong class="text-ink">${eventConfig.dates.displayDateRange}</strong></div>
-                <div>FORMAT: <strong class="text-ink">10-HOUR BUILD</strong></div>
+                <div>TIMINGS: <strong class="text-ink">${eventConfig.duration.timings}</strong></div>
+                <div>FORMAT: <strong class="text-ink">${eventConfig.duration.hours}-HOUR BUILD</strong></div>
                 <div>VENUE: <strong class="text-ink">${eventConfig.venue.name}, ${eventConfig.venue.city}</strong></div>
                 <div>FEE: <strong class="text-accent-dark font-bold">${eventConfig.teamPolicy.feeType}</strong></div>
               </div>

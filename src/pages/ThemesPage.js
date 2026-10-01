@@ -17,7 +17,7 @@ export class ThemesPage {
               Hackathon Tracks
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Choose your domain during registration. <strong class="text-accent-dark font-bold">Important: Concrete problem statements are strictly revealed ON SPOT at 09:00 AM IST on October 10, 2026. No prior PPT required.</strong>
+              Choose your domain during registration. <strong class="text-accent-dark font-bold">Important: Concrete problem statements are strictly revealed ON SPOT at 09:30 AM IST on October 10, 2026 (Inauguration at 09:00 AM). No prior PPT required.</strong>
             </p>
           </div>
 

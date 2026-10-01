@@ -267,8 +267,8 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
       </p>
       <div style="font-family: monospace; font-size: 12px; color: #D79218; background-color: #1A1A18; padding: 10px 14px; border: 1px solid #333330;">
         📍 <strong>VENUE:</strong> Auditorium, VSBCETC, Coimbatore<br>
-        ⏰ <strong>DATE & TIME:</strong> October 10, 2026 at 09:00 AM IST<br>
-        ⚡ <strong>SPRINT DURATION:</strong> 10-Hour Live Hackathon
+        ⏰ <strong>REPORTING & INAUGURATION:</strong> October 10, 2026 at 09:00 AM IST<br>
+        ⚡ <strong>SPRINT DURATION:</strong> 8-Hour Live Arena Hackathon (09:30 AM – 05:30 PM, Concluding 06:45 PM)
       </div>
     </div>
 
@@ -510,7 +510,7 @@ export async function sendPaymentInvoiceEmail(team, payment = null, ppt = null, 
         <tr style="border-bottom: 1px solid #EAE6DF;">
           <td style="padding: 10px 12px; color: #10100E;">
             <strong>Hackathon Participant Registration Fee</strong><br>
-            <span style="font-size: 11px; color: #77756F;">Includes 10-Hour Access, Meals, Mentorship & Official Merch Kit</span>
+            <span style="font-size: 11px; color: #77756F;">Includes 8-Hour Arena Access, Meals, Refreshments, Mentorship & Official Merch Kit</span>
           </td>
           <td style="padding: 10px 12px; color: #10100E; text-align: center;">${team.member_count || 1}</td>
           <td style="padding: 10px 12px; color: #10100E; text-align: right;">₹${totalFee}.00</td>
