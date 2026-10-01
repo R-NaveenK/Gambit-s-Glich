@@ -49,11 +49,15 @@ export class HomePage {
 
             <!-- Supporting Copy & Tagline -->
             <div class="space-y-3 max-w-2xl mt-2">
+              <div class="inline-flex flex-wrap items-center gap-2 px-3 py-1.5 bg-paper border border-accent text-accent-dark font-mono text-[11px] sm:text-xs font-bold uppercase shadow-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-signal"></span>
+                <span>ON-SPOT PROBLEM STATEMENTS • DIRECT REGISTRATION PAYMENT • STRICTLY 40 TEAMS FCFS</span>
+              </div>
               <div class="font-mono text-sm sm:text-base font-bold text-ink uppercase tracking-wider">
                 ${eventConfig.tagline}
               </div>
               <p class="text-hero-desc font-sans leading-relaxed">
-                A high-intensity build challenge for exactly 40 teams prepared to question assumptions, prototype rapidly, and turn unstable ideas into working technology.
+                A high-intensity build challenge for exactly 40 teams prepared to question assumptions, prototype rapidly, and turn unstable ideas into working technology. Problem statements revealed live on-spot at 09:00 AM IST!
               </p>
             </div>
 

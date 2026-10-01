@@ -17,7 +17,7 @@ export class ContactFaqPage {
               Frequently Asked Questions
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Find clear answers regarding team formation, registration, manual payment verification, PPT pitch deck guidelines, and venue logistics at Auditorium, VSBCETC.
+              Find clear answers regarding team formation, registration, fee payment verification, on-spot problem statement guidelines, and venue logistics at Auditorium, VSBCETC.
             </p>
           </div>
 

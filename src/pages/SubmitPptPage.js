@@ -1,10 +1,9 @@
 /**
- * GAMBIT'S GLITCH - 06 / TRANSMIT YOUR ENTRY (PPT Submission View)
+ * GAMBIT'S GLITCH 2026 - Problem Statement Briefing View
+ * Note: PPT submissions are removed. Problem statements are revealed ON SPOT on hackathon morning.
  */
 
 import { eventConfig } from '../config/eventConfig.js';
-import { api } from '../utils/api.js';
-import { toast } from '../utils/toast.js';
 import { soundFx } from '../utils/audio.js';
 
 export class SubmitPptPage {
@@ -13,94 +12,78 @@ export class SubmitPptPage {
   }
 
   render() {
-    const defaultRegId = sessionStorage.getItem('last_reg_id') || '';
-
     return `
       <div class="py-16 font-mono bg-canvas">
         <div class="container mx-auto px-4 max-w-4xl">
           
           <!-- Header -->
           <div class="border-b border-line pb-8 mb-10">
-            <div class="text-xs text-accent-dark tracking-widest uppercase mb-2">06 / TRANSMIT YOUR ENTRY — PPT GATE</div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-xs text-accent-dark tracking-widest uppercase font-bold">// 06 / ARENA CHALLENGE BRIEFING</span>
+              <span class="px-2.5 py-0.5 text-[10px] font-bold border border-accent bg-accent/15 text-accent-dark font-mono uppercase">
+                NO ADVANCE PPT REQUIRED
+              </span>
+            </div>
             <h1 class="font-serif text-5xl sm:text-7xl font-normal italic text-ink">
-              Submit Pitch Deck
+              On-Spot Problem Statements
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Upload or update your pitch presentation (.ppt, .pptx, .pdf). <strong class="text-accent-dark font-bold">All registered teams can update their pitch deck before the deadline.</strong>
+              Gambit's Glitch 2026 does not require any advance deck, presentation file, or pre-built prototype submissions. All challenge statements will be revealed <strong class="text-ink font-bold">strictly ON SPOT</strong> at the venue on event day!
             </p>
           </div>
 
-          <!-- Form Card -->
-          <form id="ppt-form" class="tech-card p-6 md:p-10 border-line bg-paper space-y-6">
-            
-            <div class="flex items-center justify-between border-b border-line pb-3">
-              <h2 class="font-sans text-xl font-bold text-ink uppercase">
-                PITCH DECK UPLOAD GATE
-              </h2>
-              <span class="text-xs text-accent-dark font-bold">MAX FILE SIZE: 15 MB</span>
-            </div>
-
-            <div>
-              <label class="block text-xs text-ink mb-2">TEAM REGISTRATION ID *</label>
-              <input type="text" name="reg_id" required value="${defaultRegId}" placeholder="e.g. GG26-8F92" class="w-full px-4 py-3 text-xs text-accent-dark font-bold uppercase tracking-wider focus:border-accent outline-none" />
-              <div class="text-[10px] text-muted mt-1 font-sans">Your registered Team ID (provided at initial registration).</div>
-            </div>
-
-            <div>
-              <label class="block text-xs text-ink mb-2">PROJECT TITLE *</label>
-              <input type="text" name="project_title" required placeholder="e.g. GLITCH_NET: Decentralized WASM Edge Proxy" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
-            </div>
-
-            <div>
-              <label class="block text-xs text-ink mb-2">SHORT PROJECT SUMMARY *</label>
-              <textarea name="summary" required rows="4" placeholder="Describe the problem, proposed architectural solution, key technical stack, and target impact..." class="w-full p-4 text-xs focus:border-accent outline-none leading-relaxed font-sans"></textarea>
-            </div>
-
-            <div>
-              <label class="block text-xs text-ink mb-2">PRESENTATION FILE (.PPT, .PPTX, .PDF) *</label>
-              <input type="file" name="ppt_file" accept=".ppt,.pptx,.pdf" required class="w-full bg-canvas border border-line p-3 text-xs text-muted file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-accent file:text-ink file:font-bold file:text-xs cursor-pointer" />
-              <div class="text-[10px] text-muted mt-1 font-sans">Maximum size 15 MB. Re-uploading before deadline will update your submission version.</div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Master Intelligence Card -->
+          <div class="tech-card p-6 md:p-10 border-2 border-accent bg-paper space-y-6 shadow-sm">
+            <div class="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <label class="block text-xs text-ink mb-2">REPOSITORY LINK (OPTIONAL)</label>
-                <input type="url" name="repo_link" placeholder="https://github.com/team/repo" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
+                <div class="text-[10px] text-accent-dark font-mono font-bold uppercase tracking-widest">// LIVE ARENA FORMAT</div>
+                <h2 class="font-sans text-2xl sm:text-3xl font-bold text-ink uppercase">Real-Time Technical Disruption</h2>
               </div>
-
-              <div>
-                <label class="block text-xs text-ink mb-2">DEMO / PROTOTYPE URL (OPTIONAL)</label>
-                <input type="url" name="demo_link" placeholder="https://demo.app" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
+              <div class="text-right">
+                <div class="text-xs text-accent font-mono font-bold">RELEASE TIME</div>
+                <div class="font-mono text-sm text-ink font-bold">09:00 AM IST</div>
               </div>
             </div>
 
-            <button type="submit" id="submit-ppt-btn" class="nav-link btn-primary w-full py-4 text-xs font-bold tracking-widest uppercase">
-              ⚡ UPLOAD PITCH DECK & GENERATE RECEIPT →
-            </button>
-
-          </form>
-
-          <!-- Receipt Container -->
-          <div id="ppt-receipt-card" class="hidden tech-card p-8 border-accent bg-paper space-y-6 mt-8">
-            <div class="flex items-center justify-between border-b border-line pb-3">
-              <span class="text-xs text-accent-dark font-bold">// SUBMISSION RECEIPT GENERATED</span>
-              <span id="rcpt-timestamp" class="text-xs text-muted">2026-09-19 22:00</span>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs font-mono">
+              <div class="p-4 bg-canvas border border-line space-y-1">
+                <div class="text-muted text-[10px]">EVENT DATE</div>
+                <div class="font-bold text-ink">${eventConfig.dates.displayDateRange}</div>
+              </div>
+              <div class="p-4 bg-canvas border border-line space-y-1">
+                <div class="text-muted text-[10px]">VENUE LOCATION</div>
+                <div class="font-bold text-ink">Auditorium, VSBCETC</div>
+              </div>
+              <div class="p-4 bg-canvas border border-line space-y-1">
+                <div class="text-muted text-[10px]">EVENT CAPACITY</div>
+                <div class="font-bold text-accent-dark">40 TEAMS ONLY (FCFS)</div>
+              </div>
             </div>
 
-            <div class="p-4 bg-canvas border border-line text-xs space-y-2">
-              <div>RECEIPT ID: <strong id="rcpt-id" class="text-accent">RCPT-XXXXXX</strong></div>
-              <div>TEAM REG ID: <strong id="rcpt-reg-id" class="text-ink">GG26-XXXX</strong></div>
-              <div>FILE NAME: <strong id="rcpt-filename" class="text-ink font-bold">Presentation.pdf</strong></div>
-              <div>SUBMISSION VERSION: <strong id="rcpt-version" class="text-accent-dark font-bold">1</strong></div>
+            <div class="space-y-4 text-xs font-sans text-muted leading-relaxed">
+              <p>
+                To preserve technical integrity, prevent pre-coded boilerplate advantage, and simulate real-world high-pressure engineering sprints, <strong class="text-ink">all official problem statements across the 5 domains will be unveiled simultaneously at 09:00 AM IST</strong>.
+              </p>
+              <div class="p-4 bg-canvas border border-line font-mono text-xs text-ink space-y-2">
+                <div class="text-accent-dark font-bold">// THE 5 DOMAINS REVEALED ON SPOT:</div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                  <div>01. Health care Technology</div>
+                  <div>02. Smart Agriculture & Supply</div>
+                  <div>03. Next-Gen Fintech & Payments</div>
+                  <div>04. Defensive Cybersecurity</div>
+                  <div>05. Interactive Education Systems</div>
+                </div>
+              </div>
             </div>
 
-            <div class="text-xs text-muted leading-relaxed font-sans">
-              Your PPT pitch deck has been securely received. You can re-upload to update your version anytime before the PPT deadline (${eventConfig.dates.pptDeadline.split('T')[0]}).
+            <div class="pt-2 flex flex-wrap gap-4 font-mono">
+              <a href="#" data-route="register" class="nav-link btn-primary py-3.5 px-6 text-xs font-bold uppercase tracking-wider">
+                ⚡ REGISTER SQUAD & PAY FEE (FCFS) →
+              </a>
+              <a href="#" data-route="status" class="nav-link btn-secondary py-3.5 px-6 text-xs font-bold uppercase tracking-wider">
+                VIEW STATUS TRACKER →
+              </a>
             </div>
-
-            <button id="rcpt-view-status" class="nav-link btn-secondary w-full py-3 text-xs">
-              GO TO STATUS TRACKER
-            </button>
           </div>
 
         </div>
@@ -109,55 +92,16 @@ export class SubmitPptPage {
   }
 
   attachEvents() {
-    const form = document.getElementById('ppt-form');
-    if (form) {
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        soundFx.playClick();
-
-        const submitBtn = document.getElementById('submit-ppt-btn');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `UPLOADING PITCH DECK...`;
-
-        const formData = new FormData(form);
-
-        try {
-          const res = await api.submitPpt(formData);
-          if (res.success) {
-            soundFx.playGlitch();
-            toast.show('PPT pitch deck successfully submitted!', 'success');
-
-            const receiptCard = document.getElementById('ppt-receipt-card');
-            if (receiptCard && res.receipt) {
-              document.getElementById('rcpt-id').textContent = res.receipt.receipt_id;
-              document.getElementById('rcpt-reg-id').textContent = res.receipt.reg_id;
-              document.getElementById('rcpt-filename').textContent = res.receipt.original_filename;
-              document.getElementById('rcpt-version').textContent = `v${res.receipt.version}`;
-              document.getElementById('rcpt-timestamp').textContent = res.receipt.submitted_at;
-
-              receiptCard.classList.remove('hidden');
-
-              document.getElementById('rcpt-view-status').addEventListener('click', () => {
-                this.navigate('status');
-              });
-            }
-
-            submitBtn.innerHTML = `✔ UPLOAD COMPLETED`;
-          } else {
-            if (res.locked) {
-              toast.show(`SUBMISSION LOCKED: ${res.message}`, 'error', 7000);
-            } else {
-              toast.show(res.message || 'PPT upload failed.', 'error');
-            }
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = `⚡ UPLOAD PITCH DECK & GENERATE RECEIPT →`;
-          }
-        } catch (err) {
-          toast.show('Network error during PPT upload.', 'error');
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = `⚡ UPLOAD PITCH DECK & GENERATE RECEIPT →`;
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        const route = link.getAttribute('data-route');
+        if (route) {
+          e.preventDefault();
+          soundFx.playClick();
+          this.navigate(route);
         }
       });
-    }
+    });
   }
 }

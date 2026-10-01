@@ -122,8 +122,9 @@ export class AdminPage {
               <div id="stat-approved" class="font-mono text-3xl font-bold text-success">--</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">PPT SUBMISSIONS</div>
-              <div id="stat-ppt" class="font-mono text-3xl font-bold text-ink">--</div>
+              <div class="text-[10px] text-muted uppercase font-mono font-bold">REMAINING SLOTS</div>
+              <div id="stat-remaining" class="font-mono text-3xl font-bold text-ink">--</div>
+              <div class="text-[9px] text-muted font-mono font-bold uppercase mt-1">OF 40 CAP</div>
             </div>
             <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
               <div class="text-[10px] text-muted uppercase font-mono font-bold">ATTENDANCE ENTRY</div>
@@ -224,7 +225,6 @@ export class AdminPage {
               <select id="admin-status-filter" class="w-full px-3 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
                 <option value="ALL">All Statuses</option>
                 <option value="REGISTERED">Registered / FCFS</option>
-                <option value="PPT_SUBMITTED">PPT Submitted</option>
                 <option value="PAYMENT_PENDING">Payment Pending</option>
                 <option value="PAYMENT_APPROVED">Payment Approved (Confirmed)</option>
                 <option value="REJECTED">Rejected</option>
@@ -243,8 +243,8 @@ export class AdminPage {
                 <tr class="bg-canvas border-b border-line text-muted uppercase tracking-widest text-[11px]">
                   <th class="p-4">TEAM INTEL</th>
                   <th class="p-4">THEME</th>
-                  <th class="p-4">PAYMENT / UTR</th>
-                  <th class="p-4">PPT PITCH DECK</th>
+                  <th class="p-4">PAYMENT INTEL (UTR)</th>
+                  <th class="p-4">PAYMENT PROOF</th>
                   <th class="p-4">STATUS</th>
                   <th class="p-4 text-right">ACTIONS</th>
                 </tr>
@@ -284,99 +284,60 @@ export class AdminPage {
 
           <!-- PAYMENT MODAL -->
           <div id="payment-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-4">
-            <div class="tech-card p-6 border-accent bg-paper max-w-2xl w-full space-y-4 max-h-[90vh] overflow-y-auto">
-              <div class="flex items-center justify-between border-b border-line pb-3">
-                <div class="font-sans text-lg font-bold text-ink uppercase" id="modal-team-title">VERIFY PAYMENT PROOF</div>
-                <button id="close-modal-btn" class="text-ink hover:text-accent text-xl font-bold p-2 cursor-pointer">✕</button>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
-                <div>REG ID: <strong id="modal-reg-id" class="text-accent-dark">--</strong></div>
-                <div>UTR NO: <strong id="modal-utr" class="text-ink">--</strong></div>
-                <div>PAYER: <span id="modal-payer" class="text-ink">--</span></div>
-                <div>AMOUNT: <span id="modal-amount" class="text-accent-dark font-bold">₹900</span></div>
-              </div>
-
-              <!-- Screenshot Viewer -->
-              <div class="p-2 bg-canvas border border-line text-center max-h-80 overflow-auto">
-                <img id="modal-screenshot-img" src="" alt="Payment Proof" class="max-w-full h-auto mx-auto border border-line" />
-              </div>
-
-              <!-- Controls -->
-              <div class="flex flex-col gap-3 pt-2">
-                <button id="modal-approve-btn" class="btn-primary w-full py-3 text-xs font-bold tracking-widest uppercase">
-                  APPROVE PAYMENT (ISSUE ATTENDANCE PASS & INVOICE)
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- PPT PREVIEW MODAL -->
-          <div id="ppt-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-4">
-            <div class="tech-card p-6 border-2 border-accent bg-paper max-w-4xl w-full space-y-4 max-h-[95vh] overflow-y-auto shadow-2xl">
-              <div class="flex items-center justify-between border-b border-line pb-3">
+            <div class="tech-card p-6 md:p-8 border-2 border-accent bg-paper max-w-3xl w-full space-y-5 max-h-[92vh] overflow-y-auto shadow-2xl">
+              <div class="flex items-center justify-between border-b border-line pb-4">
                 <div>
-                  <div class="text-xs text-accent-dark font-bold font-mono">// PPT PITCH DECK PREVIEW & INTEL</div>
-                  <h2 class="font-sans text-xl font-bold text-ink uppercase" id="ppt-modal-team-title">PITCH DECK PREVIEW</h2>
+                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// PAYMENT PROOF VERIFICATION & FCFS AUDIT</div>
+                  <div class="font-sans text-xl sm:text-2xl font-bold text-ink uppercase" id="modal-team-title">VERIFY PAYMENT PROOF</div>
                 </div>
-                <button id="close-ppt-modal-btn" class="text-ink hover:text-accent text-xl font-bold p-2 cursor-pointer transition-colors">✕</button>
+                <button id="close-modal-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors">✕</button>
               </div>
 
               <!-- Metadata Grid -->
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs font-mono bg-canvas p-4 border border-line">
-                <div>REG ID: <strong id="ppt-modal-reg-id" class="text-accent-dark">--</strong></div>
-                <div>THEME: <strong id="ppt-modal-theme" class="text-ink">--</strong></div>
-                <div>VERSION: <strong id="ppt-modal-version" class="text-accent-dark font-bold">--</strong></div>
-                <div class="md:col-span-2">PROJECT TITLE: <strong id="ppt-modal-title" class="text-ink font-bold">--</strong></div>
-                <div>FILE: <span id="ppt-modal-filename" class="text-muted truncate inline-block max-w-full">--</span></div>
-              </div>
-
-              <!-- Project Summary & Links -->
-              <div id="ppt-modal-summary-box" class="p-4 bg-canvas border border-line text-xs font-sans space-y-2">
-                <div class="font-bold text-accent-dark font-mono text-[11px] uppercase">// PROJECT SUMMARY:</div>
-                <div id="ppt-modal-summary" class="text-muted leading-relaxed whitespace-pre-line">--</div>
-                <div id="ppt-modal-links" class="flex flex-wrap gap-4 pt-2 font-mono text-[11px]">
-                  <!-- Links injected dynamically -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono bg-canvas p-4 border border-line">
+                <div>
+                  <div class="text-[10px] text-muted uppercase font-bold">REG ID:</div>
+                  <strong id="modal-reg-id" class="text-accent-dark font-mono text-sm">--</strong>
+                </div>
+                <div>
+                  <div class="text-[10px] text-muted uppercase font-bold">UTR NUMBER:</div>
+                  <strong id="modal-utr" class="text-ink font-mono text-sm select-all">--</strong>
+                </div>
+                <div>
+                  <div class="text-[10px] text-muted uppercase font-bold">PAYER ACCOUNT:</div>
+                  <span id="modal-payer" class="text-ink font-bold truncate block">--</span>
+                </div>
+                <div>
+                  <div class="text-[10px] text-muted uppercase font-bold">AMOUNT:</div>
+                  <span id="modal-amount" class="text-success font-bold text-sm">₹--</span>
                 </div>
               </div>
 
-              <!-- Interactive Document Viewer Frame & Toolbar -->
+              <!-- Screenshot Viewer Frame -->
               <div class="space-y-2">
-                <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono border-b border-line pb-2">
+                <div class="flex items-center justify-between text-xs font-mono">
+                  <span class="text-muted font-bold text-[11px] uppercase">// UPI TRANSFER SCREENSHOT:</span>
                   <div class="flex items-center gap-2">
-                    <span class="text-accent-dark font-bold">// PREVIEW ENGINE:</span>
-                    <button type="button" id="ppt-view-direct-btn" class="px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer">Native View</button>
-                    <button type="button" id="ppt-view-ms-btn" class="px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer">Office Embed</button>
-                    <button type="button" id="ppt-view-gdocs-btn" class="px-2.5 py-1 border border-line text-ink hover:border-accent font-mono text-[10px] font-bold uppercase transition-all cursor-pointer">Google Docs</button>
+                    <a id="modal-view-original-btn" href="#" target="_blank" class="px-2.5 py-1 border border-line text-ink hover:border-accent text-[10px] font-bold uppercase transition-all">
+                      Open Full Size ↗
+                    </a>
+                    <button type="button" id="modal-download-proof-btn" class="px-2.5 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold uppercase transition-all cursor-pointer">
+                      Download File
+                    </button>
                   </div>
-                  <a id="ppt-modal-direct-link" href="#" target="_blank" download class="btn-primary py-1 px-3.5 font-mono text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 cursor-pointer">
-                    Download Original File
-                  </a>
                 </div>
-                
-                <div class="relative border-2 border-accent bg-canvas min-h-[420px] flex flex-col items-center justify-center">
-                  <iframe id="ppt-modal-iframe" class="ppt-preview-frame w-full h-[500px] hidden" src="" frameborder="0" allowfullscreen></iframe>
-                  <div id="ppt-modal-fallback" class="p-8 text-center space-y-3">
-                    <div class="text-xs font-mono font-bold text-ink uppercase" id="ppt-fallback-text">
-                      Presentation Document Ready
-                    </div>
-                    <div class="flex items-center justify-center gap-3">
-                      <a id="ppt-fallback-open-btn" href="#" target="_blank" class="btn-primary text-xs py-2 px-5 font-mono uppercase font-bold">
-                        Open Document in New Tab
-                      </a>
-                      <a id="ppt-fallback-download-btn" href="#" download class="btn-secondary text-xs py-2 px-5 font-mono uppercase font-bold border border-line hover:border-accent">
-                        Download File
-                      </a>
-                    </div>
-                  </div>
+                <div class="p-3 bg-canvas border-2 border-line text-center max-h-96 overflow-auto flex items-center justify-center">
+                  <img id="modal-screenshot-img" src="" alt="Payment Proof Screenshot" class="max-w-full max-h-88 h-auto mx-auto object-contain border border-line shadow-xs" />
                 </div>
               </div>
 
-              <!-- Controls -->
-              <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-line">
-                <div class="text-xs font-mono text-muted" id="ppt-modal-submitted-at">Submitted at: --</div>
-                <button id="ppt-modal-close-bottom-btn" class="btn-secondary py-2 px-6 text-xs font-mono font-bold uppercase border border-line hover:border-accent cursor-pointer">
-                  CLOSE PREVIEW
+              <!-- Action Controls -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-line">
+                <button id="modal-approve-btn" type="button" class="btn-primary py-3 px-4 text-xs font-bold tracking-widest uppercase cursor-pointer flex items-center justify-center gap-2">
+                  <span>✔ APPROVE PAYMENT (CONFIRM FCFS SLOT)</span>
+                </button>
+                <button id="modal-reject-btn" type="button" class="btn-secondary py-3 px-4 text-xs font-bold tracking-widest uppercase border border-error text-error hover:bg-error hover:text-white cursor-pointer transition-all">
+                  <span>✕ REJECT PAYMENT (REQUEST RESUBMISSION)</span>
                 </button>
               </div>
             </div>
@@ -646,26 +607,9 @@ export class AdminPage {
       closeModal.addEventListener('click', () => modal.classList.add('hidden'));
     }
 
-    const closePptModalBtn = document.getElementById('close-ppt-modal-btn');
-    const closePptModalBottomBtn = document.getElementById('ppt-modal-close-bottom-btn');
-    const pptModal = document.getElementById('ppt-modal');
-    const closePptModal = () => {
-      if (pptModal) pptModal.classList.add('hidden');
-      const iframe = document.getElementById('ppt-modal-iframe');
-      if (iframe) iframe.src = '';
-    };
-    if (closePptModalBtn) closePptModalBtn.addEventListener('click', closePptModal);
-    if (closePptModalBottomBtn) closePptModalBottomBtn.addEventListener('click', closePptModal);
-
     if (modal) {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.add('hidden');
-      });
-    }
-
-    if (pptModal) {
-      pptModal.addEventListener('click', (e) => {
-        if (e.target === pptModal) closePptModal();
       });
     }
 
@@ -793,15 +737,17 @@ export class AdminPage {
         const totalEl = document.getElementById('stat-total');
         const pendingEl = document.getElementById('stat-pending');
         const approvedEl = document.getElementById('stat-approved');
-        const pptEl = document.getElementById('stat-ppt');
+        const remainingEl = document.getElementById('stat-remaining');
         const shortlistEl = document.getElementById('stat-confirmed') || document.getElementById('stat-shortlist');
         const attendedEl = document.getElementById('stat-attended');
+
+        const confirmedCount = statsRes.stats.confirmedSlots ?? statsRes.stats.approvedPayments ?? statsRes.stats.shortlisted ?? 0;
 
         if (totalEl) totalEl.textContent = statsRes.stats.totalRegistrations;
         if (pendingEl) pendingEl.textContent = statsRes.stats.pendingPayments;
         if (approvedEl) approvedEl.textContent = statsRes.stats.approvedPayments;
-        if (pptEl) pptEl.textContent = statsRes.stats.pptSubmissions;
-        if (shortlistEl) shortlistEl.textContent = statsRes.stats.confirmedSlots ?? statsRes.stats.approvedPayments ?? statsRes.stats.shortlisted ?? 0;
+        if (remainingEl) remainingEl.textContent = Math.max(0, 40 - confirmedCount);
+        if (shortlistEl) shortlistEl.textContent = confirmedCount;
         if (attendedEl) attendedEl.textContent = statsRes.stats.attendedCount || 0;
       }
 
@@ -840,10 +786,10 @@ export class AdminPage {
 
     tbody.innerHTML = teams.map(team => {
       const pay = team.payment;
-      const ppt = team.ppt;
 
       const payBadge = pay ? (
         pay.status === 'APPROVED' ? '<span class="text-success font-bold">APPROVED</span>' :
+        pay.status === 'REJECTED' ? '<span class="text-error font-bold">REJECTED</span>' :
         '<span class="text-accent-dark font-bold">PENDING VERIFICATION</span>'
       ) : '<span class="text-muted">NO PROOF</span>';
 
@@ -863,20 +809,20 @@ export class AdminPage {
 
           <td class="p-4 font-mono">
             <div>${payBadge}</div>
-            ${pay ? `<div class="text-[10px] text-muted">UTR: ${pay.utr_number}</div>` : ''}
+            ${pay ? `<div class="text-[10px] text-muted">UTR: <span class="text-ink font-bold select-all">${pay.utr_number}</span></div>` : ''}
+            ${pay && pay.payer_name ? `<div class="text-[10px] text-muted">Payer: ${pay.payer_name}</div>` : ''}
           </td>
 
           <td class="p-4 font-mono text-[11px]">
-            ${ppt ? `
+            ${pay ? `
               <div class="space-y-1">
-                <button type="button" data-action="download-ppt" data-reg="${team.reg_id}" class="text-ink hover:text-accent font-bold underline block truncate max-w-[180px] text-left cursor-pointer">
-                  ${ppt.original_filename} (v${ppt.version})
+                <button type="button" data-action="view-proof" data-reg="${team.reg_id}" class="px-2.5 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer uppercase flex items-center gap-1 transition-all">
+                  <span>VIEW PROOF</span>
+                  <span class="text-xs">↗</span>
                 </button>
-                <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-0.5 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer">
-                  PREVIEW PPT
-                </button>
+                <div class="text-[10px] text-muted">₹${pay.amount || (team.member_count * 300)} • ${pay.payment_date || 'Today'}</div>
               </div>
-            ` : '<span class="text-muted">NOT SUBMITTED</span>'}
+            ` : '<span class="text-muted">NO PROOF</span>'}
           </td>
 
           <td class="p-4 font-mono text-[11px]">
@@ -890,23 +836,17 @@ export class AdminPage {
           </td>
 
           <td class="p-4 text-right space-x-2 font-mono">
-            ${ppt ? `
-              <button data-action="preview-ppt" data-reg="${team.reg_id}" class="px-2 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer font-bold">
-                PPT PREVIEW
-              </button>
-            ` : ''}
-
             ${pay ? `
-              <button data-action="verify-pay" data-reg="${team.reg_id}" class="px-2 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer">
-                REVIEW PAYMENT
+              <button data-action="verify-pay" data-reg="${team.reg_id}" class="px-2.5 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer font-bold transition-all">
+                ${pay.status === 'APPROVED' ? 'PAYMENT PROOF' : 'VERIFY PAYMENT'}
               </button>
             ` : ''}
 
-            <button data-action="toggle-slot" data-reg="${team.reg_id}" data-current="${team.status}" class="px-2 py-1 border ${team.status === 'PAYMENT_APPROVED' ? 'border-line text-muted' : 'border-accent text-accent-dark font-bold'} hover:bg-paper text-[10px] cursor-pointer">
+            <button data-action="toggle-slot" data-reg="${team.reg_id}" data-current="${team.status}" class="px-2 py-1 border ${team.status === 'PAYMENT_APPROVED' ? 'border-line text-muted' : 'border-accent text-accent-dark font-bold'} hover:bg-paper text-[10px] cursor-pointer transition-all">
               ${team.status === 'PAYMENT_APPROVED' ? 'REVOKE SLOT' : 'CONFIRM SLOT'}
             </button>
 
-            <button data-action="quick-scan" data-reg="${team.reg_id}" class="px-2 py-1 border border-success text-success hover:bg-success hover:text-canvas text-[10px] cursor-pointer">
+            <button data-action="quick-scan" data-reg="${team.reg_id}" class="px-2 py-1 border border-success text-success hover:bg-success hover:text-canvas text-[10px] cursor-pointer transition-all">
               SCAN / ENTRY
             </button>
           </td>
@@ -914,33 +854,9 @@ export class AdminPage {
       `;
     }).join('');
 
-    tbody.querySelectorAll('button[data-action="download-ppt"]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
+    tbody.querySelectorAll('button[data-action="view-proof"], button[data-action="verify-pay"]').forEach(btn => {
+      btn.addEventListener('click', () => {
         soundFx.playClick();
-        const regId = btn.getAttribute('data-reg');
-        const team = this.teams.find(t => t.reg_id === regId);
-        if (team && team.ppt) {
-          const rawUrl = team.ppt.file_data && team.ppt.file_data.startsWith('data:')
-            ? team.ppt.file_data
-            : (team.ppt.file_url.startsWith('http') ? team.ppt.file_url : window.location.origin + (team.ppt.file_url.startsWith('/') ? '' : '/') + team.ppt.file_url);
-          triggerFileDownload(rawUrl, team.ppt.original_filename || 'presentation');
-        }
-      });
-    });
-
-    tbody.querySelectorAll('button[data-action="preview-ppt"]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const regId = btn.getAttribute('data-reg');
-        const team = this.teams.find(t => t.reg_id === regId);
-        if (team && team.ppt) {
-          this.openPptModal(team);
-        }
-      });
-    });
-
-    tbody.querySelectorAll('button[data-action="verify-pay"]').forEach(btn => {
-      btn.addEventListener('click', () => {
         const regId = btn.getAttribute('data-reg');
         const team = this.teams.find(t => t.reg_id === regId);
         if (team && team.payment) {
@@ -951,6 +867,7 @@ export class AdminPage {
 
     tbody.querySelectorAll('button[data-action="quick-scan"]').forEach(btn => {
       btn.addEventListener('click', () => {
+        soundFx.playClick();
         const regId = btn.getAttribute('data-reg');
         const team = this.teams.find(t => t.reg_id === regId);
         if (team) {
@@ -964,6 +881,7 @@ export class AdminPage {
 
     tbody.querySelectorAll('button[data-action="toggle-slot"], button[data-action="toggle-shortlist"]').forEach(btn => {
       btn.addEventListener('click', async () => {
+        soundFx.playClick();
         const regId = btn.getAttribute('data-reg');
         const current = btn.getAttribute('data-current');
         const nextStatus = current === 'PAYMENT_APPROVED' ? 'REGISTERED' : 'PAYMENT_APPROVED';
@@ -1000,151 +918,6 @@ export class AdminPage {
     }
   }
 
-  openPptModal(team) {
-    this.selectedTeam = team;
-    const modal = document.getElementById('ppt-modal');
-    if (!modal || !team.ppt) return;
-
-    const ppt = team.ppt;
-    const rawFileUrl = ppt.file_url || '';
-    const fullUrl = rawFileUrl.startsWith('http') ? rawFileUrl : (window.location.origin + (rawFileUrl.startsWith('/') ? '' : '/') + rawFileUrl);
-    
-    let downloadUrl = fullUrl;
-    let viewUrl = fullUrl;
-
-    if (ppt.file_data && ppt.file_data.startsWith('data:')) {
-      downloadUrl = ppt.file_data;
-      const blobUrl = this.createBlobUrlFromData(ppt.file_data);
-      if (blobUrl) {
-        viewUrl = blobUrl;
-      } else {
-        viewUrl = ppt.file_data;
-      }
-    }
-
-    const fileNameToUse = ppt.original_filename || 'presentation';
-    const lowerFilename = (fileNameToUse || '').toLowerCase();
-    const isPdf = lowerFilename.endsWith('.pdf') || lowerFilename.includes('.pdf') || (ppt.file_data && ppt.file_data.includes('application/pdf'));
-
-    document.getElementById('ppt-modal-team-title').textContent = `PITCH DECK PREVIEW: ${team.team_name}`;
-    document.getElementById('ppt-modal-reg-id').textContent = team.reg_id;
-    document.getElementById('ppt-modal-theme').textContent = team.theme_id;
-    document.getElementById('ppt-modal-version').textContent = `v${ppt.version}`;
-    document.getElementById('ppt-modal-title').textContent = ppt.project_title || team.team_name;
-    document.getElementById('ppt-modal-filename').textContent = ppt.original_filename;
-    document.getElementById('ppt-modal-summary').textContent = ppt.summary || 'No project summary provided.';
-    document.getElementById('ppt-modal-submitted-at').textContent = `Submitted at: ${ppt.submitted_at || 'N/A'}`;
-
-    const linksBox = document.getElementById('ppt-modal-links');
-    if (linksBox) {
-      const links = [];
-      if (ppt.repo_link) {
-        links.push(`<a href="${ppt.repo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">Repository: ${ppt.repo_link}</a>`);
-      }
-      if (ppt.demo_link) {
-        links.push(`<a href="${ppt.demo_link}" target="_blank" rel="noopener" class="text-accent-dark font-bold underline hover:text-ink">Demo Link: ${ppt.demo_link}</a>`);
-      }
-      linksBox.innerHTML = links.join(' | ') || '<span class="text-muted">No external links provided.</span>';
-    }
-
-    const directLink = document.getElementById('ppt-modal-direct-link');
-    if (directLink) {
-      directLink.onclick = (e) => {
-        e.preventDefault();
-        soundFx.playClick();
-        triggerFileDownload(downloadUrl, fileNameToUse);
-      };
-    }
-
-    const iframe = document.getElementById('ppt-modal-iframe');
-    const fallbackBox = document.getElementById('ppt-modal-fallback');
-    const fallbackOpen = document.getElementById('ppt-fallback-open-btn');
-    const fallbackDownload = document.getElementById('ppt-fallback-download-btn');
-    const fallbackText = document.getElementById('ppt-fallback-text');
-
-    if (fallbackOpen) {
-      fallbackOpen.onclick = (e) => {
-        e.preventDefault();
-        soundFx.playClick();
-        window.open(viewUrl, '_blank');
-      };
-    }
-    if (fallbackDownload) {
-      fallbackDownload.onclick = (e) => {
-        e.preventDefault();
-        soundFx.playClick();
-        triggerFileDownload(downloadUrl, fileNameToUse);
-      };
-    }
-
-    const msEmbedUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fullUrl)}`;
-    const googleEmbedUrl = `https://docs.google.com/gview?url=${encodeURIComponent(fullUrl)}&embedded=true`;
-    const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-    if (isPdf) {
-      iframe.src = viewUrl;
-      iframe.classList.remove('hidden');
-      if (fallbackBox) fallbackBox.classList.add('hidden');
-    } else {
-      if (iframe) iframe.classList.add('hidden');
-      if (fallbackBox) {
-        fallbackBox.classList.remove('hidden');
-        if (fallbackText) {
-          fallbackText.innerHTML = `
-            <div class="space-y-3 max-w-lg mx-auto">
-              <div class="text-sm font-bold text-ink uppercase">PRESENTATION FILE (${fileNameToUse}) READY FOR REVIEW</div>
-              ${isLocalhost ? `
-                <div class="text-[11px] text-accent-dark bg-paper p-3 border border-line text-left leading-relaxed">
-                  📌 <strong>Note on PPT/PPTX Browser Preview:</strong> Cloud embed engines (Google Docs Viewer & Microsoft Office) require a live public domain (e.g. Vercel) to load slides remotely.
-                  On <strong>localhost</strong>, click <strong>"Download File"</strong> to view the PowerPoint presentation locally.
-                </div>
-              ` : `
-                <div class="text-xs text-muted">Use the buttons below to open or download the presentation deck.</div>
-              `}
-            </div>
-          `;
-        }
-      }
-    }
-
-    const msBtn = document.getElementById('ppt-view-ms-btn');
-    const gDocsBtn = document.getElementById('ppt-view-gdocs-btn');
-    const directViewBtn = document.getElementById('ppt-view-direct-btn');
-
-    if (msBtn) {
-      msBtn.onclick = () => {
-        soundFx.playClick();
-        if (isLocalhost) {
-          toast.show('MS Office Embed requires a public web URL. Download file to view locally.', 'info');
-        }
-        iframe.src = msEmbedUrl;
-        iframe.classList.remove('hidden');
-        if (fallbackBox) fallbackBox.classList.add('hidden');
-      };
-    }
-    if (gDocsBtn) {
-      gDocsBtn.onclick = () => {
-        soundFx.playClick();
-        if (isLocalhost) {
-          toast.show('Google Docs Viewer requires a public web URL. Download file to view locally.', 'info');
-        }
-        iframe.src = googleEmbedUrl;
-        iframe.classList.remove('hidden');
-        if (fallbackBox) fallbackBox.classList.add('hidden');
-      };
-    }
-    if (directViewBtn) {
-      directViewBtn.onclick = () => {
-        soundFx.playClick();
-        iframe.src = viewUrl;
-        iframe.classList.remove('hidden');
-        if (fallbackBox) fallbackBox.classList.add('hidden');
-      };
-    }
-
-    modal.classList.remove('hidden');
-  }
-
   openPaymentModal(team) {
     this.selectedTeam = team;
     const modal = document.getElementById('payment-modal');
@@ -1152,9 +925,9 @@ export class AdminPage {
 
     document.getElementById('modal-team-title').textContent = `VERIFY PAYMENT: ${team.team_name}`;
     document.getElementById('modal-reg-id').textContent = team.reg_id;
-    document.getElementById('modal-utr').textContent = team.payment.utr_number;
-    document.getElementById('modal-payer').textContent = team.payment.payer_name;
-    document.getElementById('modal-amount').textContent = `₹${team.payment.amount}`;
+    document.getElementById('modal-utr').textContent = team.payment.utr_number || 'N/A';
+    document.getElementById('modal-payer').textContent = team.payment.payer_name || 'N/A';
+    document.getElementById('modal-amount').textContent = `₹${team.payment.amount || ((team.member_count || 1) * 300)}`;
 
     let screenshotUrl = team.payment.screenshot_url || '';
     if (team.payment.file_data && team.payment.file_data.startsWith('data:')) {
@@ -1167,21 +940,61 @@ export class AdminPage {
     const imgEl = document.getElementById('modal-screenshot-img');
     if (imgEl) imgEl.src = screenshotUrl;
 
+    const viewOriginalBtn = document.getElementById('modal-view-original-btn');
+    if (viewOriginalBtn) {
+      viewOriginalBtn.href = screenshotUrl;
+    }
+
+    const downloadProofBtn = document.getElementById('modal-download-proof-btn');
+    if (downloadProofBtn) {
+      downloadProofBtn.onclick = (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        triggerFileDownload(screenshotUrl, `${team.reg_id}_payment_proof`);
+      };
+    }
+
     modal.classList.remove('hidden');
 
     const approveBtn = document.getElementById('modal-approve-btn');
-
-    approveBtn.onclick = async () => {
-      try {
-        const res = await api.approvePayment(team.reg_id, team.payment.id);
-        if (res.success) {
-          toast.show('Payment approved! Invoice & Attendance QR Pass dispatched.', 'success');
-          modal.classList.add('hidden');
-          await this.fetchDashboardData();
+    if (approveBtn) {
+      approveBtn.onclick = async () => {
+        soundFx.playClick();
+        try {
+          const res = await api.approvePayment(team.reg_id, team.payment.id);
+          if (res.success) {
+            toast.show('Payment approved! Official attendance pass & tax invoice dispatched.', 'success');
+            modal.classList.add('hidden');
+            await this.fetchDashboardData();
+          } else {
+            toast.show(res.message || 'Payment approval failed.', 'error');
+          }
+        } catch (err) {
+          toast.show('Error approving payment.', 'error');
         }
-      } catch (err) {
-        toast.show('Error approving payment.', 'error');
-      }
-    };
+      };
+    }
+
+    const rejectBtn = document.getElementById('modal-reject-btn');
+    if (rejectBtn) {
+      rejectBtn.onclick = async () => {
+        soundFx.playClick();
+        const reason = prompt("Enter mandatory reason for rejecting this payment proof (visible to team on status tracker):", "Invalid UTR / Payment transfer not verified in bank account");
+        if (!reason || !reason.trim()) return;
+
+        try {
+          const res = await api.rejectPayment(team.reg_id, team.payment.id, reason.trim());
+          if (res.success) {
+            toast.show('Payment rejected and reason logged.', 'info');
+            modal.classList.add('hidden');
+            await this.fetchDashboardData();
+          } else {
+            toast.show(res.message || 'Payment rejection failed.', 'error');
+          }
+        } catch (err) {
+          toast.show('Error rejecting payment.', 'error');
+        }
+      };
+    }
   }
 }

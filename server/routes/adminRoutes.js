@@ -299,9 +299,15 @@ router.get('/export-csv', async (req, res) => {
     const teams = await dbAdapter.getAllTeams();
     const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
 
-    let csvContent = 'Registration ID,Team Name,Theme,Leader Name,Leader Email,Leader Phone,College,Department,Year,Member Count,Status,UTR Number,Payer Name,Payment Status,PPT Title,PPT File URL\n';
+    const headers = [
+      'Registration ID', 'Team Name', 'Theme', 'Leader Name', 'Leader Email', 'Leader Phone',
+      'College', 'Department', 'Year', 'Member Count', 'Status', 'UTR Number', 'Payer Name',
+      'Amount', 'Payment Status', 'Payment Screenshot', 'Attendance Checked In', 'Created At'
+    ];
 
     const sanitize = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+
+    let csvContent = headers.join(',') + '\n';
 
     for (const t of fullTeams) {
       if (!t) continue;
@@ -319,14 +325,16 @@ router.get('/export-csv', async (req, res) => {
         sanitize(t.status),
         sanitize(t.payment ? t.payment.utr_number : 'N/A'),
         sanitize(t.payment ? t.payment.payer_name : 'N/A'),
-        sanitize(t.payment ? t.payment.status : 'N/A'),
-        sanitize(t.ppt ? t.ppt.project_title : 'N/A'),
-        sanitize(t.ppt ? t.ppt.file_url : 'N/A')
+        t.payment ? t.payment.amount : ((t.member_count || 1) * 300),
+        sanitize(t.payment ? t.payment.status : 'PENDING'),
+        sanitize(t.payment ? t.payment.screenshot_url : 'N/A'),
+        t.attended ? 'YES' : 'NO',
+        sanitize(t.created_at || '')
       ].join(',');
       csvContent += row + '\n';
     }
 
-    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
     res.setHeader('Content-Disposition', 'attachment; filename="gambits_glitch_registrations_2026.csv"');
     return res.status(200).send(csvContent);
 
@@ -391,45 +399,6 @@ router.post('/payment-gate/toggle', async (req, res) => {
   } catch (err) {
     console.error('Toggle payment gate error:', err);
     return res.status(500).json({ success: false, message: 'Failed to update payment gate status.' });
-  }
-});
-
-// 13. Export Teams CSV
-router.get('/export-csv', async (req, res) => {
-  try {
-    const teams = await dbAdapter.getAllTeams();
-    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
-
-    const headers = [
-      'Reg ID', 'Team Name', 'Theme', 'Leader Name', 'Leader Email', 'Leader Phone',
-      'College', 'Status', 'Payment Status', 'UTR Number', 'PPT Submitted', 'PPT Version', 'Project Title', 'Created At'
-    ];
-
-    const rows = fullTeams.filter(Boolean).map(t => [
-      t.reg_id || '',
-      `"${(t.team_name || '').replace(/"/g, '""')}"`,
-      t.theme_id || '',
-      `"${(t.leader_name || '').replace(/"/g, '""')}"`,
-      t.leader_email || '',
-      t.leader_phone || '',
-      `"${(t.college || '').replace(/"/g, '""')}"`,
-      t.status || 'REGISTERED',
-      t.payment?.status || 'NOT_SUBMITTED',
-      t.payment?.utr_number || '',
-      t.ppt ? 'YES' : 'NO',
-      t.ppt?.version ? `v${t.ppt.version}` : '',
-      `"${(t.ppt?.project_title || '').replace(/"/g, '""')}"`,
-      t.created_at || ''
-    ]);
-
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
-
-    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-    res.setHeader('Content-Disposition', 'attachment; filename="gambits_glitch_registrations.csv"');
-    return res.send(csvContent);
-  } catch (err) {
-    console.error('Export CSV error:', err);
-    return res.status(500).send('Failed to generate CSV export.');
   }
 });
 

@@ -25,7 +25,7 @@ export class StatusTrackerPage {
               Pipeline Status Tracker
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Enter your Team Registration ID and Leader's email to verify real-time status across registration, PPT pitch deck submission, payment approval, and confirmed entry pass allocation.
+              Enter your Team Registration ID and Leader's email to verify real-time status across squad registration, direct UPI fee payment verification, confirmed entry pass allocation, and on-spot problem statement briefing.
             </p>
           </div>
 
@@ -98,12 +98,10 @@ export class StatusTrackerPage {
     if (!resultsContainer) return;
 
     const payment = data.payment;
-    const ppt = data.ppt;
     const pipelineStatus = data.pipeline_status;
 
     const isPaymentApproved = payment && payment.status === 'APPROVED';
     const isPaymentRejected = payment && payment.status === 'REJECTED';
-    const isPptSubmitted = Boolean(ppt);
     const isSlotConfirmed = isPaymentApproved || pipelineStatus === 'PAYMENT_APPROVED';
 
     const pipelineBadge = isSlotConfirmed
@@ -130,60 +128,70 @@ export class StatusTrackerPage {
           
           <div class="p-3 border border-accent bg-canvas text-accent-dark">
             <div class="font-bold">STEP 01</div>
-            <div class="text-[10px]">SQUAD REGISTERED</div>
-            <div class="text-accent text-xs mt-1">✔ OK</div>
-          </div>
-
-          <div class="p-3 border ${isPptSubmitted ? 'border-accent text-accent-dark bg-canvas' : 'border-line text-muted bg-paper'}">
-            <div class="font-bold">STEP 02</div>
-            <div class="text-[10px]">PPT PITCH DECK</div>
-            <div class="text-xs mt-1 font-bold">
-              ${isPptSubmitted ? '✔ SUBMITTED' : '⏳ PENDING'}
-            </div>
+            <div class="text-[10px]">SQUAD & PAYMENT</div>
+            <div class="text-accent text-xs mt-1">✔ SUBMITTED</div>
           </div>
 
           <div class="p-3 border ${isPaymentApproved ? 'border-accent text-accent-dark bg-canvas' : isPaymentRejected ? 'border-error text-error bg-canvas' : payment ? 'border-accent text-accent-dark bg-canvas' : 'border-line text-muted bg-paper'}">
-            <div class="font-bold">STEP 03</div>
-            <div class="text-[10px]">PAYMENT (FCFS)</div>
+            <div class="font-bold">STEP 02</div>
+            <div class="text-[10px]">PAYMENT VERIFICATION</div>
             <div class="text-xs mt-1 font-bold">
-              ${isPaymentApproved ? '✔ APPROVED' : isPaymentRejected ? '❌ REJECTED' : payment ? '⏳ PENDING' : '❌ UNPAID'}
+              ${isPaymentApproved ? '✔ VERIFIED' : isPaymentRejected ? '❌ REJECTED' : payment ? '⏳ PENDING' : '❌ UNPAID'}
             </div>
           </div>
 
           <div class="p-3 border ${isSlotConfirmed ? 'border-success text-success bg-canvas font-bold' : 'border-line text-muted bg-paper'}">
-            <div class="font-bold">STEP 04</div>
-            <div class="text-[10px]">ENTRY PASS</div>
+            <div class="font-bold">STEP 03</div>
+            <div class="text-[10px]">ENTRY PASS & QR</div>
             <div class="text-xs mt-1 font-bold">
-              ${isSlotConfirmed ? '⭐ CONFIRMED' : '⏳ PENDING PAYMENT'}
+              ${isSlotConfirmed ? '⭐ CONFIRMED' : '⏳ AWAITING VERIFICATION'}
+            </div>
+          </div>
+
+          <div class="p-3 border border-line text-ink bg-paper">
+            <div class="font-bold">STEP 04</div>
+            <div class="text-[10px]">ON-SPOT PROBLEM</div>
+            <div class="text-xs mt-1 font-bold text-accent-dark">
+              OCT 10 (09:00 AM)
             </div>
           </div>
 
         </div>
       </div>
 
-      <!-- FCFS Team Action Banner Callout -->
+      <!-- FCFS Team Action Banner Callout & Official Pass -->
       ${isSlotConfirmed ? `
-        <div class="tech-card p-6 border-2 border-success bg-paper space-y-3 shadow-md">
-          <div class="text-xs text-success font-bold font-mono">// PARTICIPATION SLOT CONFIRMED</div>
+        <div class="tech-card p-6 border-2 border-success bg-paper space-y-4 shadow-md">
+          <div class="flex items-center justify-between border-b border-line pb-3">
+            <div class="text-xs text-success font-bold font-mono">// PARTICIPATION SLOT CONFIRMED (FCFS)</div>
+            <span class="px-2.5 py-0.5 border border-success bg-success/10 text-success text-[10px] font-bold font-mono uppercase">OFFICIAL ENTRY PASS VALID</span>
+          </div>
           <h3 class="font-sans text-2xl font-bold text-ink uppercase">
             🎉 CONGRATULATIONS! TEAM ${data.team_name} HAS A CONFIRMED SLOT!
           </h3>
           <p class="text-xs text-ink font-sans leading-relaxed">
-            Your registration fee has been verified and your team's slot (out of strictly 40 slots) for the grand finals at <strong>Auditorium, VSBCETC</strong> is secured! Your official Attendance QR Pass and invoice have been issued.
+            Your registration fee has been verified and your team's confirmed slot (out of strictly 40 slots) for the grand finals at <strong>Auditorium, VSBCETC</strong> is secured!
           </p>
+
+          <!-- Attendance QR Code Frame -->
+          <div class="p-4 bg-canvas border border-line text-center space-y-3">
+            <div class="text-[10px] text-muted font-mono font-bold uppercase tracking-wider">// OFFICIAL VENUE ATTENDANCE PASS QR:</div>
+            <div class="inline-block p-2 bg-paper border border-line shadow-xs">
+              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`GAMBIT'S GLITCH 2026 PASS\nID: ${data.reg_id}\nTeam: ${data.team_name}\nTrack: ${data.theme_id}\nStatus: PAID & VERIFIED`)}&color=10100E&bgcolor=F8F7F2" alt="Attendance Pass QR" class="w-44 h-44 mx-auto" />
+            </div>
+            <div class="text-xs font-mono font-bold text-ink">REG ID: <span class="text-accent-dark">${data.reg_id}</span></div>
+            <p class="text-[11px] text-muted font-mono">Present this QR pass on your phone upon arrival at Auditorium, VSBCETC.</p>
+          </div>
         </div>
       ` : `
         <div class="tech-card p-6 border-2 border-accent bg-paper space-y-4 shadow-md">
-          <div class="text-xs text-accent-dark font-bold font-mono">// FIRST-COME, FIRST-SERVED ALLOCATION (ONLY 40 TEAMS)</div>
+          <div class="text-xs text-accent-dark font-bold font-mono">// PAYMENT VERIFICATION IN PROGRESS (FCFS)</div>
           <h3 class="font-sans text-2xl font-bold text-ink uppercase">
-            ⚡ SECURE YOUR TEAM SLOT FOR GAMBIT'S GLITCH 2026
+            ⚡ SLOT CONFIRMATION PENDING ORGANIZER VERIFICATION
           </h3>
           <p class="text-xs text-ink font-sans leading-relaxed">
-            There is no shortlisting wait—slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis! Complete your registration fee payment (₹300/person) now to confirm your team's seat before the 40-team limit is reached.
+            Your registration and payment reference are currently being verified by event organizers. Slots are confirmed strictly on a <strong>First-Come, First-Served (FCFS)</strong> basis capped at <strong>only 40 teams</strong>.
           </p>
-          <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-3.5 px-6 inline-block font-mono font-bold tracking-widest uppercase cursor-pointer">
-            💳 PROCEED TO PAYMENT PORTAL (FCFS) →
-          </a>
         </div>
       `}
 
@@ -210,11 +218,16 @@ export class StatusTrackerPage {
                 </a>
               </div>
             </div>
-          ` : ''}
+          ` : `
+            <div class="text-xs text-muted font-sans">
+              Payment Status: <strong class="${isPaymentApproved ? 'text-success font-bold' : 'text-accent-dark font-bold'}">${payment.status}</strong>. 
+              ${isPaymentApproved ? 'Official Attendance Pass has been validated.' : 'Our team will review your UTR transaction shortly.'}
+            </div>
+          `}
 
         ` : `
           <div class="text-xs text-muted space-y-3 font-sans">
-            <p>No payment proof submitted yet for this team. Slots are filled on a First-Come, First-Served basis—submit payment to secure your slot.</p>
+            <p>No payment proof attached. Please complete payment via the Payment portal.</p>
             <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
               SUBMIT PAYMENT PROOF NOW →
             </a>
@@ -222,36 +235,29 @@ export class StatusTrackerPage {
         `}
       </div>
 
-      <!-- PPT Detail Box -->
+      <!-- On-Spot Problem Statement Box (Replaces PPT) -->
       <div class="tech-card p-6 border-line bg-paper space-y-4">
-        <h3 class="font-sans text-lg font-bold text-ink uppercase border-b border-line pb-2">
-          PPT PITCH DECK SUBMISSION INTEL
-        </h3>
+        <div class="flex items-center justify-between border-b border-line pb-2">
+          <h3 class="font-sans text-lg font-bold text-ink uppercase">
+            ON-SPOT PROBLEM STATEMENT INTEL
+          </h3>
+          <span class="px-2.5 py-0.5 text-[10px] font-bold border border-accent bg-accent/15 text-accent-dark font-mono uppercase">
+            LIVE VENUE RELEASE
+          </span>
+        </div>
 
-        ${ppt ? `
-          <div class="space-y-2 text-xs font-mono">
-            <div>PROJECT TITLE: <strong class="text-accent-dark font-bold">${ppt.project_title}</strong></div>
-            <div>FILE NAME: <strong class="text-ink">${ppt.original_filename}</strong> (Version ${ppt.version})</div>
-            <div>LAST UPDATED: <strong class="text-ink">${ppt.submitted_at}</strong></div>
-            ${ppt.repo_link ? `<div>REPO LINK: <a href="${ppt.repo_link}" target="_blank" class="text-accent underline">${ppt.repo_link}</a></div>` : ''}
+        <div class="space-y-3 text-xs font-mono">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-canvas p-4 border border-line">
+            <div>SELECTED TRACK: <strong class="text-accent-dark font-bold">${data.theme_id}</strong></div>
+            <div>CHALLENGE RELEASE: <strong class="text-ink">09:00 AM IST // OCT 10, 2026</strong></div>
+            <div>VENUE: <strong class="text-ink">Auditorium, VSBCETC</strong></div>
+            <div>SPRINT DURATION: <strong class="text-ink">10 HOURS CONTINUOUS BUILD</strong></div>
           </div>
-          <div class="pt-2">
-            <a href="#" data-route="submit-ppt" class="nav-link btn-secondary text-xs py-2 px-4 inline-block font-mono">
-              RE-UPLOAD / UPDATE PITCH DECK →
-            </a>
-          </div>
-        ` : isPaymentApproved ? `
-          <div class="text-xs text-accent-dark font-sans space-y-3">
-            <p>🎉 Payment Approved! PPT submission gate is unlocked for your team.</p>
-            <a href="#" data-route="submit-ppt" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
-              SUBMIT PPT PITCH DECK NOW →
-            </a>
-          </div>
-        ` : `
-          <div class="text-xs text-muted font-sans">
-            🔒 PPT submission is locked. Payment approval is required before uploading presentation files.
-          </div>
-        `}
+
+          <p class="text-xs text-muted font-sans leading-relaxed">
+            <strong class="text-ink">No prior PPT or deck submission is required.</strong> On the morning of October 10 at 09:00 AM IST, the official real-world problem statements for your selected track will be announced live. Teams will have 10 hours to build, architect, and deploy their prototype before final code freeze.
+          </p>
+        </div>
       </div>
     `;
 

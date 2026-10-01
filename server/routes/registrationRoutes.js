@@ -34,8 +34,7 @@ const upload = multer({
 });
 
 const regUpload = upload.fields([
-  { name: 'payment_screenshot', maxCount: 1 },
-  { name: 'ppt_file', maxCount: 1 }
+  { name: 'payment_screenshot', maxCount: 1 }
 ]);
 
 // Helper to generate unique registration ID (e.g., GG26-8F92)
@@ -62,15 +61,10 @@ router.post('/', regUpload, async (req, res) => {
       leader_phone,
       members,
       rules_agreed,
-      // Payment fields
+      // Payment fields (Mandatory in registration)
       utr_number,
       payer_name,
-      amount,
-      // PPT fields
-      project_title,
-      summary,
-      repo_link,
-      demo_link
+      amount
     } = req.body;
 
     // Strict input validation
@@ -83,13 +77,20 @@ router.post('/', regUpload, async (req, res) => {
     }
 
     const paymentFile = req.files && req.files['payment_screenshot'] ? req.files['payment_screenshot'][0] : null;
-    const pptFile = req.files && req.files['ppt_file'] ? req.files['ppt_file'][0] : null;
 
-    // STEP 1 REQUIREMENT: Pitch Deck PPT presentation file + title + summary are mandatory for registration!
-    if (!pptFile || !project_title || !project_title.trim() || !summary || !summary.trim()) {
+    // MANDATORY PAYMENT VALIDATION
+    if (!paymentFile || !utr_number || !utr_number.trim() || !payer_name || !payer_name.trim()) {
       return res.status(400).json({
         success: false,
-        message: 'Registration requirement: Presentation pitch deck file (.ppt, .pptx, .pdf), project title, and summary must be submitted.'
+        message: 'Registration requirement: UPI payment screenshot, 12-digit UTR reference number, and payer name must be submitted.'
+      });
+    }
+
+    const sanitizedUtr = utr_number.trim();
+    if (sanitizedUtr.length < 8 || sanitizedUtr.length > 24) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid UTR reference number. Please provide a valid 12-digit transaction ID.'
       });
     }
 
@@ -128,11 +129,23 @@ router.post('/', regUpload, async (req, res) => {
       });
     }
 
+    // Check for duplicate UTR number across all payments
+    const existingPaymentWithUtr = await dbAdapter.getPaymentByUtr(sanitizedUtr);
+    if (existingPaymentWithUtr) {
+      return res.status(400).json({
+        success: false,
+        message: `UTR transaction reference "${sanitizedUtr}" has already been submitted for another team. Each payment must be unique.`
+      });
+    }
+
     // Generate unique Registration ID
     let regId = generateRegId();
     while (allTeams.some(t => t.reg_id === regId)) {
       regId = generateRegId();
     }
+
+    const totalSquadMembers = memberArray.length + 1;
+    const expectedAmount = totalSquadMembers * 300;
 
     const teamData = {
       reg_id: regId,
@@ -145,8 +158,8 @@ router.post('/', regUpload, async (req, res) => {
       leader_name: leader_name.trim(),
       leader_email: leader_email.trim().toLowerCase(),
       leader_phone: leader_phone.trim(),
-      member_count: memberArray.length + 1,
-      status: paymentFile && utr_number ? 'PAYMENT_PENDING' : 'REGISTERED',
+      member_count: totalSquadMembers,
+      status: 'PAYMENT_PENDING',
       rules_agreed: true
     };
 
@@ -167,51 +180,41 @@ router.post('/', regUpload, async (req, res) => {
 
     const createdTeam = await dbAdapter.createTeam(teamData, teamMembersData);
 
-    // Process Payment Screenshot & Record if attached
-    let paymentRecord = null;
-    if (paymentFile && utr_number) {
-      const screenshotUrl = `/uploads/${paymentFile.filename}`;
-      paymentRecord = await dbAdapter.createPayment({
-        team_id: createdTeam.id,
-        utr_number: utr_number.trim(),
-        payer_name: (payer_name || leader_name).trim(),
-        amount: parseFloat(amount) || ((memberArray.length + 1) * 300),
-        payment_date: new Date().toISOString().split('T')[0],
-        screenshot_url: screenshotUrl,
-        filename: paymentFile.filename,
-        original_filename: paymentFile.originalname,
-        mime_type: paymentFile.mimetype,
-        file_data: null
-      });
+    // Read payment screenshot buffer for persistence
+    let fileData = null;
+    try {
+      if (paymentFile && paymentFile.path && fs.existsSync(paymentFile.path)) {
+        const fileBuffer = fs.readFileSync(paymentFile.path);
+        fileData = `data:${paymentFile.mimetype};base64,${fileBuffer.toString('base64')}`;
+      }
+    } catch (e) {
+      console.warn("Could not read screenshot buffer:", e.message);
     }
 
-    // Process PPT Pitch Deck
-    const pptRecord = await dbAdapter.upsertPptSubmission({
+    // Create Payment Record linked to team
+    const screenshotUrl = `/uploads/${paymentFile.filename}`;
+    const paymentRecord = await dbAdapter.createPayment({
       team_id: createdTeam.id,
-      project_title: project_title.trim(),
-      summary: (summary || 'Submitted during team registration').trim(),
-      file_url: `/uploads/${pptFile.filename}`,
-      filename: pptFile.filename,
-      original_filename: pptFile.originalname,
-      mime_type: pptFile.mimetype,
-      file_data: null,
-      repo_link: repo_link ? repo_link.trim() : '',
-      demo_link: demo_link ? demo_link.trim() : ''
+      utr_number: sanitizedUtr,
+      payer_name: payer_name.trim(),
+      amount: parseFloat(amount) || expectedAmount,
+      payment_date: new Date().toISOString().split('T')[0],
+      screenshot_url: screenshotUrl,
+      filename: paymentFile.filename,
+      original_filename: paymentFile.originalname,
+      mime_type: paymentFile.mimetype,
+      file_data: fileData
     });
 
-    // Send Initial Registration Confirmation Email
-    sendRegistrationConfirmation(createdTeam, teamMembersData, pptRecord).catch(err => console.error('Registration email dispatch error:', err));
-    if (paymentRecord) {
-      sendPaymentInvoiceEmail(createdTeam, paymentRecord, pptRecord, teamMembersData).catch(err => console.error('Invoice email dispatch error:', err));
-    }
+    // Send Registration & Payment Confirmation Email (with on-spot problem statement notice)
+    sendRegistrationConfirmation(createdTeam, teamMembersData, paymentRecord).catch(err => console.error('Registration email dispatch error:', err));
 
     return res.status(201).json({
       success: true,
-      message: 'Team successfully registered on a First-Come, First-Served basis! Submit payment to lock your slot.',
+      message: 'Team successfully registered with fee payment! Slot confirmation is pending admin verification on a First-Come, First-Served basis.',
       reg_id: regId,
       team: createdTeam,
-      payment: paymentRecord,
-      ppt: pptRecord
+      payment: paymentRecord
     });
 
   } catch (err) {

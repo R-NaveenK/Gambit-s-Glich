@@ -26,7 +26,7 @@ export class PaymentPage {
               Payment Verification
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Enter your Team Registration ID. Slots are strictly limited to <strong class="text-ink font-bold">40 teams only</strong>, allocated on a <strong class="text-ink font-bold">First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait. Verify your squad roster, calculate the total fee (₹300 per member), and submit payment to lock your team's slot before capacity is reached.
+              Enter your Team Registration ID to check payment verification status. <strong class="text-accent-dark font-bold">Note: Payment is submitted directly inside the Team Registration form.</strong> If your squad has not registered yet, please <a href="#" data-route="register" class="text-ink font-bold underline">Register Here with Fee Payment</a>.
             </p>
           </div>
 
@@ -76,8 +76,8 @@ export class PaymentPage {
                 </div>
 
                 <div class="p-6 bg-canvas border border-line flex flex-col items-center justify-center text-center space-y-2">
-                  <div class="w-32 h-32 bg-paper border border-line flex items-center justify-center text-accent font-mono font-bold text-xs p-2">
-                    [UPI QR CODE]
+                  <div class="p-2 bg-paper border border-line">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(`upi://pay?pa=${eventConfig.paymentDetails.upiId}&pn=${encodeURIComponent(eventConfig.paymentDetails.payeeName)}&cu=INR`)}&color=10100E&bgcolor=F8F7F2" alt="UPI QR Code" class="w-32 h-32 object-contain" />
                   </div>
                   <div class="text-[10px] text-muted font-mono">SCAN WITH ANY UPI APP (GPAY, PHONEPE, PAYTM)</div>
                 </div>

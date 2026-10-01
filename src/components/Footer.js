@@ -29,9 +29,8 @@ export class Footer {
             <!-- Column 2: Pipelines -->
             <div class="flex flex-col gap-3">
               <div class="text-ink font-bold uppercase tracking-widest mb-1 border-b border-line pb-2">01 / PIPELINES</div>
-              <a href="#" data-route="register" class="nav-link text-ink hover:text-accent transition-colors">TEAM REGISTRATION</a>
-              <a href="#" data-route="payment" class="nav-link text-ink hover:text-accent transition-colors">PAYMENT SUBMISSION</a>
-              <a href="#" data-route="submit-ppt" class="nav-link text-ink hover:text-accent transition-colors">PPT SUBMISSION GATE</a>
+              <a href="#" data-route="register" class="nav-link text-ink hover:text-accent transition-colors">SQUAD REGISTRATION</a>
+              <a href="#" data-route="submit-ppt" class="nav-link text-ink hover:text-accent transition-colors">ON-SPOT CHALLENGE</a>
               <a href="#" data-route="status" class="nav-link text-ink hover:text-accent transition-colors">STATUS TRACKER</a>
             </div>
 

@@ -17,7 +17,7 @@ export class RulesPrizesPage {
               Governance & Event Rules
             </h1>
             <p class="text-sm text-muted mt-4 max-w-2xl leading-relaxed font-sans">
-              Review team eligibility criteria, registration policies, PPT submission rules, and evaluation benchmarks.
+              Review team eligibility criteria, direct registration & fee policies, on-spot problem statement guidelines, and evaluation benchmarks.
             </p>
           </div>
 

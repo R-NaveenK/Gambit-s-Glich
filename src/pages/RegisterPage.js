@@ -1,5 +1,7 @@
 /**
- * GAMBIT'S GLITCH - 06 / TRANSMIT YOUR ENTRY (Registration & PPT Pitch Deck Submission)
+ * GAMBIT'S GLITCH 2026 - 06 / TRANSMIT YOUR ENTRY (Squad Registration & Direct Fee Payment)
+ * Strictly First-Come, First-Served (Capped at 40 Teams)
+ * Challenge Problem Statements: REVEALED ON SPOT AT VENUE (No Advance PPT Required)
  */
 
 import { eventConfig } from '../config/eventConfig.js';
@@ -18,10 +20,10 @@ export class RegisterPage {
     const cleanTarget = String(targetTrack).trim().toLowerCase();
     
     return eventConfig.themes.find(t => {
-      const cleanId = String(t.id).trim().toLowerCase();          // e.g. "track-05"
-      const cleanNum = String(t.number).trim().toLowerCase();      // e.g. "05"
-      const cleanName = String(t.name).trim().toLowerCase();      // e.g. "education"
-      const numOnly = cleanNum.replace(/^0+/, '');                 // e.g. "5"
+      const cleanId = String(t.id).trim().toLowerCase();
+      const cleanNum = String(t.number).trim().toLowerCase();
+      const cleanName = String(t.name).trim().toLowerCase();
+      const numOnly = cleanNum.replace(/^0+/, '');
 
       return (
         cleanTarget === cleanId ||
@@ -47,13 +49,17 @@ export class RegisterPage {
           
           <!-- Header -->
           <div class="border-b border-line pb-8 mb-10">
-            <div class="text-xs text-accent-dark tracking-widest uppercase mb-2">06 / TRANSMIT YOUR ENTRY — STEP 01</div>
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+              <span class="text-xs text-accent-dark tracking-widest uppercase font-bold">// 06 / TRANSMIT YOUR ENTRY</span>
+              <span class="px-2.5 py-0.5 text-[10px] font-bold border border-accent bg-accent/15 text-accent-dark font-mono uppercase">
+                STRICTLY 40 TEAMS ONLY (FCFS)
+              </span>
+            </div>
             <h1 class="font-serif text-5xl sm:text-7xl font-normal italic text-ink">
-              Team Registration & Pitch Deck
+              Team Registration & Payment
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Register your squad and upload your presentation pitch deck (.ppt, .pptx, .pdf). 
-              Participation slots are strictly limited to <strong class="text-accent-dark font-bold">only 40 teams</strong> on a <strong class="text-accent-dark font-bold">First-Come, First-Served (FCFS)</strong> basis with no shortlisting phase. Complete registration and submit fee payment to guarantee your squad's slot before all 40 spots are claimed.
+              Register your squad and submit your UPI fee payment in one step. Participation slots are strictly limited to <strong class="text-accent-dark font-bold">only 40 teams</strong> on a <strong class="text-accent-dark font-bold">First-Come, First-Served (FCFS)</strong> basis. <strong class="text-ink">No advance PPT pitch deck is required</strong>—concrete challenge problem statements will be revealed <strong class="text-signal">ON SPOT</strong> on hackathon morning at 09:00 AM IST!
             </p>
           </div>
 
@@ -144,12 +150,12 @@ export class RegisterPage {
                   03 / SQUAD MEMBERS
                 </h2>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-3">
                   <span class="text-xs text-muted">SQUAD SIZE:</span>
-                  <select id="member-count-select" class="px-3 py-1 text-xs text-accent-dark font-bold outline-none border border-line bg-canvas">
-                    <option value="2">2 Members</option>
-                    <option value="3" selected>3 Members</option>
-                    <option value="4">4 Members</option>
+                  <select id="member-count-select" class="px-3 py-1.5 text-xs text-accent-dark font-bold outline-none border border-line bg-canvas cursor-pointer">
+                    <option value="2">2 Members (₹600)</option>
+                    <option value="3" selected>3 Members (₹900)</option>
+                    <option value="4">4 Members (₹1,200)</option>
                   </select>
                 </div>
               </div>
@@ -160,52 +166,99 @@ export class RegisterPage {
               </div>
             </div>
 
-            <!-- SECTION 4: PPT PRESENTATION SUBMISSION -->
-            <div class="tech-card p-6 md:p-8 border-line bg-paper space-y-6">
-              <div class="flex items-center justify-between border-b border-line pb-3">
-                <h2 class="font-sans text-lg font-bold text-ink uppercase">
-                  04 / PPT PRESENTATION SUBMISSION
-                </h2>
-                <span class="text-xs text-accent-dark font-bold">MANDATORY FOR HACKATHON ENTRY</span>
+            <!-- SECTION 4: ON-SPOT PROBLEM STATEMENT NOTICE (NO PPT REQUIRED) -->
+            <div class="tech-card p-6 md:p-8 border-2 border-accent bg-paper space-y-3">
+              <div class="flex items-center justify-between border-b border-line pb-2">
+                <span class="text-xs text-accent-dark font-bold font-mono uppercase tracking-wider">// 04 / CHALLENGE FORMAT: ON-SPOT RELEASE</span>
+                <span class="px-2.5 py-0.5 text-[10px] font-bold border border-accent bg-accent/15 text-accent-dark font-mono uppercase">
+                  NO ADVANCE PPT REQUIRED
+                </span>
               </div>
-
-              <div>
-                <label class="block text-xs text-ink mb-2">PROJECT TITLE *</label>
-                <input type="text" name="project_title" required placeholder="e.g. AI-driven Healthcare Diagnostics System" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
-              </div>
-
-              <div>
-                <label class="block text-xs text-ink mb-2">SHORT PROJECT SUMMARY *</label>
-                <textarea name="summary" required rows="3" placeholder="Briefly describe the problem, architectural approach, and key features..." class="w-full p-4 text-xs focus:border-accent outline-none leading-relaxed font-sans"></textarea>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label class="block text-xs text-ink mb-2">PITCH DECK PRESENTATION FILE (.PPT, .PPTX, .PDF) *</label>
-                  <input type="file" name="ppt_file" accept=".ppt,.pptx,.pdf" required class="w-full bg-canvas border border-line p-3 text-xs text-muted file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-accent file:text-ink file:font-bold file:text-xs cursor-pointer" />
-                  <div class="text-[10px] text-muted mt-1 font-sans">Upload your deck file (.ppt, .pptx, or .pdf - Max 15 MB).</div>
-                </div>
-
-                <div>
-                  <label class="block text-xs text-ink mb-2">GITHUB REPOSITORY LINK (OPTIONAL)</label>
-                  <input type="url" name="repo_link" placeholder="https://github.com/team/project" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
-                </div>
-              </div>
+              <h3 class="font-sans text-xl font-bold text-ink uppercase">
+                Problem Statements Announced Live on Hackathon Morning
+              </h3>
+              <p class="text-xs text-muted leading-relaxed font-sans">
+                You do <strong class="text-ink">NOT</strong> need to submit any PPT pitch deck, slides, or pre-built code beforehand. Concrete, real-world challenge problem statements across all 5 tracks will be revealed live at the venue on <strong class="text-ink">October 10, 2026 at 09:00 AM IST (Auditorium, VSBCETC)</strong>. All architectural design, programming, and prototype engineering take place live during the 10-hour arena sprint!
+              </p>
             </div>
 
+            <!-- SECTION 5: PARTICIPANT FEE PAYMENT (UPI VERIFICATION) -->
+            <div class="tech-card p-6 md:p-8 border-2 border-accent/80 bg-paper space-y-6">
+              <div class="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-3">
+                <h2 class="font-sans text-lg font-bold text-ink uppercase">
+                  05 / REGISTRATION FEE PAYMENT (UPI)
+                </h2>
+                <span id="calculated-fee-pill" class="px-3 py-1 bg-accent/20 border border-accent text-accent-dark font-mono text-xs font-bold uppercase">
+                  TOTAL: ₹900 (3 MEMBERS × ₹300)
+                </span>
+              </div>
 
+              <!-- UPI Info Box -->
+              <div class="grid grid-cols-1 md:grid-cols-12 gap-6 bg-canvas p-5 border border-line">
+                <div class="md:col-span-8 space-y-3">
+                  <div class="text-xs text-accent-dark font-bold">// OFFICIAL UPI PAYMENT DETAILS</div>
+                  
+                  <div class="space-y-1 text-xs">
+                    <div class="text-muted text-[11px]">UPI ID / VPA:</div>
+                    <div class="flex items-center justify-between bg-paper p-3 border border-line text-ink font-bold font-mono">
+                      <span id="reg-upi-id">${eventConfig.paymentDetails.upiId}</span>
+                      <button type="button" id="copy-reg-upi-btn" class="text-xs text-accent hover:underline cursor-pointer font-mono font-bold">
+                        [COPY UPI]
+                      </button>
+                    </div>
+                    <div class="text-[10px] text-muted">PAYEE: ${eventConfig.paymentDetails.payeeName}</div>
+                  </div>
+
+                  <div class="p-3 bg-paper border border-line text-[11px] text-muted space-y-1 font-sans">
+                    <div>1. Open Google Pay, PhonePe, Paytm, or any UPI app.</div>
+                    <div>2. Pay <strong id="calculated-pay-amount-text" class="text-ink font-bold">₹900</strong> for your team.</div>
+                    <div>3. Note down the 12-digit UTR / transaction ID and take a screenshot of the receipt.</div>
+                  </div>
+                </div>
+
+                <div class="md:col-span-4 flex flex-col items-center justify-center p-4 bg-paper border border-line text-center space-y-2">
+                  <div class="p-2 bg-canvas border border-line">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=140x140&data=${encodeURIComponent(`upi://pay?pa=${eventConfig.paymentDetails.upiId}&pn=${encodeURIComponent(eventConfig.paymentDetails.payeeName)}&cu=INR`)}&color=10100E&bgcolor=F8F7F2" alt="UPI QR Code" class="w-28 h-28 object-contain" />
+                  </div>
+                  <div class="text-[10px] text-muted font-mono font-bold">SCAN WITH ANY UPI APP</div>
+                </div>
+              </div>
+
+              <!-- Payment Inputs -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div>
+                  <label class="block text-xs text-ink mb-2">PAYER FULL NAME (NAME ON UPI ACCOUNT) *</label>
+                  <input type="text" name="payer_name" required placeholder="e.g. Arjun Leader" class="w-full px-4 py-3 text-xs focus:border-accent outline-none font-mono" />
+                </div>
+
+                <div>
+                  <label class="block text-xs text-ink mb-2">12-DIGIT UTR / REFERENCE NUMBER *</label>
+                  <input type="text" name="utr_number" required pattern="[a-zA-Z0-9]{8,24}" placeholder="e.g. 202698765432" class="w-full px-4 py-3 text-xs focus:border-accent outline-none font-mono" />
+                  <div class="text-[10px] text-muted mt-1 font-sans">Enter the 12-digit transaction number from your UPI receipt.</div>
+                </div>
+
+              </div>
+
+              <div>
+                <label class="block text-xs text-ink mb-2">PAYMENT PROOF SCREENSHOT *</label>
+                <input type="file" name="payment_screenshot" accept="image/jpeg,image/png,image/webp,image/heic" required class="w-full bg-canvas border border-line p-3 text-xs text-muted file:mr-4 file:py-2 file:px-4 file:border-0 file:bg-accent file:text-ink file:font-bold file:text-xs cursor-pointer font-mono" />
+                <div class="text-[10px] text-muted mt-1 font-sans">Upload clear screenshot showing UTR number, date, and amount (JPG, PNG, WEBP - Max 10MB).</div>
+              </div>
+
+            </div>
 
             <!-- SECTION 6: CODE OF CONDUCT & SUBMIT -->
             <div class="tech-card p-6 border-line bg-paper space-y-4">
               <label class="flex items-start gap-3 cursor-pointer text-xs text-muted font-sans">
                 <input type="checkbox" name="rules_agreed" required class="mt-1 accent-accent" />
                 <span>
-                  I confirm that all team members are enrolled students and agree to abide by the <strong class="text-ink">Gambit’s Glitch Rules and Code of Conduct</strong>.
+                  I confirm that all team members are enrolled students and agree to abide by the <strong class="text-ink">Gambit’s Glitch Rules and Code of Conduct</strong>. I understand that all 40 slots are locked strictly on a First-Come, First-Served basis upon payment verification.
                 </span>
               </label>
 
               <button type="submit" id="submit-reg-btn" class="nav-link btn-primary w-full py-4 text-xs font-bold tracking-widest uppercase">
-                ⚡ SUBMIT SQUAD REGISTRATION & PITCH DECK →
+                ⚡ REGISTER TEAM & SUBMIT ₹900 PAYMENT (LOCK FCFS SLOT) →
               </button>
             </div>
 
@@ -218,24 +271,31 @@ export class RegisterPage {
                 ✔
               </div>
 
-              <h2 class="font-serif text-4xl font-normal italic text-ink">Registration Completed</h2>
+              <h2 class="font-serif text-4xl font-normal italic text-ink">Registration & Payment Submitted</h2>
               
               <div class="p-4 bg-canvas border border-accent text-center space-y-2">
                 <div class="text-xs text-muted">YOUR UNIQUE REGISTRATION ID</div>
                 <div id="success-reg-id" class="font-mono text-3xl font-bold text-accent-dark tracking-wider">GG26-XXXX</div>
-                <div class="text-[11px] text-muted">SAVE THIS ID FOR PAYMENT & STATUS TRACKING!</div>
+                <div class="text-[11px] text-muted">STATUS: PAYMENT VERIFICATION PENDING (FCFS)</div>
               </div>
 
               <p class="text-xs text-muted leading-relaxed font-sans">
-                Team registration and PPT pitch deck have been submitted successfully. Event slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait. Proceed to the Payment Portal now to lock your team's slot before all 40 spots are claimed!
+                Your squad registration and payment proof have been received successfully! Slots are allocated strictly on a <strong>First-Come, First-Served (FCFS)</strong> basis capped at <strong>only 40 teams</strong>. Once our organizers verify your UTR reference, your official Attendance QR Pass & Invoice will be issued.
               </p>
 
+              <div class="p-3 bg-canvas border border-line text-left text-xs space-y-1">
+                <div class="text-accent-dark font-bold">// ON-SPOT PROBLEM STATEMENT REMINDER:</div>
+                <div class="text-muted text-[11px]">
+                  Exact problem statements will be revealed live at <strong>09:00 AM IST on October 10, 2026 at Auditorium, VSBCETC</strong>. No advance PPT submission is required.
+                </div>
+              </div>
+
               <div class="flex flex-col gap-3 pt-2">
-                <button id="modal-proceed-payment" class="nav-link btn-primary w-full py-3.5 text-xs font-bold tracking-wider uppercase">
-                  💳 PROCEED TO PAYMENT (FCFS) →
-                </button>
-                <button id="modal-check-status" class="btn-secondary w-full py-2.5 text-xs font-mono font-bold uppercase border border-line hover:border-accent">
+                <button id="modal-check-status" class="nav-link btn-primary w-full py-3.5 text-xs font-bold tracking-wider uppercase">
                   ⚡ VIEW STATUS TRACKER →
+                </button>
+                <button id="modal-go-home" class="btn-secondary w-full py-2.5 text-xs font-mono font-bold uppercase border border-line hover:border-accent">
+                  🏠 RETURN TO HOMEPAGE
                 </button>
               </div>
             </div>
@@ -256,7 +316,9 @@ export class RegisterPage {
 
     const selectEl = document.getElementById('member-count-select');
     const containerEl = document.getElementById('members-input-container');
-    const feeBadge = document.getElementById('calculated-fee-badge');
+    const feePill = document.getElementById('calculated-fee-pill');
+    const payAmountText = document.getElementById('calculated-pay-amount-text');
+    const submitBtn = document.getElementById('submit-reg-btn');
 
     // In-memory data store for member input values so nothing is lost when changing squad size
     const memberDataStore = {};
@@ -285,8 +347,16 @@ export class RegisterPage {
       const feePerPerson = eventConfig.teamPolicy.registrationFee;
       const totalFee = totalMembers * feePerPerson;
 
-      if (feeBadge) {
-        feeBadge.textContent = `FEE: ₹${totalFee} (${totalMembers} MEMBERS × ₹${feePerPerson})`;
+      if (feePill) {
+        feePill.textContent = `TOTAL: ₹${totalFee} (${totalMembers} MEMBERS × ₹${feePerPerson})`;
+      }
+
+      if (payAmountText) {
+        payAmountText.textContent = `₹${totalFee}`;
+      }
+
+      if (submitBtn) {
+        submitBtn.innerHTML = `⚡ REGISTER TEAM & SUBMIT ₹${totalFee} PAYMENT (LOCK FCFS SLOT) →`;
       }
 
       const extraCount = totalMembers - 1;
@@ -331,18 +401,29 @@ export class RegisterPage {
       });
     }
 
+    // Copy UPI Button
+    const copyUpiBtn = document.getElementById('copy-reg-upi-btn');
+    const upiText = document.getElementById('reg-upi-id');
+    if (copyUpiBtn && upiText) {
+      copyUpiBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(upiText.textContent.trim());
+        toast.show('UPI ID copied to clipboard!', 'success');
+      });
+    }
+
     const form = document.getElementById('registration-form');
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
         soundFx.playClick();
 
-        const submitBtn = document.getElementById('submit-reg-btn');
+        const memberCount = parseInt(selectEl.value);
+        const totalFee = memberCount * eventConfig.teamPolicy.registrationFee;
+
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `⏳ TRANSMITTING REGISTRATION & PITCH DECK...`;
+        submitBtn.innerHTML = `⏳ TRANSMITTING REGISTRATION & VERIFYING PAYMENT...`;
 
         const formData = new FormData(form);
-        const memberCount = parseInt(selectEl.value);
 
         const members = [];
         for (let i = 1; i < memberCount; i++) {
@@ -355,14 +436,14 @@ export class RegisterPage {
         }
 
         formData.set('members', JSON.stringify(members));
-        formData.set('amount', (memberCount * eventConfig.teamPolicy.registrationFee).toString());
+        formData.set('amount', totalFee.toString());
         formData.set('rules_agreed', 'true');
 
         try {
           const res = await api.registerTeam(formData);
           if (res.success) {
             soundFx.playGlitch();
-            toast.show(`Registration successful! ID: ${res.reg_id}`, 'success');
+            toast.show(`Registration & Payment submitted! ID: ${res.reg_id}`, 'success');
             
             sessionStorage.setItem('last_reg_id', res.reg_id);
 
@@ -374,17 +455,17 @@ export class RegisterPage {
               modal.classList.add('flex');
             }
 
-            const proceedPayBtn = document.getElementById('modal-proceed-payment');
-            if (proceedPayBtn) {
-              proceedPayBtn.addEventListener('click', () => {
-                this.navigate('payment');
-              });
-            }
-
             const checkStatusBtn = document.getElementById('modal-check-status');
             if (checkStatusBtn) {
               checkStatusBtn.addEventListener('click', () => {
                 this.navigate('status');
+              });
+            }
+
+            const goHomeBtn = document.getElementById('modal-go-home');
+            if (goHomeBtn) {
+              goHomeBtn.addEventListener('click', () => {
+                this.navigate('home');
               });
             }
 
@@ -395,12 +476,12 @@ export class RegisterPage {
               toast.show(res.message || 'Registration failed.', 'error');
             }
             submitBtn.disabled = false;
-            submitBtn.innerHTML = `⚡ SUBMIT SQUAD REGISTRATION & PITCH DECK →`;
+            submitBtn.innerHTML = `⚡ REGISTER TEAM & SUBMIT ₹${totalFee} PAYMENT (LOCK FCFS SLOT) →`;
           }
         } catch (err) {
           toast.show('Network error submitting registration.', 'error');
           submitBtn.disabled = false;
-          submitBtn.innerHTML = `⚡ SUBMIT SQUAD REGISTRATION & PITCH DECK →`;
+          submitBtn.innerHTML = `⚡ REGISTER TEAM & SUBMIT ₹${totalFee} PAYMENT (LOCK FCFS SLOT) →`;
         }
       });
     }

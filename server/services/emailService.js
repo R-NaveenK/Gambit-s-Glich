@@ -194,9 +194,9 @@ const getEmailFooter = () => `
 `;
 
 /**
- * STAGE 1: Initial Registration & Deck Received Email
+ * STAGE 1: Initial Registration & Payment Proof Received Email (With On-Spot Problem Statement Notice)
  */
-export async function sendRegistrationConfirmation(team, members = [], ppt = null) {
+export async function sendRegistrationConfirmation(team, members = [], payment = null) {
   const memberListHtml = members.map((m, i) => `
     <tr style="border-bottom: 1px solid #EAE6DF;">
       <td style="padding: 8px 12px; font-size: 13px; color: #10100E;"><strong>0${i + 1}. ${m.name}</strong></td>
@@ -205,19 +205,20 @@ export async function sendRegistrationConfirmation(team, members = [], ppt = nul
     </tr>
   `).join('');
 
-  const pptTitle = ppt ? ppt.project_title : 'Presentation Pitch Deck';
-  const pptFile = ppt ? ppt.original_filename : 'Attached File';
+  const utrNum = payment ? payment.utr_number : (team.payment ? team.payment.utr_number : 'Under Review');
+  const payerName = payment ? payment.payer_name : (team.payment ? team.payment.payer_name : team.leader_name);
+  const feeAmount = payment ? payment.amount : (team.member_count || (members.length || 1)) * 300;
 
-  const subject = `[GAMBIT'S GLITCH 2026] Registration Received - Team ${team.team_name} (${team.reg_id})`;
+  const subject = `[GAMBIT'S GLITCH 2026] Registration & Payment Received - Team ${team.team_name} (${team.reg_id})`;
 
   const html = `
-    ${getEmailHeader('Registration & Deck Received', 'FIRST-COME, FIRST-SERVED ALLOCATION')}
+    ${getEmailHeader('Registration & Payment Received', 'FIRST-COME, FIRST-SERVED ALLOCATION (MAX 40 TEAMS)')}
 
     <p style="font-size: 15px; color: #10100E; line-height: 1.6; margin-top: 0;">
-      Greetings <strong>${team.leader_name}</strong>,
+      Greetings <strong>${team.leader_name}</strong> and Squad Members,
     </p>
     <p style="font-size: 14px; color: #44433F; line-height: 1.6;">
-      Your team registration and pitch deck presentation for <strong>GAMBIT'S GLITCH 2026</strong> have been received and successfully indexed. Participation slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting phase.
+      Your squad registration and payment proof for <strong>GAMBIT'S GLITCH 2026</strong> have been received and successfully indexed. Participation is capped at strictly <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait.
     </p>
 
     <!-- REGISTRATION KEY DATA -->
@@ -229,38 +230,72 @@ export async function sendRegistrationConfirmation(team, members = [], ppt = nul
       <div style="font-size: 13px; color: #10100E;"><strong>Track:</strong> ${team.theme_id}</div>
     </div>
 
-    <!-- PPT DECK SUBMISSION CONFIRMATION -->
+    <!-- PAYMENT RECEIPT DETAILS -->
     <h2 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 24px; font-weight: normal; color: #10100E; margin: 24px 0 12px 0;">
-      Submitted Pitch Deck Details
+      Payment Verification Receipt (FCFS Queue)
     </h2>
 
     <div style="border: 1px solid #C5BBA7; background-color: #FFFFFF; padding: 16px; margin-bottom: 24px;">
-      <div style="font-size: 13px; color: #10100E;"><strong>Project Title:</strong> ${pptTitle}</div>
-      <div style="font-size: 13px; color: #10100E; margin-top: 4px;"><strong>Presentation File:</strong> ${pptFile}</div>
-      <div style="font-size: 12px; color: #D79218; font-weight: bold; margin-top: 8px;">⚡ Allocation: FIRST-COME, FIRST-SERVED (MAX 40 TEAMS)</div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E; margin-bottom: 6px;">
+        <span><strong>UTR / Transaction Ref:</strong></span>
+        <span style="font-family: monospace; font-weight: bold; color: #D79218;">${utrNum}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E; margin-bottom: 6px;">
+        <span><strong>Payer Account Name:</strong></span>
+        <span>${payerName}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E; margin-bottom: 6px;">
+        <span><strong>Amount Transferred:</strong></span>
+        <span style="font-weight: bold; color: #10100E;">₹${feeAmount}.00 (${team.member_count || members.length || 1} members × ₹300)</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E;">
+        <span><strong>Queue Status:</strong></span>
+        <span style="color: #D79218; font-weight: bold;">PAYMENT VERIFICATION PENDING (FCFS)</span>
+      </div>
     </div>
 
-    <!-- NEXT STEPS -->
-    <div style="background-color: #F8F7F2; border: 1px solid #C5BBA7; padding: 16px; margin-bottom: 28px; font-size: 13px; color: #44433F; line-height: 1.6;">
-      <strong style="color: #10100E;">📋 What Happens Next?</strong>
-      <ol style="margin: 8px 0 0 0; padding-left: 20px;">
-        <li>Hackathon slots are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait.</li>
-        <li>Proceed immediately to the <strong>Payment Portal</strong> using your Team ID to submit your registration fee (₹300/person).</li>
-        <li>Upon payment approval, your official <strong>Payment Invoice & Scannable Attendance QR Pass</strong> will be generated and dispatched, locking your team's confirmed slot.</li>
-      </ol>
+    <!-- ON-SPOT PROBLEM STATEMENT ANNOUNCEMENT -->
+    <div style="background-color: #10100E; color: #F2F0E9; border-left: 4px solid #D79218; padding: 20px; margin: 24px 0;">
+      <div style="font-size: 11px; font-weight: 700; color: #D79218; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
+        // CRITICAL BRIEFING: ON-SPOT PROBLEM STATEMENTS
+      </div>
+      <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 22px; font-weight: normal; margin: 0 0 10px 0; color: #FFFFFF;">
+        No Advance PPT Deck Required — Problem Statements Revealed Live On-Spot!
+      </h3>
+      <p style="font-size: 13px; color: #C5BBA7; line-height: 1.6; margin: 0 0 10px 0;">
+        You do <strong>NOT</strong> need to submit any PowerPoint or slide deck before the event. Exact challenge statements for all 5 domains will be unlocked <strong>ON SPOT</strong> at sprint launch:
+      </p>
+      <div style="font-family: monospace; font-size: 12px; color: #D79218; background-color: #1A1A18; padding: 10px 14px; border: 1px solid #333330;">
+        📍 <strong>VENUE:</strong> Auditorium, VSBCETC, Coimbatore<br>
+        ⏰ <strong>DATE & TIME:</strong> October 10, 2026 at 09:00 AM IST<br>
+        ⚡ <strong>SPRINT DURATION:</strong> 10-Hour Live Hackathon
+      </div>
     </div>
 
     <!-- SQUAD ROSTER -->
     <h2 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 22px; font-weight: normal; color: #10100E; margin: 24px 0 12px 0;">
-      Registered Squad Roster (${members.length} Members)
+      Registered Squad Roster (${members.length || team.member_count || 1} Members)
     </h2>
-    <table style="width: 100%; border-collapse: collapse; border: 1px solid #C5BBA7; margin-bottom: 28px;">
+    <table style="width: 100%; border-collapse: collapse; border: 1px solid #C5BBA7; margin-bottom: 24px;">
       ${memberListHtml}
     </table>
 
+    <!-- WHATSAPP CALLOUT -->
+    <div style="background-color: #FFFFFF; border: 2px solid #D79218; padding: 20px; margin: 24px 0; text-align: center;">
+      <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 20px; margin-top: 0; color: #10100E;">
+        Join Official Participants WhatsApp Group
+      </h3>
+      <p style="color: #44433F; font-size: 13px; margin-bottom: 16px;">
+        Join our official hackathon communications channel for live schedule updates, mentorship allocation, and venue guidelines.
+      </p>
+      <a href="${WHATSAPP_LINK}" target="_blank" style="background-color: #D79218; color: #10100E; text-decoration: none; font-weight: 700; padding: 12px 24px; font-size: 13px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">
+        👉 JOIN PARTICIPANTS WHATSAPP GROUP NOW
+      </a>
+    </div>
+
     <div style="text-align: center; margin: 32px 0 16px 0;">
-      <a href="${APP_BASE_URL}/#payment?reg_id=${team.reg_id}" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; border: 1px solid #10100E;">
-        💳 PROCEED TO PAYMENT (CONFIRM FCFS SLOT) →
+      <a href="${APP_BASE_URL}/#status?reg_id=${team.reg_id}" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; border: 1px solid #10100E;">
+        TRACK REGISTRATION & PAYMENT STATUS →
       </a>
     </div>
 
