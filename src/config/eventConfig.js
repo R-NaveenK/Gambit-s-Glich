@@ -78,13 +78,14 @@ export const eventConfig = {
   eventDaySchedule: [
     { time: "09:00 AM", title: "INAUGURATION CEREMONY", desc: "Official opening ceremony, welcome address, and arena orientation at Auditorium, VSBCETC." },
     { time: "09:10 AM", title: "CHIEF GUEST SPEECH", desc: "Keynote address and industry insights by the distinguished chief guest." },
-    { time: "09:30 AM", title: "HACKATHON KICK OFF", desc: "Exact real-world problem statements revealed live across all 5 tracks. The 8-hour sprint begins!" },
-    { time: "11:15 AM", title: "REFRESHMENT 1 & EVALUATION 1", desc: "Morning tea & refreshments served. First round jury evaluation commences at team stations." },
+    { time: "09:30 AM", title: "HACKATHON KICK OFF", desc: "Problem statements revealed live on spot. The 8-hour sprint begins!" },
+    { time: "11:30 AM", title: "REFRESHMENT 1 & EVALUATION 1", desc: "Morning tea & refreshments served. First round jury evaluation commences at team stations." },
     { time: "12:30 PM", title: "LUNCH BREAK", desc: "Grand buffet lunch served for all registered participants and mentors." },
     { time: "01:15 PM", title: "LUNCH BREAK ENDS", desc: "Sprint resumes. Teams continue core development, architectural hardening, and feature integration." },
     { time: "03:20 PM", title: "REFRESHMENT 2", desc: "Afternoon refreshments served to keep builder momentum high." },
     { time: "05:30 PM", title: "HACKATHON SPRINT ENDS", desc: "Strict code freeze! Final Git commits, build packaging, and environment freeze." },
-    { time: "05:30 PM – 06:30 PM", title: "FINAL EVALUATION START", desc: "Comprehensive technical demonstration, prototype walkthrough, and defense before the jury panel." },
+    { time: "05:30 PM", title: "FINAL EVALUATION STARTS", desc: "Comprehensive technical demonstration, prototype walkthrough, and defense before the jury panel." },
+    { time: "06:30 PM", title: "FINAL EVALUATION ENDS", desc: "Jury completes evaluation. Scores are tabulated and winners are finalized." },
     { time: "06:35 PM", title: "REFRESHMENT 3", desc: "Evening refreshments while jury tabulates official final scores." },
     { time: "06:45 PM", title: "PRIZE DISTRIBUTION", desc: "Valedictory ceremony, announcement of winners, and grand trophy & cash prize distribution." }
   ],

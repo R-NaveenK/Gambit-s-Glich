@@ -68,7 +68,7 @@ router.post('/', regUpload, async (req, res) => {
     } = req.body;
 
     // Strict input validation
-    if (!team_name || !theme_id || !college || !department || !year || !city || !leader_name || !leader_email || !leader_phone) {
+    if (!team_name || !college || !department || !year || !city || !leader_name || !leader_email || !leader_phone) {
       return res.status(400).json({ success: false, message: 'All required team leadership fields must be filled.' });
     }
 

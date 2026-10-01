@@ -41,6 +41,8 @@ export class TimelinePage {
                 <div class="tech-card p-4 md:p-5 border ${
                   item.time.includes('09:30 AM') || item.time.includes('05:30 PM') || item.time.includes('06:45 PM')
                     ? 'border-accent bg-paper shadow-xs'
+                    : item.time.includes('06:30 PM')
+                    ? 'border-success bg-paper shadow-xs'
                     : 'border-line bg-paper'
                 } flex flex-col md:flex-row md:items-center justify-between gap-3 hover:border-accent transition-all">
                   
@@ -52,7 +54,8 @@ export class TimelinePage {
                       <div class="font-sans text-base font-bold text-ink uppercase flex items-center gap-2">
                         <span>${item.title}</span>
                         ${item.time.includes('09:30 AM') ? '<span class="text-[10px] px-2 py-0.5 bg-signal text-canvas font-bold font-mono">ON-SPOT RELEASE</span>' : ''}
-                        ${item.time.includes('05:30 PM') && !item.time.includes('06:30') ? '<span class="text-[10px] px-2 py-0.5 bg-error text-white font-bold font-mono">CODE FREEZE</span>' : ''}
+                        ${item.time === '05:30 PM' && item.title.includes('SPRINT') ? '<span class="text-[10px] px-2 py-0.5 bg-error text-white font-bold font-mono">CODE FREEZE</span>' : ''}
+                        ${item.time.includes('06:30 PM') ? '<span class="text-[10px] px-2 py-0.5 bg-success text-white font-bold font-mono">EVAL ENDS</span>' : ''}
                         ${item.time.includes('06:45 PM') ? '<span class="text-[10px] px-2 py-0.5 bg-success text-white font-bold font-mono">AWARDS</span>' : ''}
                       </div>
                       <div class="text-xs text-muted font-sans mt-0.5">

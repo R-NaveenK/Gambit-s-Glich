@@ -39,9 +39,6 @@ export class RegisterPage {
   }
 
   render() {
-    const selectedTrackId = sessionStorage.getItem('selected_track_id');
-    const matchedTrack = this.findMatchingTrack(selectedTrackId);
-    const selectedValue = matchedTrack ? matchedTrack.id : 'track-01';
     const fee = eventConfig.teamPolicy.registrationFee || 250;
 
     return `
@@ -78,16 +75,6 @@ export class RegisterPage {
                 <div>
                   <label class="block text-xs text-ink mb-2">TEAM NAME *</label>
                   <input type="text" name="team_name" required placeholder="e.g. CYBER_DISRUPTORS" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
-                </div>
-
-                <div>
-                  <label class="block text-xs text-ink mb-2">HACKATHON TRACK *</label>
-                  <select name="theme_id" id="theme-id-select" required class="w-full px-4 py-3 text-xs focus:border-accent outline-none">
-                    ${eventConfig.themes.map(t => {
-                      const isSelected = (t.id === selectedValue);
-                      return `<option value="${t.id}" ${isSelected ? 'selected="selected"' : ''}>${t.number}. ${t.name}</option>`;
-                    }).join('')}
-                  </select>
                 </div>
 
                 <div>
@@ -308,12 +295,6 @@ export class RegisterPage {
   }
 
   attachEvents() {
-    const selectedTrackId = sessionStorage.getItem('selected_track_id');
-    const matchedTrack = this.findMatchingTrack(selectedTrackId);
-    const themeSelect = document.querySelector('select[name="theme_id"]') || document.getElementById('theme-id-select');
-    if (themeSelect && matchedTrack) {
-      themeSelect.value = matchedTrack.id;
-    }
 
     const selectEl = document.getElementById('member-count-select');
     const containerEl = document.getElementById('members-input-container');
