@@ -253,37 +253,42 @@ export class RegisterPage {
           </form>
 
           <!-- Success Modal -->
-          <div id="reg-success-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-4 font-mono">
-            <div class="tech-card p-8 md:p-12 border-accent bg-paper max-w-xl w-full text-center space-y-6">
-              <div class="w-12 h-12 bg-accent text-ink font-bold flex items-center justify-center text-2xl mx-auto font-sans">
-                ✔
+          <div id="reg-success-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 font-mono">
+            <div class="relative tech-card p-6 sm:p-10 border-2 border-accent bg-paper max-w-lg w-full text-center space-y-5 shadow-2xl">
+              <button id="modal-close-btn" type="button" class="absolute top-4 right-4 text-muted hover:text-ink text-xl font-bold p-1 cursor-pointer transition-colors leading-none" title="Close">✕</button>
+
+              <div class="w-14 h-14 bg-accent/20 border-2 border-accent text-accent-dark font-bold flex items-center justify-center text-2xl mx-auto rounded-full font-sans shadow-sm">
+                ✓
               </div>
 
-              <h2 class="font-serif text-4xl font-normal italic text-ink">Registration & Payment Submitted</h2>
+              <h2 class="font-serif text-3xl sm:text-4xl font-normal italic text-ink">Registration &amp; Payment Submitted</h2>
               
-              <div class="p-4 bg-canvas border border-accent text-center space-y-2">
-                <div class="text-xs text-muted">YOUR UNIQUE REGISTRATION ID</div>
-                <div id="success-reg-id" class="font-mono text-3xl font-bold text-accent-dark tracking-wider">GG26-XXXX</div>
-                <div class="text-[11px] text-muted">STATUS: PAYMENT VERIFICATION PENDING (FCFS)</div>
+              <div class="p-4 bg-canvas border border-accent text-center space-y-1.5 shadow-xs">
+                <div class="text-[10px] text-muted tracking-widest font-mono uppercase">// YOUR UNIQUE REGISTRATION ID</div>
+                <div class="flex items-center justify-center gap-2">
+                  <div id="success-reg-id" class="font-mono text-3xl sm:text-4xl font-bold text-accent-dark tracking-wider select-all">GG26-XXXX</div>
+                  <button type="button" id="copy-success-reg-id" class="px-2 py-1 text-[10px] border border-accent bg-accent/15 hover:bg-accent hover:text-ink text-accent-dark font-mono font-bold transition-all cursor-pointer" title="Copy ID">COPY</button>
+                </div>
+                <div class="text-[10px] text-signal font-mono font-bold">STATUS: PAYMENT VERIFICATION PENDING (FCFS)</div>
               </div>
 
               <p class="text-xs text-muted leading-relaxed font-sans">
-                Your squad registration and payment proof have been received successfully! Slots are allocated strictly on a <strong>First-Come, First-Served (FCFS)</strong> basis capped at <strong>only 40 teams</strong>. Once our organizers verify your UTR reference, your official Attendance QR Pass & Invoice will be issued.
+                Your squad registration and payment proof have been received successfully! Slots are allocated strictly on a <strong>First-Come, First-Served (FCFS)</strong> basis capped at <strong>only 40 teams</strong>. Once organizers verify your UTR reference, your official Attendance QR Pass &amp; Invoice will be issued.
               </p>
 
               <div class="p-3 bg-canvas border border-line text-left text-xs space-y-1">
-                <div class="text-accent-dark font-bold">// ON-SPOT PROBLEM STATEMENT REMINDER:</div>
-                <div class="text-muted text-[11px]">
-                  Exact problem statements will be revealed live at <strong>09:30 AM IST on October 13, 2026 at Auditorium, VSBCETC</strong> (following Inauguration at 09:00 AM). No advance PPT submission is required.
+                <div class="text-accent-dark font-bold">// ON-SPOT PROBLEM STATEMENT BRIEFING:</div>
+                <div class="text-muted text-[11px] leading-relaxed">
+                  Exact challenge problem statements will be revealed live at <strong>09:30 AM IST on October 13, 2026 at Auditorium, VSBCETC</strong> (following Inauguration at 09:00 AM). No advance PPT submission is required.
                 </div>
               </div>
 
-              <div class="flex flex-col gap-3 pt-2">
-                <button id="modal-check-status" class="nav-link btn-primary w-full py-3.5 text-xs font-bold tracking-wider uppercase">
+              <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                <button id="modal-check-status" type="button" class="nav-link btn-primary flex-1 py-3 text-xs font-bold tracking-wider uppercase cursor-pointer">
                   ⚡ VIEW STATUS TRACKER →
                 </button>
-                <button id="modal-go-home" class="btn-secondary w-full py-2.5 text-xs font-mono font-bold uppercase border border-line hover:border-accent">
-                  🏠 RETURN TO HOMEPAGE
+                <button id="modal-go-home" type="button" class="btn-secondary flex-1 py-3 text-xs font-mono font-bold uppercase border border-line hover:border-accent cursor-pointer">
+                  🏠 HOMEPAGE
                 </button>
               </div>
             </div>
@@ -428,6 +433,10 @@ export class RegisterPage {
             toast.show(`Registration & Payment submitted! ID: ${res.reg_id}`, 'success');
             
             sessionStorage.setItem('last_reg_id', res.reg_id);
+            const leaderEmailVal = (formData.get('leader_email') || '').trim();
+            if (leaderEmailVal) {
+              sessionStorage.setItem('last_leader_email', leaderEmailVal);
+            }
 
             const modal = document.getElementById('reg-success-modal');
             const regIdEl = document.getElementById('success-reg-id');
@@ -437,18 +446,54 @@ export class RegisterPage {
               modal.classList.add('flex');
             }
 
+            const closeModal = () => {
+              if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+              }
+            };
+
+            const closeBtn = document.getElementById('modal-close-btn');
+            if (closeBtn) {
+              closeBtn.onclick = closeModal;
+            }
+
+            if (modal) {
+              modal.onclick = (e) => {
+                if (e.target === modal) closeModal();
+              };
+            }
+
+            const copyRegBtn = document.getElementById('copy-success-reg-id');
+            if (copyRegBtn) {
+              copyRegBtn.onclick = () => {
+                navigator.clipboard.writeText(res.reg_id);
+                toast.show('Registration ID copied to clipboard!', 'success');
+              };
+            }
+
             const checkStatusBtn = document.getElementById('modal-check-status');
             if (checkStatusBtn) {
-              checkStatusBtn.addEventListener('click', () => {
-                this.navigate('status');
-              });
+              checkStatusBtn.onclick = () => {
+                closeModal();
+                if (typeof this.navigate === 'function') {
+                  this.navigate('status');
+                } else {
+                  window.location.hash = '#status';
+                }
+              };
             }
 
             const goHomeBtn = document.getElementById('modal-go-home');
             if (goHomeBtn) {
-              goHomeBtn.addEventListener('click', () => {
-                this.navigate('home');
-              });
+              goHomeBtn.onclick = () => {
+                closeModal();
+                if (typeof this.navigate === 'function') {
+                  this.navigate('home');
+                } else {
+                  window.location.hash = '#home';
+                }
+              };
             }
 
           } else {

@@ -13,6 +13,7 @@ export class StatusTrackerPage {
 
   render() {
     const defaultRegId = sessionStorage.getItem('last_reg_id') || '';
+    const defaultEmail = sessionStorage.getItem('last_leader_email') || '';
 
     return `
       <div class="py-16 font-mono bg-canvas">
@@ -40,7 +41,7 @@ export class StatusTrackerPage {
 
               <div>
                 <label class="block text-xs text-ink mb-2">REGISTERED EMAIL *</label>
-                <input type="email" name="email" required placeholder="leader@example.com" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
+                <input type="email" name="email" required value="${defaultEmail}" placeholder="leader@example.com" class="w-full px-4 py-3 text-xs focus:border-accent outline-none" />
               </div>
 
             </div>
