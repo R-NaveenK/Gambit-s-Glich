@@ -76,7 +76,7 @@ router.get('/lookup/:regId', async (req, res) => {
     const isEligible = team.status !== 'REJECTED' && !isCapacityFull;
 
     const memberCount = Math.max(1, team.member_count || (team.members ? team.members.length : 1));
-    const perHeadFee = 300;
+    const perHeadFee = 250;
     const calculatedTotal = memberCount * perHeadFee;
 
     return res.json({

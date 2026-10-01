@@ -207,7 +207,7 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
 
   const utrNum = payment ? payment.utr_number : (team.payment ? team.payment.utr_number : 'Under Review');
   const payerName = payment ? payment.payer_name : (team.payment ? team.payment.payer_name : team.leader_name);
-  const feeAmount = payment ? payment.amount : (team.member_count || (members.length || 1)) * 300;
+  const feeAmount = payment ? payment.amount : (team.member_count || (members.length || 1)) * 250;
 
   const subject = `[GAMBIT'S GLITCH 2026] Registration & Payment Received - Team ${team.team_name} (${team.reg_id})`;
 
@@ -246,7 +246,7 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E; margin-bottom: 6px;">
         <span><strong>Amount Transferred:</strong></span>
-        <span style="font-weight: bold; color: #10100E;">₹${feeAmount}.00 (${team.member_count || members.length || 1} members × ₹300)</span>
+        <span style="font-weight: bold; color: #10100E;">₹${feeAmount}.00 (${team.member_count || members.length || 1} members × ₹250)</span>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E;">
         <span><strong>Queue Status:</strong></span>
@@ -267,7 +267,7 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
       </p>
       <div style="font-family: monospace; font-size: 12px; color: #D79218; background-color: #1A1A18; padding: 10px 14px; border: 1px solid #333330;">
         📍 <strong>VENUE:</strong> Auditorium, VSBCETC, Coimbatore<br>
-        ⏰ <strong>REPORTING & INAUGURATION:</strong> October 10, 2026 at 09:00 AM IST<br>
+        ⏰ <strong>REPORTING & INAUGURATION:</strong> October 13, 2026 at 09:00 AM IST<br>
         ⚡ <strong>SPRINT DURATION:</strong> 8-Hour Live Arena Hackathon (09:30 AM – 05:30 PM, Concluding 06:45 PM)
       </div>
     </div>
@@ -338,10 +338,10 @@ export async function sendShortlistedEmail(team, members = []) {
         MANDATORY STEP TO CONFIRM SEAT (FCFS)
       </div>
       <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 24px; margin: 4px 0 12px 0; color: #10100E;">
-        Submit Participant Registration Fee (₹300 / person)
+        Submit Participant Registration Fee (₹250 / person)
       </h3>
       <p style="font-size: 13px; color: #44433F; margin-bottom: 18px; line-height: 1.5;">
-        To lock your team slot, please complete the registration fee payment for your team (${team.member_count || 1} members × ₹300 = ₹${(team.member_count || 1) * 300}) and submit your 12-digit UTR payment proof.
+        To lock your team slot, please complete the registration fee payment for your team (${team.member_count || 1} members × ₹250 = ₹${(team.member_count || 1) * 250}) and submit your 12-digit UTR payment proof.
       </p>
       <a href="${paymentUrl}" target="_blank" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #10100E;">
         👉 PAY FEE & CONFIRM FCFS SLOT →
@@ -380,7 +380,7 @@ export const sendSlotPaymentReminderEmail = sendShortlistedEmail;
  * STAGE 3: Official Payment Invoice & Attendance QR Pass Email (Triggered AFTER Payment Approval)
  */
 export async function sendPaymentInvoiceEmail(team, payment = null, ppt = null, members = []) {
-  const totalFee = payment ? payment.amount : (team.member_count || 1) * 300;
+  const totalFee = payment ? payment.amount : (team.member_count || 1) * 250;
   const utrNum = payment ? payment.utr_number : 'N/A';
   const payerName = payment ? payment.payer_name : team.leader_name;
   const paymentStatus = payment ? payment.status : 'PENDING';

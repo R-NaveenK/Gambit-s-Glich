@@ -119,7 +119,7 @@ export class AboutPage {
                 <h2 class="font-serif text-4xl text-ink font-normal italic">The 8-Hour Arena Timetable</h2>
               </div>
               <div class="font-mono text-xs text-muted">
-                OCTOBER 10, 2026 • 09:00 AM – 06:45 PM IST
+                OCTOBER 13, 2026 • 09:00 AM – 06:45 PM IST
               </div>
             </div>
 

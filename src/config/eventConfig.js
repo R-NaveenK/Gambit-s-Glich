@@ -16,11 +16,11 @@ export const eventConfig = {
 
   // Dates & Countdown
   dates: {
-    startDate: "2026-10-10T09:00:00+05:30",
-    endDate: "2026-10-10T18:45:00+05:30",
-    registrationDeadline: "2026-10-07T23:59:59+05:30",
-    displayDateRange: "OCTOBER 10, 2026",
-    displayDeadline: "07/10/2026",
+    startDate: "2026-10-13T09:00:00+05:30",
+    endDate: "2026-10-13T18:45:00+05:30",
+    registrationDeadline: "2026-10-10T23:59:59+05:30",
+    displayDateRange: "OCTOBER 13, 2026",
+    displayDeadline: "10/10/2026",
     timings: "09:00 AM – 06:45 PM",
     duration: "8-HOUR BUILD"
   },
@@ -40,8 +40,8 @@ export const eventConfig = {
     minMembers: 2,
     maxMembers: 4,
     maxTeams: 40, // Strict event capacity: only 40 teams permitted
-    registrationFee: 300, // Per person in INR (₹)
-    feeType: "₹300 / per person",
+    registrationFee: 250, // Per person in INR (₹)
+    feeType: "₹250 / per person",
     currency: "INR (₹)",
     isRegistrationOpen: true,
   },
@@ -52,7 +52,7 @@ export const eventConfig = {
     payeeName: "E-Cell VSBCETC",
     qrCodeImage: "/assets/qr_code_placeholder.png",
     instructions: [
-      "Registration fee is ₹300 per member (2 members = ₹600, 3 members = ₹900, 4 members = ₹1,200).",
+      "Registration fee is ₹250 per member (2 members = ₹500, 3 members = ₹750, 4 members = ₹1,000).",
       "Pay via any UPI app (GPay, PhonePe, Paytm) to ecell.vsbcetc@gmail.com.",
       "Submit your 12-digit UTR reference number and upload the screenshot proof directly in the registration form below.",
       "Slots are confirmed strictly on a First-Come, First-Served basis for only 40 teams."
@@ -62,7 +62,7 @@ export const eventConfig = {
   // On-Spot Problem Statement Policy (No PPT Submission)
   problemStatementPolicy: {
     format: "ON-SPOT PROBLEM STATEMENT RELEASE",
-    announcementTime: "09:30 AM IST, OCTOBER 10, 2026",
+    announcementTime: "09:30 AM IST, OCTOBER 13, 2026",
     venue: "Auditorium, VSBCETC",
     duration: "8-HOUR BUILD (09:30 AM – 05:30 PM)",
     details: "All specific challenge problem statements across the 5 domains are announced strictly ON SPOT during the 09:30 AM kickoff. No prior PPT or project presentation is required."
@@ -125,20 +125,20 @@ export const eventConfig = {
       date: "SEPTEMBER 20, 2026",
       time: "09:00 AM IST",
       status: "ACTIVE",
-      details: "Team registration opens. Register your squad (2–4 members), pay ₹300/person via UPI, and submit UTR proof directly in the form. Limited strictly to 40 confirmed teams on a First-Come, First-Served basis."
+      details: "Team registration opens. Register your squad (2–4 members), pay ₹250/person via UPI, and submit UTR proof directly in the form. Limited strictly to 40 confirmed teams on a First-Come, First-Served basis."
     },
     {
       phase: "02",
       title: "REGISTRATION CLOSING & SLOT FREEZE",
-      date: "OCTOBER 07, 2026",
+      date: "OCTOBER 10, 2026",
       time: "11:59 PM IST",
       status: "UPCOMING",
-      details: "Registration closes once all 40 confirmed slots are locked or deadline expires."
+      details: "Registration closes on October 10 at 11:59 PM IST or once all 40 confirmed slots are locked."
     },
     {
       phase: "03",
       title: "INAUGURATION & ON-SPOT KICKOFF (09:00 AM – 09:30 AM)",
-      date: "OCTOBER 10, 2026",
+      date: "OCTOBER 13, 2026",
       time: "09:00 AM IST",
       status: "UPCOMING",
       details: "All 40 confirmed squads assemble at Auditorium, VSBCETC. Inauguration at 09:00 AM, Chief Guest speech at 09:10 AM, and on-spot problem statement release at 09:30 AM."
@@ -146,7 +146,7 @@ export const eventConfig = {
     {
       phase: "04",
       title: "8-HOUR ARENA SPRINT & EVALUATION 1",
-      date: "OCTOBER 10, 2026",
+      date: "OCTOBER 13, 2026",
       time: "09:30 AM – 05:30 PM",
       status: "UPCOMING",
       details: "8 hours of live coding with refreshments, lunch at 12:30 PM, and Milestone Evaluation 1 at 11:15 AM."
@@ -154,7 +154,7 @@ export const eventConfig = {
     {
       phase: "05",
       title: "CODE FREEZE & FINAL EVALUATION (05:30 PM – 06:30 PM)",
-      date: "OCTOBER 10, 2026",
+      date: "OCTOBER 13, 2026",
       time: "05:30 PM IST",
       status: "UPCOMING",
       details: "Development ends at 05:30 PM sharp. Final jury prototype defense and technical judging until 06:30 PM."
@@ -162,7 +162,7 @@ export const eventConfig = {
     {
       phase: "06",
       title: "VALEDICTORY & PRIZE DISTRIBUTION",
-      date: "OCTOBER 10, 2026",
+      date: "OCTOBER 13, 2026",
       time: "06:45 PM IST",
       status: "UPCOMING",
       details: "Refreshment 3 at 06:35 PM followed by the grand valedictory and prize distribution ceremony at 06:45 PM."
@@ -183,7 +183,7 @@ export const eventConfig = {
     {
       category: "FEE & PAYMENT POLICY",
       items: [
-        "Registration fee is ₹300 per member (2 members = ₹600, 3 members = ₹900, 4 members = ₹1,200).",
+        "Registration fee is ₹250 per member (2 members = ₹500, 3 members = ₹750, 4 members = ₹1,000).",
         "Payment is submitted directly inside the Registration form. Enter your 12-digit UPI UTR reference number and upload the transaction screenshot in one seamless step.",
         "Slots are allocated strictly on a First-Come, First-Served (FCFS) basis capped at ONLY 40 TEAMS.",
         "Registration fees are non-refundable once payment verification is approved."
@@ -222,17 +222,17 @@ export const eventConfig = {
     {
       id: "faq-1",
       question: "What is Gambit's Glitch and who can participate?",
-      answer: "Gambit's Glitch is a high-intensity 8-hour on-site hackathon (09:00 AM – 06:45 PM) taking place at Auditorium, VSBCETC on October 10, 2026. Any college student can register a team of 2 to 4 members. Event capacity is strictly limited to only 40 teams."
+      answer: "Gambit's Glitch is a high-intensity 8-hour on-site hackathon (09:00 AM – 06:45 PM) taking place at Auditorium, VSBCETC on October 13, 2026. Any college student can register a team of 2 to 4 members. Event capacity is strictly limited to only 40 teams."
     },
     {
       id: "faq-2",
       question: "What is the registration fee and how is it paid?",
-      answer: "The registration fee is ₹300 per member (₹600 for 2 members, ₹900 for 3 members, ₹1,200 for 4 members). Payment is completed directly within the Team Registration form by paying via UPI and submitting your 12-digit UTR number and payment receipt screenshot."
+      answer: "The registration fee is ₹250 per member (₹500 for 2 members, ₹750 for 3 members, ₹1,000 for 4 members). Registration deadline is October 10, 2026 at 11:59 PM IST. Payment is completed directly within the Team Registration form by paying via UPI and submitting your 12-digit UTR number and payment receipt screenshot."
     },
     {
       id: "faq-3",
       question: "Do we need to submit a PPT pitch deck beforehand?",
-      answer: "NO! There is NO PPT or presentation submission prior to the event. All challenge problem statements are revealed strictly ON SPOT during kickoff at 09:30 AM IST on October 10, 2026. All ideation, design, and code development take place live during the 8-hour arena sprint."
+      answer: "NO! There is NO PPT or presentation submission prior to the event. All challenge problem statements are revealed strictly ON SPOT during kickoff at 09:30 AM IST on October 13, 2026. All ideation, design, and code development take place live during the 8-hour arena sprint."
     },
     {
       id: "faq-4",

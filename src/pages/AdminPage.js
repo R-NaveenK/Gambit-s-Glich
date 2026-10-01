@@ -820,7 +820,7 @@ export class AdminPage {
                   <span>VIEW PROOF</span>
                   <span class="text-xs">↗</span>
                 </button>
-                <div class="text-[10px] text-muted">₹${pay.amount || (team.member_count * 300)} • ${pay.payment_date || 'Today'}</div>
+                <div class="text-[10px] text-muted">₹${pay.amount || (team.member_count * 250)} • ${pay.payment_date || 'Today'}</div>
               </div>
             ` : '<span class="text-muted">NO PROOF</span>'}
           </td>
@@ -927,7 +927,7 @@ export class AdminPage {
     document.getElementById('modal-reg-id').textContent = team.reg_id;
     document.getElementById('modal-utr').textContent = team.payment.utr_number || 'N/A';
     document.getElementById('modal-payer').textContent = team.payment.payer_name || 'N/A';
-    document.getElementById('modal-amount').textContent = `₹${team.payment.amount || ((team.member_count || 1) * 300)}`;
+    document.getElementById('modal-amount').textContent = `₹${team.payment.amount || ((team.member_count || 1) * 250)}`;
 
     let screenshotUrl = team.payment.screenshot_url || '';
     if (team.payment.file_data && team.payment.file_data.startsWith('data:')) {

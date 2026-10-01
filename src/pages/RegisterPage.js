@@ -59,7 +59,7 @@ export class RegisterPage {
               Team Registration & Payment
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Register your squad and submit your UPI fee payment in one step. Participation slots are strictly limited to <strong class="text-accent-dark font-bold">only 40 teams</strong> on a <strong class="text-accent-dark font-bold">First-Come, First-Served (FCFS)</strong> basis. <strong class="text-ink">No advance PPT pitch deck is required</strong>—concrete challenge problem statements will be revealed <strong class="text-signal">ON SPOT</strong> on hackathon morning at 09:30 AM IST (Inauguration at 09:00 AM)!
+              Register your squad and submit your UPI fee payment in one step. Participation slots are strictly limited to <strong class="text-accent-dark font-bold">only 40 teams</strong> on a <strong class="text-accent-dark font-bold">First-Come, First-Served (FCFS)</strong> basis. Registration deadline is <strong class="text-accent-dark font-bold">October 10, 2026</strong>. <strong class="text-ink">No advance PPT pitch deck is required</strong>—concrete challenge problem statements will be revealed <strong class="text-signal">ON SPOT</strong> on hackathon morning at 09:30 AM IST on October 13 (Inauguration at 09:00 AM)!
             </p>
           </div>
 
@@ -178,7 +178,7 @@ export class RegisterPage {
                 Problem Statements Announced Live on Hackathon Morning
               </h3>
               <p class="text-xs text-muted leading-relaxed font-sans">
-                You do <strong class="text-ink">NOT</strong> need to submit any PPT pitch deck, slides, or pre-built code beforehand. Concrete, real-world challenge problem statements across all 5 tracks will be revealed live at the venue on <strong class="text-ink">October 10, 2026 at 09:30 AM IST (Auditorium, VSBCETC)</strong> right after inauguration. All architectural design, programming, and prototype engineering take place live during the 8-hour arena sprint (09:30 AM – 05:30 PM)!
+                You do <strong class="text-ink">NOT</strong> need to submit any PPT pitch deck, slides, or pre-built code beforehand. Concrete, real-world challenge problem statements across all 5 tracks will be revealed live at the venue on <strong class="text-ink">October 13, 2026 at 09:30 AM IST (Auditorium, VSBCETC)</strong> right after inauguration. All architectural design, programming, and prototype engineering take place live during the 8-hour arena sprint (09:30 AM – 05:30 PM)!
               </p>
             </div>
 
@@ -189,7 +189,7 @@ export class RegisterPage {
                   05 / REGISTRATION FEE PAYMENT (UPI)
                 </h2>
                 <span id="calculated-fee-pill" class="px-3 py-1 bg-accent/20 border border-accent text-accent-dark font-mono text-xs font-bold uppercase">
-                  TOTAL: ₹900 (3 MEMBERS × ₹300)
+                  TOTAL: ₹750 (3 MEMBERS × ₹250)
                 </span>
               </div>
 
@@ -211,7 +211,7 @@ export class RegisterPage {
 
                   <div class="p-3 bg-paper border border-line text-[11px] text-muted space-y-1 font-sans">
                     <div>1. Open Google Pay, PhonePe, Paytm, or any UPI app.</div>
-                    <div>2. Pay <strong id="calculated-pay-amount-text" class="text-ink font-bold">₹900</strong> for your team.</div>
+                    <div>2. Pay <strong id="calculated-pay-amount-text" class="text-ink font-bold">₹750</strong> for your team.</div>
                     <div>3. Note down the 12-digit UTR / transaction ID and take a screenshot of the receipt.</div>
                   </div>
                 </div>
@@ -286,7 +286,7 @@ export class RegisterPage {
               <div class="p-3 bg-canvas border border-line text-left text-xs space-y-1">
                 <div class="text-accent-dark font-bold">// ON-SPOT PROBLEM STATEMENT REMINDER:</div>
                 <div class="text-muted text-[11px]">
-                  Exact problem statements will be revealed live at <strong>09:30 AM IST on October 10, 2026 at Auditorium, VSBCETC</strong> (following Inauguration at 09:00 AM). No advance PPT submission is required.
+                  Exact problem statements will be revealed live at <strong>09:30 AM IST on October 13, 2026 at Auditorium, VSBCETC</strong> (following Inauguration at 09:00 AM). No advance PPT submission is required.
                 </div>
               </div>
 

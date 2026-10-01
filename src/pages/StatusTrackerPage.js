@@ -152,7 +152,7 @@ export class StatusTrackerPage {
             <div class="font-bold">STEP 04</div>
             <div class="text-[10px]">ON-SPOT PROBLEM</div>
             <div class="text-xs mt-1 font-bold text-accent-dark">
-              OCT 10 (09:00 AM)
+              OCT 13 (09:00 AM)
             </div>
           </div>
 
@@ -213,8 +213,8 @@ export class StatusTrackerPage {
               <div class="font-bold">⚠️ PAYMENT REJECTION REASON:</div>
               <div>"${payment.rejection_reason || 'Screenshot or UTR reference mismatch.'}"</div>
               <div class="pt-2">
-                <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
-                  RE-SUBMIT CORRECTED PAYMENT PROOF →
+                <a href="#" data-route="register" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
+                  RE-SUBMIT WITH CORRECTED UTR IN REGISTRATION →
                 </a>
               </div>
             </div>
@@ -227,9 +227,9 @@ export class StatusTrackerPage {
 
         ` : `
           <div class="text-xs text-muted space-y-3 font-sans">
-            <p>No payment proof attached. Please complete payment via the Payment portal.</p>
-            <a href="#" data-route="payment" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
-              SUBMIT PAYMENT PROOF NOW →
+            <p>No payment proof attached. Please complete registration and payment via the Registration page.</p>
+            <a href="#" data-route="register" class="nav-link btn-primary text-xs py-2 px-4 inline-block font-mono">
+              GO TO REGISTRATION & SUBMIT PAYMENT PROOF →
             </a>
           </div>
         `}
@@ -249,13 +249,13 @@ export class StatusTrackerPage {
         <div class="space-y-3 text-xs font-mono">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-canvas p-4 border border-line">
             <div>SELECTED TRACK: <strong class="text-accent-dark font-bold">${data.theme_id}</strong></div>
-            <div>CHALLENGE RELEASE: <strong class="text-ink">09:30 AM IST // OCT 10, 2026</strong></div>
+            <div>CHALLENGE RELEASE: <strong class="text-ink">09:30 AM IST // OCT 13, 2026</strong></div>
             <div>VENUE: <strong class="text-ink">Auditorium, VSBCETC</strong></div>
             <div>SPRINT DURATION: <strong class="text-ink">8 HOURS CONTINUOUS BUILD (09:30 AM – 05:30 PM)</strong></div>
           </div>
 
           <p class="text-xs text-muted font-sans leading-relaxed">
-            <strong class="text-ink">No prior PPT or deck submission is required.</strong> On the morning of October 10 at 09:30 AM IST, the official real-world problem statements for your selected track will be announced live. Teams will have 8 hours to build, architect, and deploy their prototype before final code freeze at 05:30 PM.
+            <strong class="text-ink">No prior PPT or deck submission is required.</strong> On the morning of October 13 at 09:30 AM IST, the official real-world problem statements for your selected track will be announced live. Teams will have 8 hours to build, architect, and deploy their prototype before final code freeze at 05:30 PM.
           </p>
         </div>
       </div>

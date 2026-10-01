@@ -145,7 +145,7 @@ router.post('/', regUpload, async (req, res) => {
     }
 
     const totalSquadMembers = memberArray.length + 1;
-    const expectedAmount = totalSquadMembers * 300;
+    const expectedAmount = totalSquadMembers * 250;
 
     const teamData = {
       reg_id: regId,

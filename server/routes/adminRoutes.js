@@ -325,7 +325,7 @@ router.get('/export-csv', async (req, res) => {
         sanitize(t.status),
         sanitize(t.payment ? t.payment.utr_number : 'N/A'),
         sanitize(t.payment ? t.payment.payer_name : 'N/A'),
-        t.payment ? t.payment.amount : ((t.member_count || 1) * 300),
+        t.payment ? t.payment.amount : ((t.member_count || 1) * 250),
         sanitize(t.payment ? t.payment.status : 'PENDING'),
         sanitize(t.payment ? t.payment.screenshot_url : 'N/A'),
         t.attended ? 'YES' : 'NO',

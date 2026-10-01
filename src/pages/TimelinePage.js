@@ -22,7 +22,7 @@ export class TimelinePage {
               Schedule & Milestones
             </h1>
             <p class="text-sm text-muted mt-4 leading-relaxed font-sans">
-              Complete hourly breakdown for October 10, 2026 at Auditorium, VSBCETC. From 09:00 AM inauguration to 06:45 PM grand prize distribution.
+              Complete hourly breakdown for October 13, 2026 at Auditorium, VSBCETC. From 09:00 AM inauguration to 06:45 PM grand prize distribution.
             </p>
           </div>
 
@@ -31,7 +31,7 @@ export class TimelinePage {
             <div class="flex items-center justify-between border-b border-line pb-3 mb-6">
               <h2 class="font-sans text-2xl font-extrabold uppercase text-ink tracking-tight flex items-center gap-3">
                 <span class="w-3 h-3 bg-signal inline-block"></span>
-                <span>EVENT DAY ARENA TIMELINE (OCTOBER 10)</span>
+                <span>EVENT DAY ARENA TIMELINE (OCTOBER 13)</span>
               </h2>
               <span class="text-xs font-mono text-accent-dark font-bold">TOTAL: 9:00 AM – 6:45 PM</span>
             </div>

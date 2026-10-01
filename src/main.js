@@ -17,7 +17,6 @@ import { ThemesPage } from './pages/ThemesPage.js';
 import { TimelinePage } from './pages/TimelinePage.js';
 import { RulesPrizesPage } from './pages/RulesPrizesPage.js';
 import { RegisterPage } from './pages/RegisterPage.js';
-import { PaymentPage } from './pages/PaymentPage.js';
 import { SubmitPptPage } from './pages/SubmitPptPage.js';
 import { StatusTrackerPage } from './pages/StatusTrackerPage.js';
 import { ContactFaqPage } from './pages/ContactFaqPage.js';
@@ -42,7 +41,6 @@ class App {
       timeline: TimelinePage,
       rules: RulesPrizesPage,
       register: RegisterPage,
-      payment: PaymentPage,
       'submit-ppt': SubmitPptPage,
       status: StatusTrackerPage,
       contact: ContactFaqPage,
@@ -52,9 +50,11 @@ class App {
     };
 
     const getInitialRoute = () => {
-      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      let hash = window.location.hash.replace(/^#\/?/, '').split('?')[0].trim();
+      if (hash === 'payment') hash = 'register';
       if (hash && this.routes[hash]) return hash;
-      const path = window.location.pathname.replace(/^\//, '').trim();
+      let path = window.location.pathname.replace(/^\//, '').split('?')[0].trim();
+      if (path === 'payment') path = 'register';
       if (path && this.routes[path]) return path;
       return 'home';
     };
@@ -120,7 +120,8 @@ class App {
 
     // Handle Hash Changes dynamically (e.g., pasting #admin-portalGG)
     window.addEventListener('hashchange', () => {
-      const hash = window.location.hash.replace(/^#\/?/, '').trim();
+      let hash = window.location.hash.replace(/^#\/?/, '').split('?')[0].trim();
+      if (hash === 'payment') hash = 'register';
       if (hash && this.routes[hash] && this.currentRoute !== hash) {
         this.currentRoute = hash;
         this.renderCurrentRoute(true);
@@ -129,8 +130,9 @@ class App {
 
     // Handle Browser Back / Forward
     window.addEventListener('popstate', (e) => {
-      const hash = window.location.hash.replace(/^#\/?/, '').trim();
-      const route = (e.state && e.state.route) || hash || 'home';
+      let hash = window.location.hash.replace(/^#\/?/, '').split('?')[0].trim();
+      let route = (e.state && e.state.route) || hash || 'home';
+      if (route === 'payment') route = 'register';
       if (this.routes[route]) {
         this.currentRoute = route;
         this.renderCurrentRoute(false);
@@ -139,6 +141,7 @@ class App {
   }
 
   navigate(route, updateHistory = true) {
+    if (route === 'payment') route = 'register';
     if (!this.routes[route]) return;
     this.currentRoute = route;
 
