@@ -42,6 +42,7 @@ export class RegisterPage {
     const selectedTrackId = sessionStorage.getItem('selected_track_id');
     const matchedTrack = this.findMatchingTrack(selectedTrackId);
     const selectedValue = matchedTrack ? matchedTrack.id : 'track-01';
+    const fee = eventConfig.teamPolicy.registrationFee || 250;
 
     return `
       <div class="py-16 font-mono bg-canvas">
@@ -153,9 +154,9 @@ export class RegisterPage {
                 <div class="flex items-center gap-3">
                   <span class="text-xs text-muted">SQUAD SIZE:</span>
                   <select id="member-count-select" class="px-3 py-1.5 text-xs text-accent-dark font-bold outline-none border border-line bg-canvas cursor-pointer">
-                    <option value="2">2 Members (₹600)</option>
-                    <option value="3" selected>3 Members (₹900)</option>
-                    <option value="4">4 Members (₹1,200)</option>
+                    <option value="2">2 Members (₹${(2 * fee).toLocaleString()})</option>
+                    <option value="3" selected>3 Members (₹${(3 * fee).toLocaleString()})</option>
+                    <option value="4">4 Members (₹${(4 * fee).toLocaleString()})</option>
                   </select>
                 </div>
               </div>
@@ -258,7 +259,7 @@ export class RegisterPage {
               </label>
 
               <button type="submit" id="submit-reg-btn" class="nav-link btn-primary w-full py-4 text-xs font-bold tracking-widest uppercase">
-                ⚡ REGISTER TEAM & SUBMIT ₹900 PAYMENT (LOCK FCFS SLOT) →
+                ⚡ REGISTER TEAM & SUBMIT ₹${(3 * fee).toLocaleString()} PAYMENT (LOCK FCFS SLOT) →
               </button>
             </div>
 
