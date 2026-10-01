@@ -1,7 +1,7 @@
 import express from 'express';
 import { authenticateAdmin } from '../middleware/auth.js';
 import { dbAdapter } from '../db/dbAdapter.js';
-import { sendShortlistedEmail, sendPaymentInvoiceEmail, sendTestEmail } from '../services/emailService.js';
+import { sendRegistrationConfirmation, sendPaymentInvoiceEmail, sendTestEmail } from '../services/emailService.js';
 
 const router = express.Router();
 
@@ -140,6 +140,7 @@ router.post('/payment/approve', async (req, res) => {
     await dbAdapter.logAdminAction(req.user.email, 'PAYMENT_APPROVED', targetRegId, `Payment approved for payment ID ${paymentId}`);
 
     if (targetTeam) {
+      await dbAdapter.updateTeamStatus(targetTeam.id, 'PAYMENT_APPROVED');
       const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
       sendPaymentInvoiceEmail(fullTeam, updatedPayment, fullTeam.ppt, fullTeam.members || []).catch(err => console.error('Approved payment invoice dispatch error:', err));
     }
@@ -228,10 +229,8 @@ router.post('/team/update-status', async (req, res) => {
     await dbAdapter.updateTeamStatus(targetTeamId, new_status);
     await dbAdapter.logAdminAction(req.user.email, `TEAM_STATUS_${new_status}`, targetRegId || targetTeamId, `Status changed to ${new_status}`);
 
-    // Trigger emails: Payment Invoice & QR pass if PAYMENT_APPROVED, or FCFS reminder if SHORTLISTED
-    if (new_status === 'SHORTLISTED' && targetTeam) {
-      sendShortlistedEmail(targetTeam, targetTeam.members || []).catch(err => console.error('Slot reminder email dispatch error:', err));
-    } else if (new_status === 'PAYMENT_APPROVED' && targetTeam) {
+    // Trigger Email 2: Payment Invoice & QR pass if PAYMENT_APPROVED
+    if (new_status === 'PAYMENT_APPROVED' && targetTeam) {
       const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
       if (fullTeam && fullTeam.payment) {
         sendPaymentInvoiceEmail(fullTeam, fullTeam.payment, fullTeam.ppt, fullTeam.members || []).catch(err => console.error('Approved payment invoice dispatch error:', err));
@@ -399,6 +398,44 @@ router.post('/payment-gate/toggle', async (req, res) => {
   } catch (err) {
     console.error('Toggle payment gate error:', err);
     return res.status(500).json({ success: false, message: 'Failed to update payment gate status.' });
+  }
+});
+
+// 13. Resend Email 1: Registration Successful
+router.post('/team/resend-registration-email', async (req, res) => {
+  try {
+    const { reg_id } = req.body;
+    if (!reg_id) return res.status(400).json({ success: false, message: 'Registration ID is required.' });
+
+    const team = await dbAdapter.getTeamByRegId(reg_id.trim());
+    if (!team) return res.status(404).json({ success: false, message: 'Team not found.' });
+
+    await sendRegistrationConfirmation(team, team.members || [], team.payment);
+    await dbAdapter.logAdminAction(req.user.email, 'RESEND_REGISTRATION_EMAIL', team.reg_id, `Registration Successful email resent to ${team.leader_email}`);
+
+    return res.json({ success: true, message: `Registration Successful email resent to team ${team.team_name}.` });
+  } catch (err) {
+    console.error('Resend registration email error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to resend registration email: ' + err.message });
+  }
+});
+
+// 14. Resend Email 2: Payment Invoice & QR Pass
+router.post('/team/resend-invoice-email', async (req, res) => {
+  try {
+    const { reg_id } = req.body;
+    if (!reg_id) return res.status(400).json({ success: false, message: 'Registration ID is required.' });
+
+    const team = await dbAdapter.getTeamByRegId(reg_id.trim());
+    if (!team) return res.status(404).json({ success: false, message: 'Team not found.' });
+
+    await sendPaymentInvoiceEmail(team, team.payment, team.ppt, team.members || []);
+    await dbAdapter.logAdminAction(req.user.email, 'RESEND_INVOICE_EMAIL', team.reg_id, `Payment Invoice & QR email resent to ${team.leader_email}`);
+
+    return res.json({ success: true, message: `Payment Invoice & Attendance QR email resent to team ${team.team_name}.` });
+  } catch (err) {
+    console.error('Resend invoice email error:', err);
+    return res.status(500).json({ success: false, message: 'Failed to resend invoice email: ' + err.message });
   }
 });
 

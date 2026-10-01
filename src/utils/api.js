@@ -226,5 +226,31 @@ export const api = {
       body: JSON.stringify({ open })
     });
     return res.json();
+  },
+
+  async resendRegistrationEmail(regId) {
+    const token = this.getToken();
+    const res = await fetch(`${BASE_URL}/admin/team/resend-registration-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ reg_id: regId })
+    });
+    return res.json();
+  },
+
+  async resendInvoiceEmail(regId) {
+    const token = this.getToken();
+    const res = await fetch(`${BASE_URL}/admin/team/resend-invoice-email`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ reg_id: regId })
+    });
+    return res.json();
   }
 };

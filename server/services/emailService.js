@@ -194,7 +194,7 @@ const getEmailFooter = () => `
 `;
 
 /**
- * STAGE 1: Initial Registration & Payment Proof Received Email (With On-Spot Problem Statement Notice)
+ * EMAIL 1: Registration Successful (Dispatched immediately upon team registration & fee proof submission)
  */
 export async function sendRegistrationConfirmation(team, members = [], payment = null) {
   const memberListHtml = members.map((m, i) => `
@@ -209,29 +209,29 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
   const payerName = payment ? payment.payer_name : (team.payment ? team.payment.payer_name : team.leader_name);
   const feeAmount = payment ? payment.amount : (team.member_count || (members.length || 1)) * 250;
 
-  const subject = `[GAMBIT'S GLITCH 2026] Registration & Payment Received - Team ${team.team_name} (${team.reg_id})`;
+  const subject = `[GAMBIT'S GLITCH 2026] Registration Successful - Team ${team.team_name} (${team.reg_id})`;
 
   const html = `
-    ${getEmailHeader('Registration & Payment Received', 'FIRST-COME, FIRST-SERVED ALLOCATION (MAX 40 TEAMS)')}
+    ${getEmailHeader('Registration Successful', 'CONFIRMATION OF REGISTRATION (FCFS QUEUE)')}
 
     <p style="font-size: 15px; color: #10100E; line-height: 1.6; margin-top: 0;">
       Greetings <strong>${team.leader_name}</strong> and Squad Members,
     </p>
     <p style="font-size: 14px; color: #44433F; line-height: 1.6;">
-      Your squad registration and payment proof for <strong>GAMBIT'S GLITCH 2026</strong> have been received and successfully indexed. Participation is capped at strictly <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis with no shortlisting wait.
+      Your team registration for <strong>GAMBIT'S GLITCH 2026</strong> has been received and <strong>successfully registered</strong>! Participation slots are strictly capped at <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis.
     </p>
 
-    <!-- REGISTRATION KEY DATA -->
+    <!-- REGISTRATION IDENTIFIER BADGE -->
     <div style="background-color: #F8F7F2; border-left: 4px solid #D79218; border-top: 1px solid #C5BBA7; border-right: 1px solid #C5BBA7; border-bottom: 1px solid #C5BBA7; padding: 18px 20px; margin: 24px 0;">
-      <div style="font-size: 11px; font-weight: 700; color: #77756F; letter-spacing: 1px;">REGISTRATION IDENTIFIER</div>
-      <div style="font-size: 26px; font-family: monospace; font-weight: 700; color: #D79218; letter-spacing: 2px; margin: 4px 0;">${team.reg_id}</div>
+      <div style="font-size: 11px; font-weight: 700; color: #77756F; letter-spacing: 1px; text-transform: uppercase;">YOUR REGISTRATION IDENTIFIER</div>
+      <div style="font-size: 28px; font-family: monospace; font-weight: 700; color: #D79218; letter-spacing: 2px; margin: 4px 0;">${team.reg_id}</div>
       <div style="font-size: 13px; color: #10100E; margin-top: 6px;"><strong>Team Name:</strong> ${team.team_name}</div>
       <div style="font-size: 13px; color: #10100E;"><strong>Institution:</strong> ${team.college}</div>
     </div>
 
-    <!-- PAYMENT RECEIPT DETAILS -->
+    <!-- PAYMENT PROOF LOGGED -->
     <h2 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 24px; font-weight: normal; color: #10100E; margin: 24px 0 12px 0;">
-      Payment Verification Receipt (FCFS Queue)
+      Fee Payment Proof Received
     </h2>
 
     <div style="border: 1px solid #C5BBA7; background-color: #FFFFFF; padding: 16px; margin-bottom: 24px;">
@@ -244,19 +244,23 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
         <span>${payerName}</span>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E; margin-bottom: 6px;">
-        <span><strong>Amount Transferred:</strong></span>
+        <span><strong>Amount Logged:</strong></span>
         <span style="font-weight: bold; color: #10100E;">₹${feeAmount}.00 (${team.member_count || members.length || 1} members × ₹250)</span>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 13px; color: #10100E;">
-        <span><strong>Queue Status:</strong></span>
+        <span><strong>Verification Status:</strong></span>
         <span style="color: #D79218; font-weight: bold;">PAYMENT VERIFICATION PENDING (FCFS)</span>
       </div>
     </div>
 
-    <!-- ON-SPOT PROBLEM STATEMENT ANNOUNCEMENT -->
+    <p style="font-size: 13px; color: #55544F; line-height: 1.5; margin: 0 0 20px 0;">
+      💡 <em>Our organizers are currently verifying your 12-digit UTR reference against our bank ledger. As soon as payment is confirmed, your <strong>Official Payment Invoice and Scannable Attendance QR Pass</strong> will be dispatched to this email.</em>
+    </p>
+
+    <!-- ON-SPOT PROBLEM STATEMENT BRIEFING -->
     <div style="background-color: #10100E; color: #F2F0E9; border-left: 4px solid #D79218; padding: 20px; margin: 24px 0;">
       <div style="font-size: 11px; font-weight: 700; color: #D79218; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
-        // CRITICAL BRIEFING: ON-SPOT PROBLEM STATEMENTS
+        // EVENT BRIEFING: ON-SPOT PROBLEM STATEMENTS
       </div>
       <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 22px; font-weight: normal; margin: 0 0 10px 0; color: #FFFFFF;">
         No Advance PPT Deck Required — Problem Statements Revealed Live On-Spot!
@@ -305,74 +309,10 @@ export async function sendRegistrationConfirmation(team, members = [], payment =
   return sendMailMessage({ recipients, subject, html });
 }
 
-/**
- * STAGE 2: Team Slot Payment Reminder Email with Payment Link & WhatsApp Link (FCFS)
- */
-export async function sendShortlistedEmail(team, members = []) {
-  const subject = `[GAMBIT'S GLITCH 2026] Complete Your Payment to Lock Your Team Slot (FCFS) - Team ${team.team_name}`;
-  const paymentUrl = `${APP_BASE_URL}/#register`;
-
-  const html = `
-    ${getEmailHeader('Slot Allocation', 'FIRST-COME, FIRST-SERVED NOTICE')}
-
-    <div style="background-color: #F8F7F2; border-left: 4px solid #D79218; border: 1px solid #C5BBA7; padding: 20px; margin-bottom: 24px; text-align: center;">
-      <h2 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 28px; font-weight: normal; color: #10100E; margin: 0 0 6px 0;">
-        First-Come, First-Served Slot Allocation
-      </h2>
-      <div style="font-size: 13px; color: #D79218; font-weight: 700; letter-spacing: 1px;">
-        TEAM ${team.team_name.toUpperCase()} (ID: ${team.reg_id})
-      </div>
-    </div>
-
-    <p style="font-size: 15px; color: #10100E; line-height: 1.6;">
-      Dear <strong>${team.leader_name}</strong> and Squad Members,
-    </p>
-    <p style="font-size: 14px; color: #44433F; line-height: 1.6;">
-      Seats for the grand finals of <strong>GAMBIT'S GLITCH 2026</strong> at Auditorium, VSBCETC are strictly limited to <strong>only 40 teams</strong> on a <strong>First-Come, First-Served (FCFS)</strong> basis. Complete your fee payment now to guarantee your team's confirmed slot before the 40-team limit is reached!
-    </p>
-
-    <!-- ACTION ITEM 1: FEE PAYMENT LINK -->
-    <div style="background-color: #FFFFFF; border: 2px solid #10100E; padding: 24px; margin: 28px 0; text-align: center;">
-      <div style="font-size: 11px; font-weight: 700; color: #D79218; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">
-        MANDATORY STEP TO CONFIRM SEAT (FCFS)
-      </div>
-      <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 24px; margin: 4px 0 12px 0; color: #10100E;">
-        Submit Participant Registration Fee (₹250 / person)
-      </h3>
-      <p style="font-size: 13px; color: #44433F; margin-bottom: 18px; line-height: 1.5;">
-        To lock your team slot, please complete the registration fee payment for your team (${team.member_count || 1} members × ₹250 = ₹${(team.member_count || 1) * 250}) and submit your 12-digit UTR payment proof.
-      </p>
-      <a href="${paymentUrl}" target="_blank" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; display: inline-block; letter-spacing: 1px; text-transform: uppercase; border: 1px solid #10100E;">
-        👉 PAY FEE & CONFIRM FCFS SLOT →
-      </a>
-      <div style="margin-top: 10px; font-size: 11px; color: #77756F;">
-        Upon payment approval, your official Payment Invoice & Scannable Attendance QR Pass will be dispatched.
-      </div>
-    </div>
-
-    <!-- ACTION ITEM 2: WHATSAPP CALLOUT -->
-    <div style="background-color: #FFFFFF; border: 2px solid #D79218; padding: 20px; margin: 24px 0; text-align: center;">
-      <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 22px; margin-top: 0; color: #10100E;">
-        Join Official Participants WhatsApp Group
-      </h3>
-      <p style="color: #44433F; font-size: 13px; margin-bottom: 16px;">
-        Join our official hackathon communications channel for live schedule updates, mentorship allocation, and venue guidelines.
-      </p>
-      <a href="${WHATSAPP_LINK}" target="_blank" style="background-color: #D79218; color: #10100E; text-decoration: none; font-weight: 700; padding: 12px 24px; font-size: 13px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">
-        👉 JOIN PARTICIPANTS WHATSAPP GROUP NOW
-      </a>
-      <div style="margin-top: 12px; font-size: 11px; color: #77756F; word-break: break-all;">
-        Direct Link: <a href="${WHATSAPP_LINK}" style="color: #D79218;">${WHATSAPP_LINK}</a>
-      </div>
-    </div>
-
-    ${getEmailFooter()}
-  `;
-
-  const recipients = getEmailRecipients(team, members);
-  return sendMailMessage({ recipients, subject, html });
+// Deprecated legacy alias retained for safety (no-op)
+export async function sendShortlistedEmail() {
+  return { success: true, skipped: true };
 }
-
 export const sendSlotPaymentReminderEmail = sendShortlistedEmail;
 
 /**
@@ -521,8 +461,38 @@ export async function sendPaymentInvoiceEmail(team, payment = null, ppt = null, 
       </tbody>
     </table>
 
+    <!-- EVENT DAY VENUE & REPORTING BRIEFING -->
+    <div style="background-color: #10100E; color: #F2F0E9; border-left: 4px solid #465A32; padding: 20px; margin: 24px 0;">
+      <div style="font-size: 11px; font-weight: 700; color: #D79218; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px;">
+        // VENUE ENTRY & REPORTING PASS
+      </div>
+      <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 22px; font-weight: normal; margin: 0 0 10px 0; color: #FFFFFF;">
+        Your Slot is Officially Confirmed — Present QR at Venue Entrance
+      </h3>
+      <div style="font-family: monospace; font-size: 12px; color: #D79218; background-color: #1A1A18; padding: 12px 14px; border: 1px solid #333330; line-height: 1.8;">
+        📍 <strong>VENUE:</strong> Auditorium, VSBCETC, Coimbatore<br>
+        📅 <strong>DATE:</strong> October 13, 2026<br>
+        ⏰ <strong>REPORTING & INAUGURATION:</strong> 09:00 AM IST sharp<br>
+        ⚡ <strong>HACKATHON SPRINT:</strong> 09:30 AM – 05:30 PM (8 Hours Live)<br>
+        💡 <em>No advance PPT required. Concrete problem statements are revealed live on-spot!</em>
+      </div>
+    </div>
+
+    <!-- WHATSAPP CALLOUT -->
+    <div style="background-color: #FFFFFF; border: 2px solid #D79218; padding: 20px; margin: 24px 0; text-align: center;">
+      <h3 style="font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-size: 20px; margin-top: 0; color: #10100E;">
+        Join Official Participants WhatsApp Group
+      </h3>
+      <p style="color: #44433F; font-size: 13px; margin-bottom: 16px;">
+        Stay updated with live announcements, desk assignments, schedule briefings, and mentor channels.
+      </p>
+      <a href="${WHATSAPP_LINK}" target="_blank" style="background-color: #D79218; color: #10100E; text-decoration: none; font-weight: 700; padding: 12px 24px; font-size: 13px; display: inline-block; letter-spacing: 1px; text-transform: uppercase;">
+        👉 JOIN PARTICIPANTS WHATSAPP GROUP
+      </a>
+    </div>
+
     <div style="text-align: center; margin: 32px 0 16px 0;">
-      <a href="${APP_BASE_URL}/#status" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; border: 1px solid #10100E;">
+      <a href="${APP_BASE_URL}/#status?reg_id=${team.reg_id}" style="background-color: #10100E; color: #F2F0E9; text-decoration: none; font-weight: 700; padding: 14px 28px; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; display: inline-block; border: 1px solid #10100E;">
         VIEW OFFICIAL RECEIPT ON PORTAL →
       </a>
     </div>
