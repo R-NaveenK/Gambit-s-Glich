@@ -293,8 +293,8 @@ export class AboutPage {
 
             <!-- Call to Action -->
             <div class="pt-6 flex flex-wrap items-center justify-center gap-4">
-              <a href="#" data-route="themes" class="nav-link btn-primary py-4 px-8 text-xs font-bold tracking-widest uppercase">
-                ⚡ CHOOSE YOUR TRACK & REGISTER →
+              <a href="#" data-route="register" class="nav-link btn-primary py-4 px-8 text-xs font-bold tracking-widest uppercase">
+                ⚡ REGISTER NOW →
               </a>
               <a href="#" data-route="rules" class="nav-link btn-secondary py-4 px-8 text-xs font-bold tracking-widest uppercase">
                 EXPLORE HACKATHON RULES
