@@ -175,13 +175,19 @@ export class StatusTrackerPage {
           </p>
 
           <!-- Attendance QR Code Frame -->
-          <div class="p-4 bg-canvas border border-line text-center space-y-3">
-            <div class="text-[10px] text-muted font-mono font-bold uppercase tracking-wider">// OFFICIAL VENUE ATTENDANCE PASS QR:</div>
-            <div class="inline-block p-2 bg-paper border border-line shadow-xs">
-              <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(`GAMBIT'S GLITCH 2026 PASS\nID: ${data.reg_id}\nTeam: ${data.team_name}\nTrack: ${data.theme_id}\nStatus: PAID & VERIFIED`)}&color=10100E&bgcolor=F8F7F2" alt="Attendance Pass QR" class="w-44 h-44 mx-auto" />
+          <div id="attendance-pass-card" class="p-5 bg-canvas border-2 border-accent text-center space-y-4">
+            <div class="text-[10px] text-accent-dark font-mono font-bold uppercase tracking-widest">// OFFICIAL VENUE ATTENDANCE PASS QR:</div>
+            <div class="inline-block p-3 bg-white border-2 border-line shadow-md">
+              <img id="pass-qr-image" crossOrigin="anonymous" src="https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(`GAMBIT'S GLITCH 2026 PASS\nID: ${data.reg_id}\nTeam: ${data.team_name}\nTrack: ${data.theme_id}\nStatus: PAID & VERIFIED`)}&color=10100E&bgcolor=FFFFFF" alt="Attendance Pass QR" class="w-48 h-48 mx-auto" />
             </div>
-            <div class="text-xs font-mono font-bold text-ink">REG ID: <span class="text-accent-dark">${data.reg_id}</span></div>
-            <p class="text-[11px] text-muted font-mono">Present this QR pass on your phone upon arrival at Auditorium, VSBCETC.</p>
+            <div class="text-sm font-mono font-bold text-ink">REG ID: <span class="text-accent-dark select-all">${data.reg_id}</span></div>
+            <p class="text-xs text-muted font-sans max-w-sm mx-auto">Present this QR pass on your phone upon arrival at Auditorium, VSBCETC. Keep phone screen brightness high.</p>
+            
+            <div class="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <button type="button" id="save-pass-png-btn" class="btn-primary py-3 px-6 text-xs font-mono font-bold uppercase tracking-wider cursor-pointer inline-flex items-center gap-2 shadow-sm">
+                <span>📱 SAVE PASS TO GALLERY (PNG)</span>
+              </button>
+            </div>
           </div>
         </div>
       ` : `
@@ -272,5 +278,120 @@ export class StatusTrackerPage {
         if (route) this.navigate(route);
       });
     });
+
+    const savePassBtn = document.getElementById('save-pass-png-btn');
+    if (savePassBtn) {
+      savePassBtn.addEventListener('click', () => {
+        soundFx.playClick();
+        this.downloadPassAsPng(data);
+      });
+    }
+  }
+
+  downloadPassAsPng(data) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 640;
+    canvas.height = 840;
+    const ctx = canvas.getContext('2d');
+
+    // Background
+    ctx.fillStyle = '#10100E';
+    ctx.fillRect(0, 0, 640, 840);
+
+    // Accent line top
+    ctx.fillStyle = '#D79218';
+    ctx.fillRect(0, 0, 640, 10);
+
+    // Header Tag
+    ctx.fillStyle = '#D79218';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('06 // GAMBIT\'S GLITCH 2026', 40, 50);
+
+    // Title
+    ctx.fillStyle = '#F2F0E9';
+    ctx.font = '900 28px sans-serif';
+    ctx.fillText('OFFICIAL ENTRANCE PASS', 40, 90);
+
+    // Subtitle
+    ctx.fillStyle = '#888880';
+    ctx.font = '12px monospace';
+    ctx.fillText('STRICTLY 40 CONFIRMED SQUADS // FCFS VERIFIED', 40, 115);
+
+    // Team Card Background
+    ctx.fillStyle = '#1A1A18';
+    ctx.fillRect(40, 140, 560, 130);
+    ctx.strokeStyle = '#333330';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(40, 140, 560, 130);
+
+    // Team Name
+    ctx.fillStyle = '#F2F0E9';
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText((data.team_name || 'TEAM').toUpperCase(), 60, 180);
+
+    // Reg ID
+    ctx.fillStyle = '#D79218';
+    ctx.font = 'bold 18px monospace';
+    ctx.fillText(`REG ID: ${data.reg_id}`, 60, 215);
+
+    // College & Track
+    ctx.fillStyle = '#A0A09A';
+    ctx.font = '12px sans-serif';
+    ctx.fillText(`College: ${data.college || 'N/A'}  |  Track: ${data.theme_id || 'TBD'}`, 60, 245);
+
+    // QR Container Box
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(180, 295, 280, 280);
+
+    // Draw QR image
+    const qrImg = document.getElementById('pass-qr-image');
+    if (qrImg && qrImg.complete && qrImg.naturalWidth > 0) {
+      try {
+        ctx.drawImage(qrImg, 190, 305, 260, 260);
+      } catch (err) {
+        ctx.fillStyle = '#10100E';
+        ctx.font = 'bold 20px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(data.reg_id, 320, 440);
+        ctx.textAlign = 'left';
+      }
+    }
+
+    // Venue Intel Box
+    ctx.fillStyle = '#1A1A18';
+    ctx.fillRect(40, 600, 560, 140);
+    ctx.strokeStyle = '#333330';
+    ctx.strokeRect(40, 600, 560, 140);
+
+    ctx.fillStyle = '#D79218';
+    ctx.font = 'bold 11px monospace';
+    ctx.fillText('📍 VENUE & REPORTING TIME', 60, 630);
+
+    ctx.fillStyle = '#F2F0E9';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.fillText('Auditorium, VSBCETC, Coimbatore', 60, 658);
+
+    ctx.fillStyle = '#888880';
+    ctx.font = '12px monospace';
+    ctx.fillText('October 13, 2026 // Reporting 09:00 AM IST sharp', 60, 685);
+    ctx.fillText('Present this pass with max screen brightness at gate', 60, 710);
+
+    // Bottom brand
+    ctx.fillStyle = '#555550';
+    ctx.font = '11px monospace';
+    ctx.fillText('VERIFIED PARTICIPANT PASS // ADMISSION GRANTED', 40, 780);
+
+    try {
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `Gambits_Glitch_Pass_${data.reg_id}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.show('Pass saved to gallery as PNG!', 'success');
+    } catch (e) {
+      if (qrImg) window.open(qrImg.src, '_blank');
+    }
   }
 }

@@ -53,6 +53,13 @@ export class RegisterPage {
                 STRICTLY 40 TEAMS ONLY (FCFS)
               </span>
             </div>
+
+            <!-- Live Animated Slot Counter -->
+            <div id="reg-live-slot-badge" class="mb-4 inline-flex items-center gap-2.5 px-3.5 py-2 bg-paper border-2 border-accent text-ink font-mono text-xs font-bold uppercase shadow-sm">
+              <span class="w-2.5 h-2.5 rounded-full bg-signal animate-pulse"></span>
+              <span>🔥 <strong id="reg-confirmed-slot-count" class="text-accent-dark">--</strong> / 40 CONFIRMED SLOTS TAKEN (<span id="reg-remaining-slot-count" class="text-signal font-bold">--</span> REMAINING)</span>
+            </div>
+
             <h1 class="font-serif text-5xl sm:text-7xl font-normal italic text-ink">
               Team Registration & Payment
             </h1>
@@ -300,6 +307,16 @@ export class RegisterPage {
   }
 
   attachEvents() {
+
+    // Live Confirmed Slots Fetch
+    api.getPublicStats().then(stats => {
+      if (stats && stats.success) {
+        const countEl = document.getElementById('reg-confirmed-slot-count');
+        const remEl = document.getElementById('reg-remaining-slot-count');
+        if (countEl) countEl.textContent = stats.confirmedCount;
+        if (remEl) remEl.textContent = `${stats.remainingSlots}`;
+      }
+    }).catch(() => {});
 
     const selectEl = document.getElementById('member-count-select');
     const containerEl = document.getElementById('members-input-container');

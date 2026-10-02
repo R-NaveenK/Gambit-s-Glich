@@ -57,6 +57,15 @@ export const api = {
     return res.json();
   },
 
+  async getPublicStats() {
+    try {
+      const res = await fetch(`${BASE_URL}/status/public-stats`);
+      return await res.json();
+    } catch (e) {
+      return { success: false, confirmedCount: 0, remainingSlots: 40, maxSlots: 40 };
+    }
+  },
+
   // Admin APIs
   async adminLogin(email, password) {
     const res = await fetch(`${BASE_URL}/auth/login`, {

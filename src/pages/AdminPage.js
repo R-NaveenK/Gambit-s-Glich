@@ -85,6 +85,193 @@ export class AdminPage {
     this.html5QrCode = null;
     this.isScanning = false;
     this.autoRefreshTimer = null;
+    this.offlineSyncInterval = null;
+  }
+
+  getOfflineQueue() {
+    try {
+      const q = localStorage.getItem('gg_attendance_offline_queue');
+      return q ? JSON.parse(q) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  saveOfflineQueue(queue) {
+    try {
+      localStorage.setItem('gg_attendance_offline_queue', JSON.stringify(queue));
+      this.updateOfflineQueueUI();
+    } catch (e) {}
+  }
+
+  enqueueOfflineAttendance(regId, memberAttendanceState) {
+    const queue = this.getOfflineQueue();
+    const existingIdx = queue.findIndex(item => item.reg_id === regId);
+    const record = {
+      reg_id: regId,
+      member_attendance: memberAttendanceState,
+      timestamp: new Date().toISOString()
+    };
+    if (existingIdx !== -1) {
+      queue[existingIdx] = record;
+    } else {
+      queue.push(record);
+    }
+    this.saveOfflineQueue(queue);
+  }
+
+  async syncOfflineQueue() {
+    const queue = this.getOfflineQueue();
+    if (!queue.length) return;
+
+    if (!navigator.onLine) {
+      toast.show('Device is still offline. Reconnect to internet to sync.', 'info');
+      return;
+    }
+
+    toast.show(`Syncing ${queue.length} offline check-in(s)...`, 'info');
+    const remaining = [];
+    let syncedCount = 0;
+
+    for (const item of queue) {
+      try {
+        const res = await api.markAttendance(item.reg_id, item.member_attendance);
+        if (res && res.success) {
+          syncedCount++;
+        } else {
+          remaining.push(item);
+        }
+      } catch (err) {
+        remaining.push(item);
+      }
+    }
+
+    this.saveOfflineQueue(remaining);
+    if (syncedCount > 0) {
+      soundFx.playBeep();
+      toast.show(`✔ Synced ${syncedCount} offline attendance record(s)!`, 'success');
+      await this.fetchDashboardData(true);
+    }
+  }
+
+  updateOfflineQueueUI() {
+    const queue = this.getOfflineQueue();
+    const count = queue.length;
+    const desktopBtn = document.getElementById('admin-offline-sync-btn');
+    const mobileBtn = document.getElementById('mobile-offline-sync-btn');
+    const scannerNotice = document.getElementById('scanner-offline-pending-notice');
+
+    const label = `📡 SYNC OFFLINE (${count})`;
+    if (desktopBtn) {
+      desktopBtn.textContent = label;
+      if (count > 0) desktopBtn.classList.remove('hidden');
+      else desktopBtn.classList.add('hidden');
+    }
+    if (mobileBtn) {
+      mobileBtn.textContent = label;
+      if (count > 0) mobileBtn.classList.remove('hidden');
+      else mobileBtn.classList.add('hidden');
+    }
+    if (scannerNotice) {
+      if (count > 0) {
+        scannerNotice.innerHTML = `⚠️ <strong>${count} check-in(s) saved offline.</strong> Click <u>SYNC OFFLINE</u> when connected.`;
+        scannerNotice.classList.remove('hidden');
+      } else {
+        scannerNotice.classList.add('hidden');
+      }
+    }
+  }
+
+  printMasterRoster() {
+    soundFx.playClick();
+    const printWindow = window.open('', '_blank', 'width=1100,height=850');
+    if (!printWindow) {
+      toast.show('Pop-up blocked. Please allow pop-ups to print roster.', 'error');
+      return;
+    }
+
+    const rows = (this.teams || []).map((t, idx) => {
+      const isPaid = t.status === 'PAYMENT_APPROVED' || (t.payment && t.payment.status === 'APPROVED');
+      const isAttended = Boolean(t.attended);
+      const membersText = (t.members && t.members.length)
+        ? t.members.map(m => `${m.name} (${m.role || 'Member'}, Ph: ${m.phone || 'N/A'})`).join('<br>')
+        : `${t.leader_name} (Leader, Ph: ${t.leader_phone})`;
+
+      return `
+        <tr style="border-bottom: 1px solid #ddd; ${isAttended ? 'background: #f4fff4;' : ''}">
+          <td style="padding: 7px 5px; font-weight: bold; text-align: center;">${idx + 1}</td>
+          <td style="padding: 7px 5px; font-family: monospace; font-weight: bold;">${t.reg_id}</td>
+          <td style="padding: 7px 5px;">
+            <strong>${t.team_name}</strong><br>
+            <span style="font-size: 10px; color: #555;">${t.college}</span>
+          </td>
+          <td style="padding: 7px 5px; font-size: 11px;">${t.theme_id || 'TBD'}</td>
+          <td style="padding: 7px 5px; font-size: 11px;">
+            <strong>${t.leader_name}</strong><br>
+            <span>${t.leader_phone}</span>
+          </td>
+          <td style="padding: 7px 5px; font-size: 10px; line-height: 1.4;">${membersText}</td>
+          <td style="padding: 7px 5px; text-align: center; font-size: 11px; font-weight: bold; color: ${isPaid ? '#0b6623' : '#b22222'};">
+            ${isPaid ? 'PAID ✔' : 'PENDING'}
+          </td>
+          <td style="padding: 7px 5px; text-align: center;">
+            <div style="width: 20px; height: 20px; border: 2px solid #000; margin: 0 auto; ${isAttended ? 'background: #000; color: #fff; font-size: 13px; line-height: 18px;' : ''}">
+              ${isAttended ? '✔' : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>GAMBIT'S GLITCH 2026 - Master Check-In Roster</title>
+        <style>
+          @page { size: A4 landscape; margin: 10mm; }
+          body { font-family: Arial, sans-serif; font-size: 11px; color: #000; margin: 0; padding: 10px; }
+          h1 { margin: 0 0 4px 0; font-size: 18px; text-transform: uppercase; }
+          .meta { font-size: 11px; color: #333; margin-bottom: 12px; border-bottom: 2px solid #000; padding-bottom: 6px; }
+          table { width: 100%; border-collapse: collapse; text-align: left; }
+          th { background: #eee; border-top: 1px solid #000; border-bottom: 2px solid #000; padding: 6px; font-size: 10px; text-transform: uppercase; }
+          td { page-break-inside: avoid; }
+        </style>
+      </head>
+      <body>
+        <h1>⚡ GAMBIT'S GLITCH 2026 — MASTER CHECK-IN ROSTER</h1>
+        <div class="meta">
+          <strong>VENUE:</strong> Auditorium, VSBCETC &nbsp;|&nbsp; 
+          <strong>DATE:</strong> October 13, 2026 &nbsp;|&nbsp; 
+          <strong>PRINTED:</strong> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} &nbsp;|&nbsp; 
+          <strong>TOTAL REGISTERED SQUADS:</strong> ${this.teams.length}
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 25px; text-align: center;">#</th>
+              <th style="width: 75px;">REG ID</th>
+              <th style="width: 150px;">TEAM &amp; COLLEGE</th>
+              <th style="width: 65px;">TRACK</th>
+              <th style="width: 120px;">LEADER CONTACT</th>
+              <th>SQUAD ROSTER &amp; CONTACTS</th>
+              <th style="width: 65px; text-align: center;">SLOT</th>
+              <th style="width: 55px; text-align: center;">GATE [✔]</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `);
+
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => {
+      printWindow.print();
+    }, 400);
   }
 
   render() {
@@ -109,8 +296,11 @@ export class AdminPage {
 
               <!-- Primary Quick Bar on Desktop -->
               <div class="hidden lg:flex items-center gap-2">
-                <button id="admin-gate-toggle-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-line font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
-                  PAYMENT GATE: CHECKING...
+                <button id="admin-offline-sync-btn" type="button" class="hidden btn-secondary text-xs py-2 px-3 border-2 border-signal bg-signal/15 text-signal font-mono font-bold uppercase tracking-wider transition-all cursor-pointer animate-pulse">
+                  📡 SYNC OFFLINE (0)
+                </button>
+                <button id="admin-print-roster-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent hover:text-accent-dark font-mono font-bold uppercase tracking-wider transition-all cursor-pointer" title="Print Master Check-in Sheet for Paper Backup">
+                  🖨 PRINT ROSTER
                 </button>
                 <button id="admin-refresh-btn" type="button" class="btn-primary text-xs py-2 px-3 font-mono font-bold uppercase tracking-wider shadow-sm transition-all cursor-pointer">
                   REFRESH
@@ -128,22 +318,41 @@ export class AdminPage {
             </div>
 
             <!-- Mobile Action Grid (Fits phone screens perfectly without wrapping ugliness) -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 lg:hidden gap-2 pt-2 border-t border-line/60">
-              <button id="mobile-gate-toggle-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-line font-mono font-bold uppercase tracking-tight text-center truncate">
-                GATE: ...
+            <div class="grid grid-cols-2 sm:grid-cols-5 lg:hidden gap-2 pt-2 border-t border-line/60 font-mono text-[11px]">
+              <button id="mobile-offline-sync-btn" type="button" class="hidden col-span-2 py-2.5 px-2 border-2 border-signal bg-signal/15 text-signal font-bold uppercase tracking-tight text-center animate-pulse">
+                📡 SYNC OFFLINE (0)
               </button>
-              <button id="mobile-refresh-btn" type="button" class="btn-primary text-[11px] py-2.5 px-2 font-mono font-bold uppercase tracking-tight text-center">
+              <button id="mobile-print-roster-btn" type="button" class="btn-secondary py-2.5 px-2 border border-line text-ink font-bold uppercase tracking-tight text-center">
+                🖨 PRINT
+              </button>
+              <button id="mobile-refresh-btn" type="button" class="btn-primary py-2.5 px-2 font-bold uppercase tracking-tight text-center">
                 🔄 REFRESH
               </button>
-              <button id="mobile-export-csv-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-accent text-accent-dark font-mono font-bold uppercase tracking-tight text-center">
-                📊 EXPORT CSV
+              <button id="mobile-export-csv-btn" type="button" class="btn-secondary py-2.5 px-2 border border-accent text-accent-dark font-bold uppercase tracking-tight text-center">
+                📊 CSV
               </button>
-              <button id="mobile-clear-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-error text-error font-mono font-bold uppercase tracking-tight text-center">
-                🗑 CLEAR ALL
+              <button id="mobile-clear-btn" type="button" class="btn-secondary py-2.5 px-2 border border-error text-error font-bold uppercase tracking-tight text-center">
+                🗑 CLEAR
               </button>
-              <button id="mobile-logout-btn" type="button" class="col-span-2 sm:col-span-4 btn-secondary text-[11px] py-2.5 px-2 border border-line text-muted font-mono font-bold uppercase tracking-tight text-center">
+              <button id="mobile-logout-btn" type="button" class="col-span-2 sm:col-span-1 btn-secondary py-2.5 px-2 border border-line text-muted font-bold uppercase tracking-tight text-center">
                 🚪 LOGOUT
               </button>
+            </div>
+          </div>
+
+          <!-- LIVE ANIMATED CONFIRMED SLOT BANNER -->
+          <div id="admin-slot-banner" class="p-3 sm:p-4 mb-6 bg-paper border-2 border-accent flex flex-wrap items-center justify-between gap-3 shadow-xs font-mono">
+            <div class="flex items-center gap-2.5">
+              <span class="w-3 h-3 rounded-full bg-signal animate-pulse"></span>
+              <span class="text-xs sm:text-sm font-bold text-ink uppercase tracking-wide">
+                🔥 <strong id="admin-banner-confirmed" class="text-accent-dark">--</strong> / 40 CONFIRMED SLOTS TAKEN (<span id="admin-banner-remaining" class="text-signal font-bold">--</span> REMAINING)
+              </span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="w-32 sm:w-48 bg-canvas border border-line h-3.5 overflow-hidden">
+                <div id="admin-banner-progress" class="bg-accent h-full transition-all duration-500" style="width: 0%;"></div>
+              </div>
+              <span id="admin-banner-pct" class="text-xs font-bold text-accent-dark">0%</span>
             </div>
           </div>
 
@@ -230,6 +439,9 @@ export class AdminPage {
                 ✕ CLOSE
               </button>
             </div>
+
+            <!-- Offline Pending Sync Alert Box -->
+            <div id="scanner-offline-pending-notice" class="hidden p-2.5 bg-signal/15 border-2 border-signal text-ink font-mono text-xs font-bold text-center"></div>
 
             <!-- TWO CLEAR TAB BUTTONS -->
             <div class="grid grid-cols-2 gap-2 p-1 bg-canvas border border-line">
@@ -418,31 +630,6 @@ export class AdminPage {
             </div>
           </div>
 
-          <!-- BROADCAST ANNOUNCEMENT SECTION -->
-          <div class="tech-card p-4 sm:p-6 border-line bg-paper space-y-4 mb-10">
-            <h2 class="font-sans text-base sm:text-lg font-bold text-ink uppercase border-b border-line pb-2">
-              BROADCAST PARTICIPANT ANNOUNCEMENT
-            </h2>
-            <form id="announcement-form" class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div class="md:col-span-2">
-                  <input type="text" name="title" required placeholder="Announcement Headline..." class="w-full px-3 py-2 text-xs text-ink focus:border-accent outline-none bg-canvas border border-line" />
-                </div>
-                <div>
-                  <select name="priority" class="w-full px-3 py-2 text-xs text-ink outline-none bg-canvas border border-line">
-                    <option value="NORMAL">NORMAL PRIORITY</option>
-                    <option value="URGENT">URGENT</option>
-                    <option value="CRITICAL">CRITICAL</option>
-                  </select>
-                </div>
-              </div>
-              <textarea name="content" required rows="2" placeholder="Announcement body text displayed on status tracker..." class="w-full p-3 text-xs text-ink focus:border-accent outline-none font-sans bg-canvas border border-line"></textarea>
-              <button type="submit" class="btn-primary text-xs py-2.5 px-6 font-mono font-bold uppercase cursor-pointer">
-                POST ANNOUNCEMENT
-              </button>
-            </form>
-          </div>
-
           <!-- SQUAD DETAILS & MEMBER ROSTER MODAL -->
           <div id="squad-modal" class="hidden fixed inset-0 z-50 bg-canvas/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
             <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-2xl w-full space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl">
@@ -593,9 +780,11 @@ export class AdminPage {
 
   async attachEvents() {
     if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer);
+    if (this.offlineSyncInterval) clearInterval(this.offlineSyncInterval);
 
     // Initial fetch
     await this.fetchDashboardData();
+    this.updateOfflineQueueUI();
 
     // Auto-refresh stats and team status every 8 seconds (skips if tab is hidden)
     this.autoRefreshTimer = setInterval(() => {
@@ -603,58 +792,26 @@ export class AdminPage {
       this.fetchDashboardData(true);
     }, 8000);
 
-    // GATE BUTTON STATUS SYNC
-    const syncGateBtnUI = async () => {
-      const desktopBtn = document.getElementById('admin-gate-toggle-btn');
-      const mobileBtn = document.getElementById('mobile-gate-toggle-btn');
-      try {
-        const res = await api.getPaymentGateStatus();
-        const isOpen = res && res.open;
-        const text = isOpen ? 'GATE: OPEN' : 'GATE: LOCKED';
-        const className = isOpen
-          ? 'btn-secondary text-xs py-2 px-3 border border-success text-success font-mono font-bold uppercase tracking-wider cursor-pointer'
-          : 'btn-secondary text-xs py-2 px-3 border border-error text-error font-mono font-bold uppercase tracking-wider cursor-pointer';
+    // Periodic auto-sync for offline attendance queue
+    this.offlineSyncInterval = setInterval(() => {
+      if (document.hidden || !navigator.onLine) return;
+      this.syncOfflineQueue();
+    }, 15000);
 
-        if (desktopBtn) {
-          desktopBtn.className = className;
-          desktopBtn.textContent = isOpen ? 'PAYMENT PORTAL: OPEN' : 'PAYMENT PORTAL: LOCKED';
-          desktopBtn.setAttribute('data-open', isOpen ? 'true' : 'false');
-        }
-        if (mobileBtn) {
-          mobileBtn.className = className.replace('text-xs py-2 px-3', 'text-[11px] py-2.5 px-2 text-center');
-          mobileBtn.textContent = text;
-          mobileBtn.setAttribute('data-open', isOpen ? 'true' : 'false');
-        }
-      } catch (err) {
-        if (desktopBtn) desktopBtn.textContent = 'PAYMENT GATE: ERROR';
-        if (mobileBtn) mobileBtn.textContent = 'GATE: ERR';
-      }
-    };
-    await syncGateBtnUI();
+    window.addEventListener('online', () => {
+      toast.show('Network restored. Syncing offline records...', 'info');
+      this.syncOfflineQueue();
+    });
 
-    const handleGateToggle = async () => {
-      soundFx.playClick();
-      const currentBtn = document.getElementById('admin-gate-toggle-btn') || document.getElementById('mobile-gate-toggle-btn');
-      const currentOpen = currentBtn?.getAttribute('data-open') === 'true';
-      const newStatus = !currentOpen;
-      const confirmed = confirm(`Are you sure you want to ${newStatus ? 'OPEN' : 'LOCK'} the payment portal for participating teams?`);
-      if (!confirmed) return;
+    // PRINT MASTER ROSTER BUTTONS
+    const handlePrintRoster = () => this.printMasterRoster();
+    document.getElementById('admin-print-roster-btn')?.addEventListener('click', handlePrintRoster);
+    document.getElementById('mobile-print-roster-btn')?.addEventListener('click', handlePrintRoster);
 
-      try {
-        const res = await api.togglePaymentGate(newStatus);
-        if (res && res.success) {
-          toast.show(`Payment Portal is now ${res.open ? 'OPEN' : 'LOCKED'}`, 'success');
-          await syncGateBtnUI();
-        } else {
-          toast.show('Failed to toggle Payment Portal gate.', 'error');
-        }
-      } catch (err) {
-        toast.show('Error updating Payment Portal status.', 'error');
-      }
-    };
-
-    document.getElementById('admin-gate-toggle-btn')?.addEventListener('click', handleGateToggle);
-    document.getElementById('mobile-gate-toggle-btn')?.addEventListener('click', handleGateToggle);
+    // OFFLINE SYNC BUTTONS
+    const handleSyncClick = () => this.syncOfflineQueue();
+    document.getElementById('admin-offline-sync-btn')?.addEventListener('click', handleSyncClick);
+    document.getElementById('mobile-offline-sync-btn')?.addEventListener('click', handleSyncClick);
 
     // REFRESH BUTTONS
     const handleRefresh = async () => {
@@ -1005,28 +1162,6 @@ export class AdminPage {
         if (e.target === modal) modal.classList.add('hidden');
       });
     }
-
-    // ANNOUNCEMENT BROADCAST FORM
-    const annForm = document.getElementById('announcement-form');
-    if (annForm) {
-      annForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(annForm);
-        const title = formData.get('title');
-        const content = formData.get('content');
-        const priority = formData.get('priority');
-
-        try {
-          const res = await api.createAnnouncement(title, content, priority);
-          if (res.success) {
-            toast.show('Announcement broadcasted!', 'success');
-            annForm.reset();
-          }
-        } catch (err) {
-          toast.show('Failed to post announcement.', 'error');
-        }
-      });
-    }
   }
 
   async processScanCode(rawInput) {
@@ -1240,16 +1375,24 @@ export class AdminPage {
       }
       this.renderScannerResult(updatedTeam);
 
-      // 2. High-speed asynchronous server persistence
+      // 2. High-speed asynchronous server persistence with OFFLINE FALLBACK
+      if (!navigator.onLine) {
+        this.enqueueOfflineAttendance(team.reg_id, memberAttendanceState);
+        toast.show('💾 Saved offline! Will auto-sync when connection restores.', 'info');
+        return;
+      }
+
       try {
         const res = await api.markAttendance(team.reg_id, memberAttendanceState);
         if (!res.success) {
-          toast.show(res.message || 'Failed to sync attendance with database.', 'error');
+          this.enqueueOfflineAttendance(team.reg_id, memberAttendanceState);
+          toast.show('Check-in queued to retry offline.', 'info');
         } else {
           this.fetchDashboardData(true);
         }
       } catch (err) {
-        toast.show('Network sync warning: check server connection.', 'error');
+        this.enqueueOfflineAttendance(team.reg_id, memberAttendanceState);
+        toast.show('💾 Network dropped! Check-in queued offline.', 'info');
       }
     });
 
@@ -1304,11 +1447,23 @@ export class AdminPage {
         const attendeesHeadcountEl = document.getElementById('stat-attendees-headcount');
 
         const confirmedCount = statsRes.stats.confirmedSlots ?? statsRes.stats.approvedPayments ?? 0;
+        const remainingCount = Math.max(0, 40 - confirmedCount);
+        const pct = Math.min(100, Math.round((confirmedCount / 40) * 100));
+
+        const bannerConf = document.getElementById('admin-banner-confirmed');
+        const bannerRem = document.getElementById('admin-banner-remaining');
+        const bannerProg = document.getElementById('admin-banner-progress');
+        const bannerPct = document.getElementById('admin-banner-pct');
+
+        if (bannerConf) bannerConf.textContent = confirmedCount;
+        if (bannerRem) bannerRem.textContent = `${remainingCount}`;
+        if (bannerProg) bannerProg.style.width = `${pct}%`;
+        if (bannerPct) bannerPct.textContent = `${pct}%`;
 
         if (totalEl) totalEl.textContent = statsRes.stats.totalRegistrations;
         if (pendingEl) pendingEl.textContent = statsRes.stats.pendingPayments;
         if (approvedEl) approvedEl.textContent = statsRes.stats.approvedPayments;
-        if (remainingEl) remainingEl.textContent = Math.max(0, 40 - confirmedCount);
+        if (remainingEl) remainingEl.textContent = remainingCount;
         if (shortlistEl) shortlistEl.textContent = confirmedCount;
         if (attendedEl) attendedEl.textContent = statsRes.stats.attendedCount || 0;
         if (attendeesHeadcountEl) {

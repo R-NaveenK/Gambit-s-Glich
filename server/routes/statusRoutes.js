@@ -3,6 +3,24 @@ import { dbAdapter } from '../db/dbAdapter.js';
 
 const router = express.Router();
 
+// Public endpoint for live confirmed slot counter on landing & registration pages
+router.get('/public-stats', async (req, res) => {
+  try {
+    const confirmedCount = await dbAdapter.getConfirmedPaymentCount();
+    const MAX_CONFIRMED_TEAMS = 40;
+    const remainingSlots = Math.max(0, MAX_CONFIRMED_TEAMS - confirmedCount);
+    return res.json({
+      success: true,
+      maxSlots: MAX_CONFIRMED_TEAMS,
+      confirmedCount,
+      remainingSlots,
+      isFull: confirmedCount >= MAX_CONFIRMED_TEAMS
+    });
+  } catch (err) {
+    return res.status(500).json({ success: false, message: 'Failed to fetch public stats.' });
+  }
+});
+
 router.post('/check', async (req, res) => {
   try {
     const { reg_id, email } = req.body;
