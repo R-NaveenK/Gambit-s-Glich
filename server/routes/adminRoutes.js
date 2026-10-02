@@ -20,9 +20,14 @@ router.get('/dashboard', async (req, res) => {
     let pptSubmissions = 0;
     let confirmedSlots = 0;
     let attendedCount = 0;
+    let totalParticipants = 0;
+    let attendedMembersCount = 0;
 
     for (const fullTeam of fullTeams) {
       if (!fullTeam) continue;
+      const memberCount = fullTeam.member_count || (fullTeam.members && fullTeam.members.length ? fullTeam.members.length : 1);
+      totalParticipants += memberCount;
+
       if (fullTeam.payment) {
         if (fullTeam.payment.status === 'APPROVED') approvedPayments++;
         else pendingPayments++;
@@ -32,7 +37,21 @@ router.get('/dashboard', async (req, res) => {
 
       if (fullTeam.ppt) pptSubmissions++;
       if (fullTeam.status === 'PAYMENT_APPROVED' || (fullTeam.payment && fullTeam.payment.status === 'APPROVED')) confirmedSlots++;
-      if (fullTeam.attended) attendedCount++;
+      
+      if (fullTeam.attended) {
+        attendedCount++;
+        let mAtt = null;
+        try {
+          if (fullTeam.member_attendance) {
+            mAtt = typeof fullTeam.member_attendance === 'string' ? JSON.parse(fullTeam.member_attendance) : fullTeam.member_attendance;
+          }
+        } catch(e) {}
+        if (mAtt) {
+          attendedMembersCount += Object.values(mAtt).filter(Boolean).length;
+        } else {
+          attendedMembersCount += memberCount;
+        }
+      }
     }
 
     return res.json({
@@ -46,7 +65,9 @@ router.get('/dashboard', async (req, res) => {
         shortlisted: confirmedSlots, // for backwards compatibility
         maxCapacity: 40,
         remainingSlots: Math.max(0, 40 - confirmedSlots),
-        attendedCount
+        attendedCount,
+        totalParticipants,
+        attendedMembersCount
       }
     });
   } catch (err) {
@@ -58,7 +79,7 @@ router.get('/dashboard', async (req, res) => {
 // 2. Search & Filter Teams
 router.get('/teams', async (req, res) => {
   try {
-    const { search, theme, status, college } = req.query;
+    const { search, theme, status, college, attendance } = req.query;
     const teams = await dbAdapter.getAllTeams();
 
     const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
@@ -72,6 +93,8 @@ router.get('/teams', async (req, res) => {
         (t.team_name || '').toLowerCase().includes(q) ||
         (t.leader_name || '').toLowerCase().includes(q) ||
         (t.leader_email || '').toLowerCase().includes(q) ||
+        (t.leader_phone || '').includes(q) ||
+        (t.college || '').toLowerCase().includes(q) ||
         (t.payment && t.payment.utr_number && t.payment.utr_number.toLowerCase().includes(q))
       );
     }
@@ -93,6 +116,14 @@ router.get('/teams', async (req, res) => {
         }
         return t.status === status;
       });
+    }
+
+    if (attendance && attendance !== 'ALL') {
+      if (attendance === 'ATTENDED') {
+        filtered = filtered.filter(t => Boolean(t.attended));
+      } else if (attendance === 'NOT_ATTENDED') {
+        filtered = filtered.filter(t => !t.attended);
+      }
     }
 
     if (college && college !== 'ALL') {
@@ -322,7 +353,8 @@ router.get('/export-csv', async (req, res) => {
     const headers = [
       'Registration ID', 'Team Name', 'Theme', 'Leader Name', 'Leader Email', 'Leader Phone',
       'College', 'Department', 'Year', 'Member Count', 'Status', 'UTR Number', 'Payer Name',
-      'Amount', 'Payment Status', 'Payment Screenshot', 'Attendance Checked In', 'Created At'
+      'Amount', 'Payment Status', 'Payment Screenshot', 'Attendance Checked In', 'Present Members Count',
+      'Attended At', 'All Members Roster', 'Created At'
     ];
 
     const sanitize = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
@@ -331,6 +363,24 @@ router.get('/export-csv', async (req, res) => {
 
     for (const t of fullTeams) {
       if (!t) continue;
+
+      let presentMembers = 0;
+      let memberAtt = null;
+      try {
+        if (t.member_attendance) {
+          memberAtt = typeof t.member_attendance === 'string' ? JSON.parse(t.member_attendance) : t.member_attendance;
+        }
+      } catch (e) {}
+      if (memberAtt) {
+        presentMembers = Object.values(memberAtt).filter(Boolean).length;
+      } else if (t.attended) {
+        presentMembers = t.member_count || 1;
+      }
+
+      const membersList = (t.members && t.members.length) 
+        ? t.members.map((m, i) => `${i + 1}. ${m.name} [${m.role || 'Member'}] (Email: ${m.email || 'N/A'}, Phone: ${m.phone || 'N/A'})`).join(' | ')
+        : `1. ${t.leader_name} [Leader] (Email: ${t.leader_email}, Phone: ${t.leader_phone})`;
+
       const row = [
         sanitize(t.reg_id),
         sanitize(t.team_name),
@@ -349,6 +399,9 @@ router.get('/export-csv', async (req, res) => {
         sanitize(t.payment ? t.payment.status : 'PENDING'),
         sanitize(t.payment ? t.payment.screenshot_url : 'N/A'),
         t.attended ? 'YES' : 'NO',
+        `${presentMembers}/${t.member_count || 1}`,
+        sanitize(t.attended_at || 'N/A'),
+        sanitize(membersList),
         sanitize(t.created_at || '')
       ].join(',');
       csvContent += row + '\n';

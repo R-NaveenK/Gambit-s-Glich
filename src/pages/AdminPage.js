@@ -50,6 +50,26 @@ export async function triggerFileDownload(fileUrl, filename = 'download') {
   }
 }
 
+export async function copyToClipboard(text, label = 'Text') {
+  if (!text) return;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    }
+    soundFx.playBeep();
+    toast.show(`✔ ${label} copied to clipboard!`, 'info');
+  } catch (e) {
+    toast.show(`Failed to copy: ${text}`, 'error');
+  }
+}
+
 export class AdminPage {
   constructor(navigate) {
     this.navigate = navigate;
@@ -58,7 +78,8 @@ export class AdminPage {
     this.logs = [];
     this.selectedTeam = null;
     this.scannedTeam = null;
-    this.currentFilters = { search: '', theme: 'ALL', status: 'ALL' };
+    this.squadModalTeam = null;
+    this.currentFilters = { search: '', theme: 'ALL', status: 'ALL', attendance: 'ALL', sort: 'NEWEST' };
     this.searchDebounceTimer = null;
     this.scannerMode = 'camera'; // 'camera' or 'reg_id'
     this.html5QrCode = null;
@@ -141,8 +162,9 @@ export class AdminPage {
           <!-- OVERVIEW STATS GRID (Responsive for mobile & desktop) -->
           <div id="admin-stats-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mb-8">
             <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">TOTAL TEAMS</div>
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">TOTAL SQUADS</div>
               <div id="stat-total" class="font-mono text-2xl sm:text-3xl font-bold text-ink">--</div>
+              <div class="text-[8px] sm:text-[9px] text-muted font-mono font-bold uppercase">REGISTERED</div>
             </div>
             <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
               <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">CONFIRMED (FCFS)</div>
@@ -155,19 +177,25 @@ export class AdminPage {
             <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
               <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">PAY PENDING</div>
               <div id="stat-pending" class="font-mono text-2xl sm:text-3xl font-bold text-accent-dark">--</div>
+              <div class="text-[8px] sm:text-[9px] text-muted font-mono font-bold uppercase">AWAITING PROOF</div>
             </div>
             <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
               <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">PAY APPROVED</div>
               <div id="stat-approved" class="font-mono text-2xl sm:text-3xl font-bold text-success">--</div>
+              <div class="text-[8px] sm:text-[9px] text-success/80 font-mono font-bold uppercase">VERIFIED SLOTS</div>
             </div>
             <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">SLOTS LEFT</div>
-              <div id="stat-remaining" class="font-mono text-2xl sm:text-3xl font-bold text-ink">--</div>
-              <div class="text-[8px] sm:text-[9px] text-muted font-mono font-bold uppercase">OF 40</div>
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">ATTENDANCE (TEAMS)</div>
+              <div class="flex items-baseline justify-center gap-1">
+                <span id="stat-attended" class="font-mono text-2xl sm:text-3xl font-bold text-success">--</span>
+                <span class="font-mono text-xs sm:text-base text-muted font-bold">/ 40</span>
+              </div>
+              <div class="text-[8px] sm:text-[9px] text-muted font-mono font-bold uppercase">CHECKED IN</div>
             </div>
             <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">ATTENDANCE</div>
-              <div id="stat-attended" class="font-mono text-2xl sm:text-3xl font-bold text-success">--</div>
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">HEADCOUNT (ATTENDEES)</div>
+              <div id="stat-attendees-headcount" class="font-mono text-xl sm:text-2xl font-bold text-ink">-- / --</div>
+              <div class="text-[8px] sm:text-[9px] text-accent-dark font-mono font-bold uppercase">PRESENT / TOTAL</div>
             </div>
           </div>
 
@@ -301,27 +329,44 @@ export class AdminPage {
             </div>
           </div>
 
-          <!-- SEARCH & FILTER BAR (Mobile full-width stacked) -->
-          <div class="tech-card p-3 sm:p-4 border border-line bg-paper mb-6 shadow-xs">
-            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-4">
-              <div class="flex-1">
+          <!-- SEARCH & FILTER BAR (Mobile full-width stacked & responsive grid) -->
+          <div class="tech-card p-3 sm:p-5 border border-line bg-paper mb-6 shadow-xs space-y-3">
+            <div class="flex flex-col md:flex-row items-stretch md:items-center gap-2.5">
+              <div class="relative flex-1">
                 <input 
                   type="text" 
                   id="admin-search-input" 
-                  placeholder="Search by Team Name, ID, Leader Email, UTR..." 
-                  class="w-full px-3 py-2.5 text-xs text-ink font-mono focus:border-accent outline-none bg-canvas border border-line" 
+                  placeholder="Search by Team Name, ID (GG26-...), Leader Email, Phone, College, UTR..." 
+                  class="w-full pl-9 pr-8 py-2.5 text-xs text-ink font-mono focus:border-accent outline-none bg-canvas border border-line" 
                 />
+                <span class="absolute left-3 top-2.5 text-muted text-xs">🔍</span>
+                <button type="button" id="admin-search-clear-btn" class="hidden absolute right-2.5 top-2 text-muted hover:text-ink text-sm font-bold font-mono px-1">✕</button>
               </div>
 
-              <div class="w-full sm:w-44">
-                <select id="admin-theme-filter" class="w-full px-3 py-2.5 text-xs text-ink font-mono outline-none bg-canvas border border-line">
+              <!-- Filter Badges & Counter -->
+              <div class="flex items-center justify-between sm:justify-end gap-2">
+                <div id="admin-filtered-count-badge" class="px-3 py-2 text-[11px] font-mono font-bold bg-canvas border border-line text-accent-dark whitespace-nowrap">
+                  SHOWING -- SQUADS
+                </div>
+                <button id="admin-filter-reset" class="btn-secondary text-xs py-2 px-3.5 font-mono font-bold uppercase tracking-wider border border-line hover:border-accent hover:text-accent-dark transition-all cursor-pointer whitespace-nowrap">
+                  RESET
+                </button>
+              </div>
+            </div>
+
+            <!-- Controls row: Themes, Status, Attendance, Sort -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 pt-1 border-t border-line/50 text-xs font-mono">
+              <div>
+                <label class="block text-[10px] text-muted font-bold uppercase mb-1">THEME / TRACK:</label>
+                <select id="admin-theme-filter" class="w-full px-2.5 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
                   <option value="ALL">All Themes</option>
                   ${eventConfig.themes.map(t => `<option value="${t.id}">${t.number}. ${t.name}</option>`).join('')}
                 </select>
               </div>
 
-              <div class="w-full sm:w-48">
-                <select id="admin-status-filter" class="w-full px-3 py-2.5 text-xs text-ink font-mono outline-none bg-canvas border border-line">
+              <div>
+                <label class="block text-[10px] text-muted font-bold uppercase mb-1">PAYMENT &amp; SLOT STATUS:</label>
+                <select id="admin-status-filter" class="w-full px-2.5 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
                   <option value="ALL">All Statuses</option>
                   <option value="REGISTERED">Registered / FCFS</option>
                   <option value="PAYMENT_PENDING">Payment Pending</option>
@@ -330,9 +375,25 @@ export class AdminPage {
                 </select>
               </div>
 
-              <button id="admin-filter-reset" class="btn-secondary text-xs py-2.5 px-4 font-mono font-bold uppercase tracking-wider border border-line hover:border-accent hover:text-accent-dark transition-all cursor-pointer text-center">
-                RESET FILTERS
-              </button>
+              <div>
+                <label class="block text-[10px] text-muted font-bold uppercase mb-1">VENUE CHECK-IN ATTENDANCE:</label>
+                <select id="admin-attendance-filter" class="w-full px-2.5 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
+                  <option value="ALL">All Attendance States</option>
+                  <option value="ATTENDED">✔ Attended / Checked In</option>
+                  <option value="NOT_ATTENDED">❌ Not Checked In</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[10px] text-muted font-bold uppercase mb-1">SORT ROSTER BY:</label>
+                <select id="admin-sort-filter" class="w-full px-2.5 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
+                  <option value="NEWEST">Newest First</option>
+                  <option value="OLDEST">Oldest First</option>
+                  <option value="NAME_ASC">Team Name (A-Z)</option>
+                  <option value="NAME_DESC">Team Name (Z-A)</option>
+                  <option value="MEMBERS_DESC">Members Count (High-Low)</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -389,6 +450,63 @@ export class AdminPage {
                 POST ANNOUNCEMENT
               </button>
             </form>
+          </div>
+
+          <!-- SQUAD DETAILS & MEMBER ROSTER MODAL -->
+          <div id="squad-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+            <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-2xl w-full space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl">
+              <div class="flex items-center justify-between border-b border-line pb-3">
+                <div>
+                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// SQUAD DOSSIER &amp; ROSTER</div>
+                  <div class="font-sans text-lg sm:text-2xl font-bold text-ink uppercase truncate max-w-xs sm:max-w-md" id="squad-modal-team-name">TEAM NAME</div>
+                </div>
+                <button id="close-squad-modal-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors leading-none">✕</button>
+              </div>
+
+              <!-- Metadata Grid -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono bg-canvas p-3 border border-line">
+                <div>
+                  <div class="text-[9px] text-muted uppercase font-bold">REG ID:</div>
+                  <strong id="squad-modal-reg-id" class="text-accent-dark font-mono text-xs select-all">--</strong>
+                </div>
+                <div>
+                  <div class="text-[9px] text-muted uppercase font-bold">THEME:</div>
+                  <strong id="squad-modal-theme" class="text-ink font-mono text-xs truncate block">--</strong>
+                </div>
+                <div>
+                  <div class="text-[9px] text-muted uppercase font-bold">COLLEGE:</div>
+                  <span id="squad-modal-college" class="text-ink font-bold text-xs truncate block">--</span>
+                </div>
+                <div>
+                  <div class="text-[9px] text-muted uppercase font-bold">ATTENDANCE:</div>
+                  <span id="squad-modal-attendance-status" class="text-xs font-bold font-mono">--</span>
+                </div>
+              </div>
+
+              <!-- Members List Container -->
+              <div class="space-y-2">
+                <div class="text-xs text-accent-dark font-bold font-mono uppercase flex items-center justify-between">
+                  <span>// SQUAD MEMBERS (<span id="squad-modal-member-count">0</span>):</span>
+                  <span id="squad-modal-present-count" class="text-[11px] text-muted font-mono">0 Present</span>
+                </div>
+                <div id="squad-modal-members-list" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                  <!-- Dynamically rendered -->
+                </div>
+              </div>
+
+              <!-- Action Bar -->
+              <div class="pt-3 border-t border-line flex flex-wrap gap-2 justify-end">
+                <button type="button" id="squad-modal-open-scanner-btn" class="btn-primary py-2.5 px-4 text-xs font-bold uppercase font-mono cursor-pointer">
+                  🎫 OPEN IN CHECK-IN SCANNER
+                </button>
+                <button type="button" id="squad-modal-invoice-btn" class="btn-secondary py-2.5 px-4 text-xs font-bold uppercase font-mono border border-line hover:border-accent text-ink hover:text-accent-dark cursor-pointer">
+                  ✉ RESEND INVOICE / PASS
+                </button>
+                <button type="button" id="squad-modal-close-bottom-btn" class="btn-secondary py-2.5 px-3 text-xs font-bold uppercase font-mono border border-line text-muted cursor-pointer">
+                  CLOSE
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- PAYMENT PROOF AUDIT MODAL -->
@@ -797,40 +915,115 @@ export class AdminPage {
       });
     }
 
-    // Search and Filters
+    // Search, Filters, and Sorting
     const searchInput = document.getElementById('admin-search-input');
+    const searchClearBtn = document.getElementById('admin-search-clear-btn');
     const themeFilter = document.getElementById('admin-theme-filter');
     const statusFilter = document.getElementById('admin-status-filter');
+    const attendanceFilter = document.getElementById('admin-attendance-filter');
+    const sortFilter = document.getElementById('admin-sort-filter');
     const resetBtn = document.getElementById('admin-filter-reset');
 
     const updateFiltersAndFetch = async () => {
       this.currentFilters = {
         search: searchInput ? searchInput.value.trim() : '',
         theme: themeFilter ? themeFilter.value : 'ALL',
-        status: statusFilter ? statusFilter.value : 'ALL'
+        status: statusFilter ? statusFilter.value : 'ALL',
+        attendance: attendanceFilter ? attendanceFilter.value : 'ALL',
+        sort: sortFilter ? sortFilter.value : 'NEWEST'
       };
+      if (searchClearBtn) {
+        if (this.currentFilters.search) {
+          searchClearBtn.classList.remove('hidden');
+        } else {
+          searchClearBtn.classList.add('hidden');
+        }
+      }
       await this.fetchDashboardData(true);
     };
 
     if (searchInput) {
       searchInput.addEventListener('input', () => {
+        if (searchClearBtn) {
+          if (searchInput.value.trim()) searchClearBtn.classList.remove('hidden');
+          else searchClearBtn.classList.add('hidden');
+        }
         if (this.searchDebounceTimer) clearTimeout(this.searchDebounceTimer);
         this.searchDebounceTimer = setTimeout(updateFiltersAndFetch, 300);
       });
     }
 
+    if (searchClearBtn) {
+      searchClearBtn.addEventListener('click', async () => {
+        if (searchInput) searchInput.value = '';
+        searchClearBtn.classList.add('hidden');
+        await updateFiltersAndFetch();
+      });
+    }
+
     if (themeFilter) themeFilter.addEventListener('change', updateFiltersAndFetch);
     if (statusFilter) statusFilter.addEventListener('change', updateFiltersAndFetch);
+    if (attendanceFilter) attendanceFilter.addEventListener('change', updateFiltersAndFetch);
+
+    if (sortFilter) {
+      sortFilter.addEventListener('change', () => {
+        this.currentFilters.sort = sortFilter.value;
+        this.renderTeamsTable(this.teams);
+      });
+    }
 
     if (resetBtn) {
       resetBtn.addEventListener('click', async () => {
+        soundFx.playClick();
         if (searchInput) searchInput.value = '';
+        if (searchClearBtn) searchClearBtn.classList.add('hidden');
         if (themeFilter) themeFilter.value = 'ALL';
         if (statusFilter) statusFilter.value = 'ALL';
-        this.currentFilters = { search: '', theme: 'ALL', status: 'ALL' };
+        if (attendanceFilter) attendanceFilter.value = 'ALL';
+        if (sortFilter) sortFilter.value = 'NEWEST';
+        this.currentFilters = { search: '', theme: 'ALL', status: 'ALL', attendance: 'ALL', sort: 'NEWEST' };
         await this.fetchDashboardData();
+        toast.show('Filters reset to default.', 'info');
       });
     }
+
+    // SQUAD MODAL CLOSE & ACTION HANDLERS
+    const squadModal = document.getElementById('squad-modal');
+    const closeSquadModal = () => squadModal?.classList.add('hidden');
+    document.getElementById('close-squad-modal-btn')?.addEventListener('click', closeSquadModal);
+    document.getElementById('squad-modal-close-bottom-btn')?.addEventListener('click', closeSquadModal);
+    if (squadModal) {
+      squadModal.addEventListener('click', (e) => {
+        if (e.target === squadModal) closeSquadModal();
+      });
+    }
+
+    document.getElementById('squad-modal-open-scanner-btn')?.addEventListener('click', () => {
+      soundFx.playClick();
+      closeSquadModal();
+      if (this.squadModalTeam) {
+        const drawer = document.getElementById('scanner-drawer-container');
+        if (drawer) drawer.classList.remove('hidden');
+        this.renderScannerResult(this.squadModalTeam);
+      }
+    });
+
+    document.getElementById('squad-modal-invoice-btn')?.addEventListener('click', async () => {
+      soundFx.playClick();
+      if (!this.squadModalTeam) return;
+      const team = this.squadModalTeam;
+      toast.show(`Dispatching invoice & QR pass to Team ${team.team_name}...`, 'info');
+      try {
+        const res = await api.resendInvoiceEmail(team.reg_id);
+        if (res.success) {
+          toast.show(res.message || 'Invoice & QR pass email dispatched!', 'success');
+        } else {
+          toast.show(res.message || 'Failed to dispatch invoice email.', 'error');
+        }
+      } catch (err) {
+        toast.show('Network error dispatching invoice email.', 'error');
+      }
+    });
 
     // PAYMENT MODAL CLOSE
     const closeModal = document.getElementById('close-modal-btn');
@@ -1215,11 +1408,13 @@ export class AdminPage {
       const searchInput = document.getElementById('admin-search-input');
       const themeFilter = document.getElementById('admin-theme-filter');
       const statusFilter = document.getElementById('admin-status-filter');
+      const attendanceFilter = document.getElementById('admin-attendance-filter');
 
       const filters = {};
-      if (searchInput && searchInput.value) filters.search = searchInput.value;
+      if (searchInput && searchInput.value) filters.search = searchInput.value.trim();
       if (themeFilter && themeFilter.value !== 'ALL') filters.theme = themeFilter.value;
       if (statusFilter && statusFilter.value !== 'ALL') filters.status = statusFilter.value;
+      if (attendanceFilter && attendanceFilter.value !== 'ALL') filters.attendance = attendanceFilter.value;
 
       const [statsRes, teamsRes] = await Promise.all([
         api.getAdminStats(),
@@ -1240,6 +1435,7 @@ export class AdminPage {
         const remainingEl = document.getElementById('stat-remaining');
         const shortlistEl = document.getElementById('stat-confirmed') || document.getElementById('stat-shortlist');
         const attendedEl = document.getElementById('stat-attended');
+        const attendeesHeadcountEl = document.getElementById('stat-attendees-headcount');
 
         const confirmedCount = statsRes.stats.confirmedSlots ?? statsRes.stats.approvedPayments ?? 0;
 
@@ -1249,6 +1445,11 @@ export class AdminPage {
         if (remainingEl) remainingEl.textContent = Math.max(0, 40 - confirmedCount);
         if (shortlistEl) shortlistEl.textContent = confirmedCount;
         if (attendedEl) attendedEl.textContent = statsRes.stats.attendedCount || 0;
+        if (attendeesHeadcountEl) {
+          const presentCount = statsRes.stats.attendedMembersCount || 0;
+          const totalCount = statsRes.stats.totalParticipants || (statsRes.stats.totalRegistrations * 3);
+          attendeesHeadcountEl.textContent = `${presentCount} / ${totalCount}`;
+        }
       }
 
       if (teamsRes.success) {
@@ -1293,16 +1494,36 @@ export class AdminPage {
   renderTeamsTable(teams) {
     const tbody = document.getElementById('admin-teams-tbody');
     const mobileContainer = document.getElementById('admin-teams-mobile-container');
+    const countBadge = document.getElementById('admin-filtered-count-badge');
 
     if (!teams || teams.length === 0) {
       if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-muted">No teams found matching current query.</td></tr>`;
       if (mobileContainer) mobileContainer.innerHTML = `<div class="tech-card p-6 border-line bg-paper text-center text-xs text-muted">No teams found matching current query.</div>`;
+      if (countBadge) countBadge.textContent = 'SHOWING 0 SQUADS';
       return;
     }
 
+    // Client-side Sorting
+    const sortedTeams = [...teams];
+    const sortMode = this.currentFilters.sort || 'NEWEST';
+    if (sortMode === 'OLDEST') {
+      sortedTeams.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+    } else if (sortMode === 'NAME_ASC') {
+      sortedTeams.sort((a, b) => (a.team_name || '').localeCompare(b.team_name || ''));
+    } else if (sortMode === 'NAME_DESC') {
+      sortedTeams.sort((a, b) => (b.team_name || '').localeCompare(a.team_name || ''));
+    } else if (sortMode === 'MEMBERS_DESC') {
+      sortedTeams.sort((a, b) => (b.member_count || 1) - (a.member_count || 1));
+    } else {
+      // Default: NEWEST
+      sortedTeams.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+    }
+
+    if (countBadge) countBadge.textContent = `SHOWING ${sortedTeams.length} SQUADS`;
+
     // 1. RENDER DESKTOP TABLE
     if (tbody) {
-      tbody.innerHTML = teams.map(team => {
+      tbody.innerHTML = sortedTeams.map(team => {
         const pay = team.payment;
         const payBadge = pay ? (
           pay.status === 'APPROVED' ? '<span class="text-success font-bold">APPROVED</span>' :
@@ -1323,7 +1544,10 @@ export class AdminPage {
           <tr class="hover:bg-canvas transition-colors">
             <td class="p-4">
               <div class="font-bold text-ink font-sans text-sm flex items-center flex-wrap gap-1">${team.team_name} ${attendanceBadge}</div>
-              <div class="text-accent-dark text-[11px] font-mono">${team.reg_id} // Leader: ${team.leader_name}</div>
+              <div class="text-accent-dark text-[11px] font-mono flex items-center gap-1.5 mt-0.5">
+                <span class="font-bold cursor-pointer hover:underline" data-copy="${team.reg_id}" title="Click to copy Registration ID">${team.reg_id}</span>
+                <span class="text-muted text-[10px]">// Leader: ${team.leader_name}</span>
+              </div>
               <div class="text-muted text-[10px] font-sans">${team.college} (${team.member_count || 1} Members)</div>
             </td>
 
@@ -1331,7 +1555,7 @@ export class AdminPage {
 
             <td class="p-4 font-mono">
               <div>${payBadge}</div>
-              ${pay ? `<div class="text-[10px] text-muted">UTR: <span class="text-ink font-bold select-all">${pay.utr_number}</span></div>` : ''}
+              ${pay ? `<div class="text-[10px] text-muted">UTR: <span class="text-ink font-bold select-all cursor-pointer hover:underline" data-copy="${pay.utr_number}" title="Click to copy UTR">${pay.utr_number}</span></div>` : ''}
               ${pay && pay.payer_name ? `<div class="text-[10px] text-muted">Payer: ${pay.payer_name}</div>` : ''}
             </td>
 
@@ -1357,7 +1581,11 @@ export class AdminPage {
               </span>
             </td>
 
-            <td class="p-4 text-right space-x-1.5 font-mono whitespace-nowrap">
+            <td class="p-4 text-right space-x-1 font-mono whitespace-nowrap">
+              <button data-action="view-squad" data-reg="${team.reg_id}" class="px-2 py-1 border border-line text-ink hover:border-accent hover:text-accent-dark text-[10px] cursor-pointer font-bold transition-all" title="View squad members roster">
+                👥 SQUAD
+              </button>
+
               ${pay ? `
                 <button data-action="verify-pay" data-reg="${team.reg_id}" class="px-2 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer font-bold transition-all">
                   ${pay.status === 'APPROVED' ? 'PROOF' : 'VERIFY'}
@@ -1373,7 +1601,7 @@ export class AdminPage {
               </button>
 
               <button data-action="resend-invoice" data-reg="${team.reg_id}" title="Resend Payment Invoice &amp; Attendance QR Email" class="px-2 py-1 border border-line text-ink hover:border-accent hover:text-accent-dark text-[10px] cursor-pointer transition-all">
-                ✉ INVOICE
+                ✉ PASS
               </button>
             </td>
           </tr>
@@ -1383,7 +1611,7 @@ export class AdminPage {
 
     // 2. RENDER MOBILE CARDS (Touch-friendly native layout for phones)
     if (mobileContainer) {
-      mobileContainer.innerHTML = teams.map(team => {
+      mobileContainer.innerHTML = sortedTeams.map(team => {
         const pay = team.payment;
         const isPaid = pay && pay.status === 'APPROVED';
         const isAttended = Boolean(team.attended);
@@ -1399,7 +1627,9 @@ export class AdminPage {
           <div class="tech-card p-4 border border-line bg-paper space-y-3 shadow-xs">
             <div class="flex items-start justify-between gap-2 border-b border-line/50 pb-2">
               <div>
-                <div class="text-[11px] text-accent-dark font-bold font-mono tracking-wider">${team.reg_id}</div>
+                <div class="text-[11px] text-accent-dark font-bold font-mono tracking-wider cursor-pointer hover:underline" data-copy="${team.reg_id}" title="Click to copy Reg ID">
+                  ${team.reg_id} 📋
+                </div>
                 <h3 class="font-sans text-base font-extrabold text-ink uppercase tracking-tight">${team.team_name}</h3>
                 <div class="text-[10px] text-muted font-sans">${team.college} • ${team.member_count || 1} Members</div>
               </div>
@@ -1430,12 +1660,16 @@ export class AdminPage {
 
             ${pay ? `
               <div class="text-[10px] text-muted font-mono truncate">
-                UTR: <span class="text-ink font-bold select-all">${pay.utr_number}</span> (${pay.payer_name || 'Payer'})
+                UTR: <span class="text-ink font-bold select-all cursor-pointer hover:underline" data-copy="${pay.utr_number}">${pay.utr_number}</span> (${pay.payer_name || 'Payer'})
               </div>
             ` : ''}
 
-            <!-- Mobile Action Buttons Grid (4 touch-friendly buttons) -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[11px]">
+            <!-- Mobile Action Buttons Grid (5 touch-friendly buttons) -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 font-mono text-[11px]">
+              <button data-action="view-squad" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-line text-ink hover:border-accent hover:text-accent-dark font-bold text-center cursor-pointer">
+                👥 SQUAD
+              </button>
+
               ${pay ? `
                 <button data-action="verify-pay" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-accent text-accent-dark font-bold text-center cursor-pointer hover:bg-accent hover:text-ink">
                   ${pay.status === 'APPROVED' ? 'PROOF ↗' : 'VERIFY PAY'}
@@ -1454,7 +1688,7 @@ export class AdminPage {
                 🎫 CHECK IN
               </button>
 
-              <button data-action="resend-invoice" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-line text-ink hover:text-accent-dark font-bold text-center cursor-pointer">
+              <button data-action="resend-invoice" data-reg="${team.reg_id}" class="col-span-2 sm:col-span-1 py-2.5 px-2 border border-line text-ink hover:text-accent-dark font-bold text-center cursor-pointer">
                 ✉ INVOICE
               </button>
             </div>
@@ -1464,6 +1698,25 @@ export class AdminPage {
     }
 
     // ATTACH ACTION LISTENERS (Covers both Desktop Table AND Mobile Cards)
+    document.querySelectorAll('button[data-action="view-squad"]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        soundFx.playClick();
+        const regId = btn.getAttribute('data-reg');
+        const team = this.teams.find(t => t.reg_id === regId);
+        if (team) {
+          this.openSquadModal(team);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-copy]').forEach(el => {
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const val = el.getAttribute('data-copy');
+        copyToClipboard(val, 'Copied');
+      });
+    });
+
     document.querySelectorAll('button[data-action="view-proof"], button[data-action="verify-pay"]').forEach(btn => {
       btn.addEventListener('click', () => {
         soundFx.playClick();
@@ -1527,6 +1780,91 @@ export class AdminPage {
         }
       });
     });
+  }
+
+  openSquadModal(team) {
+    this.squadModalTeam = team;
+    const modal = document.getElementById('squad-modal');
+    if (!modal) return;
+
+    document.getElementById('squad-modal-team-name').textContent = team.team_name;
+    document.getElementById('squad-modal-reg-id').textContent = team.reg_id;
+    document.getElementById('squad-modal-theme').textContent = team.theme_id || 'TBD';
+    document.getElementById('squad-modal-college').textContent = team.college || 'N/A';
+
+    const attStatusEl = document.getElementById('squad-modal-attendance-status');
+    if (attStatusEl) {
+      attStatusEl.textContent = team.attended ? '✔ ATTENDED' : '❌ NOT CHECKED IN';
+      attStatusEl.className = team.attended ? 'text-xs font-bold font-mono text-success' : 'text-xs font-bold font-mono text-error';
+    }
+
+    const members = (team.members && team.members.length) ? team.members : [
+      { id: 'leader', name: team.leader_name, email: team.leader_email, phone: team.leader_phone, role: 'Team Leader' }
+    ];
+
+    let existingAtt = {};
+    if (team.member_attendance) {
+      existingAtt = typeof team.member_attendance === 'string' ? JSON.parse(team.member_attendance) : team.member_attendance;
+    }
+
+    const presentMembersCount = members.filter((m, i) => {
+      const key = String(m.id || m.email || m.name || `m_${i}`);
+      if (existingAtt && typeof existingAtt[key] === 'boolean') return existingAtt[key];
+      if (existingAtt && typeof existingAtt[m.email] === 'boolean') return existingAtt[m.email];
+      return Boolean(team.attended);
+    }).length;
+
+    document.getElementById('squad-modal-member-count').textContent = members.length;
+    document.getElementById('squad-modal-present-count').textContent = `${presentMembersCount} / ${members.length} Present`;
+
+    const membersListEl = document.getElementById('squad-modal-members-list');
+    if (membersListEl) {
+      membersListEl.innerHTML = members.map((m, i) => {
+        const key = String(m.id || m.email || m.name || `m_${i}`);
+        let isPresent = false;
+        if (existingAtt && typeof existingAtt[key] === 'boolean') isPresent = existingAtt[key];
+        else if (existingAtt && typeof existingAtt[m.email] === 'boolean') isPresent = existingAtt[m.email];
+        else if (team.attended) isPresent = true;
+
+        const isLeader = i === 0 || (m.role && m.role.toLowerCase().includes('leader'));
+
+        return `
+          <div class="p-3 bg-canvas border ${isPresent ? 'border-success/40 bg-success/[0.02]' : 'border-line'} flex items-start justify-between gap-3 text-xs font-mono">
+            <div class="space-y-1 min-w-0">
+              <div class="font-bold text-ink flex items-center gap-1.5 truncate">
+                <span>0${i + 1}. ${m.name}</span>
+                ${isLeader ? '<span class="text-[9px] px-1.5 py-0.2 bg-accent/20 text-accent-dark font-bold">LEADER</span>' : ''}
+              </div>
+              <div class="text-[11px] text-muted flex flex-wrap items-center gap-2">
+                ${m.email ? `
+                  <a href="mailto:${m.email}" class="text-accent-dark hover:underline truncate">✉ ${m.email}</a>
+                  <button type="button" data-copy="${m.email}" class="text-[10px] text-muted hover:text-ink cursor-pointer">📋</button>
+                ` : ''}
+                ${m.phone ? `
+                  <a href="tel:${m.phone}" class="text-accent-dark hover:underline">📞 ${m.phone}</a>
+                  <button type="button" data-copy="${m.phone}" class="text-[10px] text-muted hover:text-ink cursor-pointer">📋</button>
+                ` : ''}
+              </div>
+            </div>
+            <div class="shrink-0">
+              <span class="text-[10px] font-bold px-2 py-0.5 border ${isPresent ? 'border-success text-success bg-success/10' : 'border-line text-muted bg-paper'}">
+                ${isPresent ? '✔ PRESENT' : '✕ ABSENT'}
+              </span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      membersListEl.querySelectorAll('[data-copy]').forEach(el => {
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const val = el.getAttribute('data-copy');
+          copyToClipboard(val, 'Contact info');
+        });
+      });
+    }
+
+    modal.classList.remove('hidden');
   }
 
   createBlobUrlFromData(dataUrl) {
