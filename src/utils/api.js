@@ -156,7 +156,7 @@ export const api = {
     return res.json();
   },
 
-  async markAttendance(regId) {
+  async markAttendance(regId, memberAttendance = null) {
     const token = this.getToken();
     const res = await fetch(`${BASE_URL}/admin/team/mark-attendance`, {
       method: 'POST',
@@ -164,7 +164,7 @@ export const api = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ reg_id: regId })
+      body: JSON.stringify({ reg_id: regId, member_attendance: memberAttendance })
     });
     return res.json();
   },

@@ -1019,12 +1019,62 @@ export class AdminPage {
     const isPaid = team.payment && team.payment.status === 'APPROVED';
     const isAttended = Boolean(team.attended);
 
-    const membersHtml = (team.members && team.members.length) ? team.members.map((m, i) => `
-      <div class="text-[11px] text-ink border-b border-line/40 py-1.5 flex justify-between items-center">
-        <span><strong>0${i + 1}. ${m.name}</strong> <span class="text-muted">(${m.role || 'Member'})</span></span>
-        <span class="text-accent-dark font-mono text-[10px]">${m.phone || m.email}</span>
-      </div>
-    `).join('') : `<div class="text-[11px] text-muted">01. ${team.leader_name} (${team.leader_phone})</div>`;
+    // Normalize members list
+    const members = (team.members && team.members.length) ? team.members : [
+      { id: 'leader', name: team.leader_name, email: team.leader_email, phone: team.leader_phone, role: 'Team Leader' }
+    ];
+
+    // Parse existing attendance map if any
+    let existingAtt = {};
+    if (team.member_attendance) {
+      existingAtt = typeof team.member_attendance === 'string'
+        ? JSON.parse(team.member_attendance)
+        : team.member_attendance;
+    }
+
+    // Default each member's attendance: if already recorded in existingAtt use that; otherwise default to true for convenience
+    const memberAttendanceState = {};
+    members.forEach((m, idx) => {
+      const key = String(m.id || m.email || m.name || `m_${idx}`);
+      if (existingAtt && typeof existingAtt[key] === 'boolean') {
+        memberAttendanceState[key] = existingAtt[key];
+      } else if (existingAtt && typeof existingAtt[m.email] === 'boolean') {
+        memberAttendanceState[key] = existingAtt[m.email];
+      } else {
+        // Default to checked (present) if fresh check-in, or true if already attended
+        memberAttendanceState[key] = true;
+      }
+    });
+
+    const getPresentCount = () => Object.values(memberAttendanceState).filter(Boolean).length;
+
+    const renderMembersChecklist = () => {
+      return members.map((m, i) => {
+        const key = String(m.id || m.email || m.name || `m_${i}`);
+        const isPresent = Boolean(memberAttendanceState[key]);
+        const isLeader = i === 0 || (m.role && m.role.toLowerCase().includes('leader'));
+
+        return `
+          <label class="member-check-row flex items-center justify-between p-2.5 bg-paper hover:bg-line/20 border ${isPresent ? 'border-success/40 bg-success/[0.03]' : 'border-line/60 opacity-70'} transition-all cursor-pointer rounded-none select-none gap-3" data-key="${key}">
+            <div class="flex items-center gap-3 min-w-0">
+              <input type="checkbox" class="scanner-member-chk w-4 h-4 cursor-pointer accent-[#00ff88]" data-key="${key}" ${isPresent ? 'checked' : ''} />
+              <div class="truncate">
+                <div class="text-xs font-bold text-ink flex items-center gap-1.5 truncate">
+                  <span>0${i + 1}. ${m.name}</span>
+                  ${isLeader ? '<span class="text-[9px] px-1.5 py-0.2 bg-accent/20 text-accent-dark font-mono font-bold">LEADER</span>' : ''}
+                </div>
+                <div class="text-[10px] text-muted font-mono truncate">${m.email || 'No email'} ${m.phone ? `• ${m.phone}` : ''}</div>
+              </div>
+            </div>
+            <div class="shrink-0">
+              <span class="member-status-pill text-[10px] font-mono font-bold px-2 py-0.5 border ${isPresent ? 'border-success text-success bg-success/10' : 'border-line text-muted bg-paper'}">
+                ${isPresent ? '✔ PRESENT' : '✕ ABSENT'}
+              </span>
+            </div>
+          </label>
+        `;
+      }).join('');
+    };
 
     box.innerHTML = `
       <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-line pb-3 gap-2">
@@ -1038,29 +1088,39 @@ export class AdminPage {
           <div class="inline-block px-3 py-1 border ${isPaid ? 'border-success text-success bg-paper font-bold' : 'border-accent text-accent-dark bg-paper font-bold'} text-xs uppercase">
             ${isPaid ? '✔ PAYMENT VERIFIED (FCFS CONFIRMED)' : '⏳ PAYMENT PENDING'}
           </div>
-          <div class="text-[11px] ${isAttended ? 'text-success font-bold' : 'text-error font-bold'}">
+          <div id="scanner-team-status-pill" class="text-[11px] ${isAttended ? 'text-success font-bold' : 'text-error font-bold'}">
             ${isAttended ? `✔ ATTENDANCE RECORDED (${team.attended_at ? new Date(team.attended_at).toLocaleTimeString('en-IN') : 'Logged'})` : '❌ NOT CHECKED IN'}
           </div>
         </div>
       </div>
 
       <div class="space-y-2 font-mono text-xs">
-        <div class="text-xs text-accent-dark font-bold uppercase">// SQUAD ROSTER (${team.member_count || 1} Members):</div>
-        <div class="bg-paper p-3 border border-line space-y-1">
-          ${membersHtml}
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="text-xs text-accent-dark font-bold uppercase flex items-center gap-2">
+            <span>// ATTENDANCE CHECKLIST:</span>
+            <span id="scanner-present-counter" class="px-2 py-0.5 bg-paper border border-line text-[11px] text-ink font-bold font-mono">
+              ${getPresentCount()} / ${members.length} PRESENT
+            </span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button type="button" id="scanner-check-all-btn" class="text-[10px] px-2 py-1 border border-line bg-paper text-ink hover:text-success hover:border-success transition-all cursor-pointer font-mono font-bold uppercase">
+              ✔ ALL PRESENT
+            </button>
+            <button type="button" id="scanner-clear-all-btn" class="text-[10px] px-2 py-1 border border-line bg-paper text-ink hover:text-error hover:border-error transition-all cursor-pointer font-mono font-bold uppercase">
+              ✕ CLEAR ALL
+            </button>
+          </div>
+        </div>
+
+        <div id="scanner-members-list" class="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+          ${renderMembersChecklist()}
         </div>
       </div>
 
       <div class="pt-2 flex flex-col sm:flex-row gap-2">
-        ${!isAttended ? `
-          <button id="scanner-mark-attendance-btn" class="btn-primary w-full py-4 text-xs font-bold tracking-wider uppercase cursor-pointer shadow-md bg-success hover:bg-success/90 text-canvas border border-success">
-            ✔ MARK ATTENDANCE &amp; GRANT VENUE ENTRY
-          </button>
-        ` : `
-          <div class="p-3 bg-paper border-2 border-success text-success text-xs text-center font-bold w-full">
-            ✔ ENTRY ALREADY GRANTED // ATTENDANCE LOGGED
-          </div>
-        `}
+        <button id="scanner-mark-attendance-btn" class="btn-primary w-full py-4 text-xs font-bold tracking-wider uppercase cursor-pointer shadow-md bg-success hover:bg-success/90 text-canvas border border-success transition-all">
+          ✔ ${isAttended ? 'UPDATE ATTENDANCE' : 'CONFIRM ATTENDANCE & GRANT VENUE ENTRY'} (<span id="scanner-btn-count">${getPresentCount()}/${members.length}</span> PRESENT)
+        </button>
         <button id="scanner-resend-pass-btn" class="btn-secondary py-3 px-4 text-xs font-bold uppercase font-mono border border-line hover:border-accent text-ink hover:text-accent-dark transition-all cursor-pointer whitespace-nowrap">
           ✉ RESEND INVOICE / PASS
         </button>
@@ -1070,14 +1130,62 @@ export class AdminPage {
     box.classList.remove('hidden');
     box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
+    // Update UI helper
+    const updateChecklistUI = () => {
+      const listEl = document.getElementById('scanner-members-list');
+      if (listEl) {
+        listEl.innerHTML = renderMembersChecklist();
+        bindChecklistEvents();
+      }
+      const count = getPresentCount();
+      const counterEl = document.getElementById('scanner-present-counter');
+      if (counterEl) counterEl.textContent = `${count} / ${members.length} PRESENT`;
+      const btnCountEl = document.getElementById('scanner-btn-count');
+      if (btnCountEl) btnCountEl.textContent = `${count}/${members.length}`;
+    };
+
+    const bindChecklistEvents = () => {
+      box.querySelectorAll('.scanner-member-chk').forEach(chk => {
+        chk.addEventListener('change', (e) => {
+          const key = e.target.getAttribute('data-key');
+          memberAttendanceState[key] = e.target.checked;
+          updateChecklistUI();
+        });
+      });
+    };
+
+    bindChecklistEvents();
+
+    document.getElementById('scanner-check-all-btn')?.addEventListener('click', () => {
+      Object.keys(memberAttendanceState).forEach(k => { memberAttendanceState[k] = true; });
+      updateChecklistUI();
+    });
+
+    document.getElementById('scanner-clear-all-btn')?.addEventListener('click', () => {
+      Object.keys(memberAttendanceState).forEach(k => { memberAttendanceState[k] = false; });
+      updateChecklistUI();
+    });
+
     document.getElementById('scanner-mark-attendance-btn')?.addEventListener('click', async () => {
+      const presentCount = getPresentCount();
+      if (presentCount === 0) {
+        const confirmEmpty = window.confirm('No members are marked present. Do you still want to proceed?');
+        if (!confirmEmpty) return;
+      }
+
       try {
-        const res = await api.markAttendance(team.reg_id);
+        toast.show('Submitting attendance...', 'info');
+        const res = await api.markAttendance(team.reg_id, memberAttendanceState);
         if (res.success) {
           soundFx.playBeep();
-          toast.show(`✔ ENTRY GRANTED! Attendance logged for ${team.team_name}`, 'success');
-          await this.fetchDashboardData();
-          this.renderScannerResult({ ...team, attended: true, attended_at: new Date().toISOString() });
+          toast.show(`✔ ENTRY GRANTED! ${presentCount}/${members.length} members checked in for ${team.team_name}`, 'success');
+          await this.fetchDashboardData(true);
+          this.renderScannerResult({
+            ...team,
+            attended: true,
+            attended_at: new Date().toISOString(),
+            member_attendance: memberAttendanceState
+          });
         } else {
           toast.show(res.message || 'Failed to mark attendance.', 'error');
         }
@@ -1202,12 +1310,19 @@ export class AdminPage {
           '<span class="text-accent-dark font-bold">PENDING VERIFICATION</span>'
         ) : '<span class="text-muted">NO PROOF</span>';
 
-        const attendanceBadge = team.attended ? '<span class="text-success font-bold text-[10px] ml-1">[ATTENDED]</span>' : '';
+        let memberAtt = null;
+        try {
+          if (team.member_attendance) {
+            memberAtt = typeof team.member_attendance === 'string' ? JSON.parse(team.member_attendance) : team.member_attendance;
+          }
+        } catch (e) {}
+        const presentCount = memberAtt ? Object.values(memberAtt).filter(Boolean).length : (team.attended ? (team.member_count || 1) : 0);
+        const attendanceBadge = team.attended ? `<span class="text-success font-bold text-[10px] ml-1 bg-success/10 px-1.5 py-0.5 border border-success/30 font-mono">[ATTENDED: ${presentCount}/${team.member_count || 1}]</span>` : '';
 
         return `
           <tr class="hover:bg-canvas transition-colors">
             <td class="p-4">
-              <div class="font-bold text-ink font-sans text-sm">${team.team_name} ${attendanceBadge}</div>
+              <div class="font-bold text-ink font-sans text-sm flex items-center flex-wrap gap-1">${team.team_name} ${attendanceBadge}</div>
               <div class="text-accent-dark text-[11px] font-mono">${team.reg_id} // Leader: ${team.leader_name}</div>
               <div class="text-muted text-[10px] font-sans">${team.college} (${team.member_count || 1} Members)</div>
             </td>
@@ -1272,6 +1387,13 @@ export class AdminPage {
         const pay = team.payment;
         const isPaid = pay && pay.status === 'APPROVED';
         const isAttended = Boolean(team.attended);
+        let memberAtt = null;
+        try {
+          if (team.member_attendance) {
+            memberAtt = typeof team.member_attendance === 'string' ? JSON.parse(team.member_attendance) : team.member_attendance;
+          }
+        } catch (e) {}
+        const presentCount = memberAtt ? Object.values(memberAtt).filter(Boolean).length : (team.attended ? (team.member_count || 1) : 0);
 
         return `
           <div class="tech-card p-4 border border-line bg-paper space-y-3 shadow-xs">
@@ -1286,7 +1408,7 @@ export class AdminPage {
                 <span class="px-2 py-0.5 border text-[10px] font-mono font-bold uppercase ${
                   isAttended ? 'border-success text-success bg-canvas' : 'border-line text-muted'
                 }">
-                  ${isAttended ? '✔ ATTENDED' : 'NOT CHECKED IN'}
+                  ${isAttended ? `✔ ATTENDED (${presentCount}/${team.member_count || 1})` : 'NOT CHECKED IN'}
                 </span>
               </div>
             </div>

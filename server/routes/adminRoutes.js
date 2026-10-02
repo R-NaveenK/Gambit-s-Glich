@@ -255,19 +255,32 @@ router.post('/team/update-status', async (req, res) => {
 // 6. Mark Event Day Entry Attendance
 router.post('/team/mark-attendance', async (req, res) => {
   try {
-    const { reg_id } = req.body;
+    const { reg_id, member_attendance } = req.body;
     if (!reg_id) return res.status(400).json({ success: false, message: 'Registration ID is required.' });
 
     const team = await dbAdapter.getTeamByRegId(reg_id.trim());
     if (!team) return res.status(404).json({ success: false, message: `No registered team found with ID: ${reg_id}` });
 
-    const updated = await dbAdapter.markAttendance(team.reg_id, req.user ? req.user.email : 'Admin');
-    await dbAdapter.logAdminAction(req.user ? req.user.email : 'Admin', 'ATTENDANCE_MARKED', team.reg_id, `Attendance entry granted for team ${team.team_name}`);
+    const updated = await dbAdapter.markAttendance(team.reg_id, req.user ? req.user.email : 'Admin', member_attendance || null);
+    
+    const totalCount = team.member_count || (team.members ? team.members.length : 1);
+    const presentCount = member_attendance && typeof member_attendance === 'object'
+      ? Object.values(member_attendance).filter(Boolean).length
+      : totalCount;
+
+    await dbAdapter.logAdminAction(
+      req.user ? req.user.email : 'Admin', 
+      'ATTENDANCE_MARKED', 
+      team.reg_id, 
+      `Attendance entry granted for team ${team.team_name} (${presentCount}/${totalCount} members verified present)`
+    );
 
     return res.json({
       success: true,
-      message: `✔ ENTRY GRANTED! Attendance logged for Team ${team.team_name} (${team.reg_id}).`,
-      team: updated
+      message: `✔ ENTRY GRANTED! Attendance logged for Team ${team.team_name} (${presentCount}/${totalCount} members present).`,
+      team: updated,
+      present_count: presentCount,
+      total_count: totalCount
     });
   } catch (err) {
     console.error('Mark attendance error:', err);

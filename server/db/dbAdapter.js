@@ -199,32 +199,47 @@ export const dbAdapter = {
     }
   },
 
-  async markAttendance(regId, markedBy = 'Admin') {
+  async markAttendance(regId, markedBy = 'Admin', memberAttendance = null) {
     const cleanId = regId.trim();
     if (this.isSupabase) {
       try {
-        const { data } = await supabase.from('teams').update({
+        const updatePayload = {
           attended: true,
           attended_at: new Date().toISOString(),
           attended_by: markedBy
-        }).ilike('reg_id', cleanId).select().maybeSingle();
-
-        if (data) return data;
-        
-        const team = await this.getTeamByRegId(cleanId);
-        if (team) {
-          team.attended = true;
-          team.attended_at = new Date().toISOString();
-          team.attended_by = markedBy;
+        };
+        if (memberAttendance) {
+          try {
+            updatePayload.member_attendance = memberAttendance;
+          } catch (e) {}
         }
-        return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString() };
+
+        await supabase.from('teams').update(updatePayload).ilike('reg_id', cleanId);
+
+        const team = await this.getTeamByRegId(cleanId);
+        if (team && team.members && memberAttendance) {
+          for (const m of team.members) {
+            const isPresent = memberAttendance[m.email] !== undefined 
+              ? Boolean(memberAttendance[m.email]) 
+              : (memberAttendance[m.id] !== undefined ? Boolean(memberAttendance[m.id]) : true);
+            m.attended = isPresent;
+            try {
+              await supabase.from('team_members').update({
+                attended: isPresent,
+                attended_at: isPresent ? new Date().toISOString() : null
+              }).eq('id', m.id);
+            } catch (err) {}
+          }
+        }
+        return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString(), member_attendance: memberAttendance };
       } catch (err) {
         const team = await this.getTeamByRegId(cleanId);
         if (team) {
           team.attended = true;
           team.attended_at = new Date().toISOString();
+          if (memberAttendance) team.member_attendance = memberAttendance;
         }
-        return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString() };
+        return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString(), member_attendance: memberAttendance };
       }
     } else {
       const store = loadLocalStore();
@@ -233,9 +248,21 @@ export const dbAdapter = {
         team.attended = true;
         team.attended_at = new Date().toISOString();
         team.attended_by = markedBy;
+        if (memberAttendance) team.member_attendance = memberAttendance;
+
+        const members = store.team_members.filter(m => m.team_id === team.id);
+        if (members && memberAttendance) {
+          members.forEach(m => {
+            const isPresent = memberAttendance[m.email] !== undefined 
+              ? Boolean(memberAttendance[m.email]) 
+              : (memberAttendance[m.id] !== undefined ? Boolean(memberAttendance[m.id]) : true);
+            m.attended = isPresent;
+            m.attended_at = isPresent ? new Date().toISOString() : null;
+          });
+        }
         saveLocalStore(store);
       }
-      return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString() };
+      return team || { reg_id: cleanId, attended: true, attended_at: new Date().toISOString(), member_attendance: memberAttendance };
     }
   },
 
