@@ -118,12 +118,6 @@ export class AdminPage {
                 <button id="admin-export-csv-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all cursor-pointer">
                   EXPORT CSV
                 </button>
-                <button id="admin-test-email-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent hover:text-accent-dark font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
-                  TEST EMAIL
-                </button>
-                <button id="admin-logs-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent hover:text-accent-dark font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
-                  AUDIT LOGS
-                </button>
                 <button id="admin-clear-btn" type="button" class="btn-secondary text-xs py-2 px-2.5 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer" title="Wipe database">
                   CLEAR DATA
                 </button>
@@ -141,19 +135,13 @@ export class AdminPage {
               <button id="mobile-refresh-btn" type="button" class="btn-primary text-[11px] py-2.5 px-2 font-mono font-bold uppercase tracking-tight text-center">
                 🔄 REFRESH
               </button>
-              <button id="mobile-test-email-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-line text-ink font-mono font-bold uppercase tracking-tight text-center">
-                ✉ TEST EMAIL
-              </button>
-              <button id="mobile-logs-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-line text-ink font-mono font-bold uppercase tracking-tight text-center">
-                📋 AUDIT LOGS
-              </button>
               <button id="mobile-export-csv-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-accent text-accent-dark font-mono font-bold uppercase tracking-tight text-center">
                 📊 EXPORT CSV
               </button>
               <button id="mobile-clear-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-error text-error font-mono font-bold uppercase tracking-tight text-center">
                 🗑 CLEAR ALL
               </button>
-              <button id="mobile-logout-btn" type="button" class="col-span-2 btn-secondary text-[11px] py-2.5 px-2 border border-line text-muted font-mono font-bold uppercase tracking-tight text-center">
+              <button id="mobile-logout-btn" type="button" class="col-span-2 sm:col-span-4 btn-secondary text-[11px] py-2.5 px-2 border border-line text-muted font-mono font-bold uppercase tracking-tight text-center">
                 🚪 LOGOUT
               </button>
             </div>
@@ -580,67 +568,6 @@ export class AdminPage {
             </div>
           </div>
 
-          <!-- DIAGNOSTIC TEST EMAIL MODAL -->
-          <div id="test-email-modal" class="hidden fixed inset-0 z-50 bg-canvas/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-            <div class="tech-card p-5 sm:p-8 border-2 border-accent bg-paper max-w-md w-full space-y-4 shadow-2xl">
-              <div class="flex items-center justify-between border-b border-line pb-3">
-                <div>
-                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// EMAIL DISPATCH DIAGNOSTICS</div>
-                  <h3 class="font-sans text-lg sm:text-xl font-bold text-ink uppercase">SEND DIAGNOSTIC TEST EMAIL</h3>
-                </div>
-                <button id="close-test-email-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors leading-none">✕</button>
-              </div>
-              <p class="text-xs text-muted font-sans leading-relaxed">
-                Test and verify live Brevo HTTP API v3 deliverability directly to any inbox.
-              </p>
-              <form id="test-email-form" class="space-y-4">
-                <div>
-                  <label class="block text-xs text-ink mb-1">RECIPIENT EMAIL ADDRESS *</label>
-                  <input type="email" id="test-email-input" required value="gambitsglitch@gmail.com" placeholder="name@example.com" class="w-full px-3 py-2.5 text-xs text-ink border border-line bg-canvas focus:border-accent outline-none font-mono" />
-                </div>
-                <button type="submit" id="send-test-email-submit-btn" class="btn-primary w-full py-3 text-xs font-bold font-mono uppercase tracking-wider cursor-pointer">
-                  ⚡ DISPATCH TEST EMAIL
-                </button>
-              </form>
-              <div id="test-email-status-box" class="hidden p-3 text-xs font-mono border break-words"></div>
-            </div>
-          </div>
-
-          <!-- AUDIT LOGS MODAL -->
-          <div id="admin-logs-modal" class="hidden fixed inset-0 z-50 bg-canvas/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
-            <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-4xl w-full space-y-4 max-h-[90vh] flex flex-col shadow-2xl">
-              <div class="flex items-center justify-between border-b border-line pb-3">
-                <div>
-                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// SYSTEM AUDIT TRAIL</div>
-                  <h3 class="font-sans text-lg sm:text-xl font-bold text-ink uppercase">ADMINISTRATIVE ACTION LOGS</h3>
-                </div>
-                <button id="close-logs-modal-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors leading-none">✕</button>
-              </div>
-              <div class="flex-1 overflow-y-auto border border-line bg-canvas min-h-[250px]">
-                <table class="w-full text-left text-xs border-collapse">
-                  <thead>
-                    <tr class="bg-paper border-b border-line text-muted uppercase text-[10px] tracking-wider">
-                      <th class="p-3">TIMESTAMP</th>
-                      <th class="p-3">ADMIN</th>
-                      <th class="p-3">ACTION</th>
-                      <th class="p-3">TARGET</th>
-                      <th class="p-3">DETAILS</th>
-                    </tr>
-                  </thead>
-                  <tbody id="admin-logs-tbody" class="divide-y divide-line font-mono text-[11px]">
-                    <tr><td colspan="5" class="p-4 text-center text-muted">Loading audit records...</td></tr>
-                  </tbody>
-                </table>
-              </div>
-              <div class="flex justify-between items-center pt-2 border-t border-line text-xs font-mono">
-                <span id="logs-count-text" class="text-muted">0 logs recorded</span>
-                <button type="button" id="refresh-logs-btn" class="px-3 py-1.5 border border-line hover:border-accent text-ink text-[11px] font-bold uppercase transition-all cursor-pointer">
-                  REFRESH LOGS
-                </button>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
     `;
@@ -652,10 +579,11 @@ export class AdminPage {
     // Initial fetch
     await this.fetchDashboardData();
 
-    // Auto-refresh stats and team status every 6 seconds
+    // Auto-refresh stats and team status every 8 seconds (skips if tab is hidden)
     this.autoRefreshTimer = setInterval(() => {
+      if (document.hidden) return;
       this.fetchDashboardData(true);
-    }, 6000);
+    }, 8000);
 
     // GATE BUTTON STATUS SYNC
     const syncGateBtnUI = async () => {
@@ -1034,121 +962,6 @@ export class AdminPage {
     if (modal) {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.add('hidden');
-      });
-    }
-
-    // TEST EMAIL MODAL HANDLERS
-    const openTestEmail = () => {
-      soundFx.playClick();
-      document.getElementById('test-email-modal')?.classList.remove('hidden');
-      document.getElementById('test-email-status-box')?.classList.add('hidden');
-    };
-    document.getElementById('admin-test-email-btn')?.addEventListener('click', openTestEmail);
-    document.getElementById('mobile-test-email-btn')?.addEventListener('click', openTestEmail);
-
-    const closeTestEmailBtn = document.getElementById('close-test-email-btn');
-    const testEmailModal = document.getElementById('test-email-modal');
-    if (closeTestEmailBtn && testEmailModal) {
-      closeTestEmailBtn.addEventListener('click', () => testEmailModal.classList.add('hidden'));
-      testEmailModal.addEventListener('click', (e) => {
-        if (e.target === testEmailModal) testEmailModal.classList.add('hidden');
-      });
-    }
-
-    const testEmailForm = document.getElementById('test-email-form');
-    if (testEmailForm) {
-      testEmailForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        soundFx.playClick();
-        const input = document.getElementById('test-email-input');
-        const submitBtn = document.getElementById('send-test-email-submit-btn');
-        const statusBox = document.getElementById('test-email-status-box');
-        const targetEmail = input ? input.value.trim() : '';
-        if (!targetEmail) return;
-
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = `DISPATCHING VIA BREVO API...`;
-        if (statusBox) {
-          statusBox.className = 'p-3 text-xs font-mono border border-accent bg-canvas text-accent-dark';
-          statusBox.textContent = 'Connecting to Brevo REST API v3...';
-          statusBox.classList.remove('hidden');
-        }
-
-        try {
-          const res = await api.testEmail(targetEmail);
-          if (res.success) {
-            toast.show('Test email delivered!', 'success');
-            if (statusBox) {
-              statusBox.className = 'p-3 text-xs font-mono border border-success bg-paper text-success';
-              statusBox.textContent = `✔ SUCCESS: ${res.message || 'Diagnostic email delivered.'}`;
-            }
-          } else {
-            toast.show(res.message || 'Email delivery failed.', 'error');
-            if (statusBox) {
-              statusBox.className = 'p-3 text-xs font-mono border border-error bg-paper text-error';
-              statusBox.textContent = `✕ ERROR: ${res.message || 'Delivery failed.'}`;
-            }
-          }
-        } catch (err) {
-          toast.show('Network error testing email.', 'error');
-          if (statusBox) {
-            statusBox.className = 'p-3 text-xs font-mono border border-error bg-paper text-error';
-            statusBox.textContent = '✕ Network error dispatching test email.';
-          }
-        } finally {
-          submitBtn.disabled = false;
-          submitBtn.innerHTML = `⚡ DISPATCH TEST EMAIL`;
-        }
-      });
-    }
-
-    // AUDIT LOGS MODAL HANDLERS
-    const logsModal = document.getElementById('admin-logs-modal');
-    const loadLogs = async () => {
-      const tbody = document.getElementById('admin-logs-tbody');
-      const countEl = document.getElementById('logs-count-text');
-      if (!tbody) return;
-      tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-muted">Loading audit records...</td></tr>`;
-      try {
-        const res = await api.getAdminLogs();
-        if (res.success && res.logs) {
-          if (countEl) countEl.textContent = `${res.logs.length} logs recorded`;
-          if (res.logs.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-muted">No administrative logs recorded yet.</td></tr>`;
-            return;
-          }
-          tbody.innerHTML = res.logs.map(log => {
-            const time = log.created_at ? new Date(log.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
-            return `
-              <tr class="hover:bg-paper">
-                <td class="p-3 text-muted whitespace-nowrap text-[10px]">${time}</td>
-                <td class="p-3 font-bold text-ink">${log.admin_user || 'Admin'}</td>
-                <td class="p-3"><span class="px-2 py-0.5 border border-line bg-canvas font-bold text-[10px]">${log.action}</span></td>
-                <td class="p-3 text-accent-dark font-bold">${log.target_reg_id || '--'}</td>
-                <td class="p-3 text-muted text-[11px]">${log.details || '--'}</td>
-              </tr>
-            `;
-          }).join('');
-        } else {
-          tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-error">Failed to fetch logs.</td></tr>`;
-        }
-      } catch (e) {
-        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-error">Error loading logs.</td></tr>`;
-      }
-    };
-
-    const openLogsModal = async () => {
-      soundFx.playClick();
-      logsModal?.classList.remove('hidden');
-      await loadLogs();
-    };
-    document.getElementById('admin-logs-btn')?.addEventListener('click', openLogsModal);
-    document.getElementById('mobile-logs-btn')?.addEventListener('click', openLogsModal);
-    document.getElementById('close-logs-modal-btn')?.addEventListener('click', () => logsModal?.classList.add('hidden'));
-    document.getElementById('refresh-logs-btn')?.addEventListener('click', loadLogs);
-    if (logsModal) {
-      logsModal.addEventListener('click', (e) => {
-        if (e.target === logsModal) logsModal.classList.add('hidden');
       });
     }
 
