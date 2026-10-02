@@ -245,9 +245,12 @@ export class AdminPage {
             <div id="scanner-mode-camera-view" class="space-y-4">
               <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
                 <div class="flex items-center gap-2">
-                  <span class="text-muted">CAMERA DEVICE:</span>
-                  <select id="camera-select-dropdown" class="px-2 py-1.5 text-xs text-ink bg-canvas border border-line font-mono outline-none">
-                    <option value="">Detecting cameras...</option>
+                  <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-mono font-bold bg-canvas border border-line text-ink">
+                    <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+                    📷 REAR CAMERA
+                  </span>
+                  <select id="camera-select-dropdown" class="px-2 py-1 text-xs text-ink bg-canvas border border-line font-mono outline-none max-w-[200px] truncate">
+                    <option value="environment">Back Camera (Default)</option>
                   </select>
                 </div>
                 <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2 px-4 uppercase font-mono font-bold cursor-pointer flex items-center gap-2">
@@ -764,21 +767,28 @@ export class AdminPage {
       }
     });
 
-    // Populate Available Cameras in Dropdown
+    // Populate Available Cameras (Strictly back / rear cameras)
     const populateCameras = async () => {
       const select = document.getElementById('camera-select-dropdown');
       if (!select) return;
       try {
         const devices = await Html5Qrcode.getCameras();
         if (devices && devices.length) {
-          select.innerHTML = devices.map((d, i) => `
-            <option value="${d.id}">${d.label || `Camera ${i + 1}`}</option>
+          // Filter out front/selfie cameras so ONLY back cameras appear
+          const backCameras = devices.filter(d => {
+            const label = (d.label || '').toLowerCase();
+            return !label.includes('front') && !label.includes('user') && !label.includes('selfie') && !label.includes('facetime');
+          });
+
+          const listToUse = backCameras.length > 0 ? backCameras : devices;
+          select.innerHTML = listToUse.map((d, i) => `
+            <option value="${d.id}">${d.label || `Back Camera ${i + 1}`}</option>
           `).join('');
         } else {
-          select.innerHTML = `<option value="environment">Back Camera (Default)</option><option value="user">Front Camera</option>`;
+          select.innerHTML = `<option value="environment">Back Camera (Rear)</option>`;
         }
       } catch (e) {
-        select.innerHTML = `<option value="environment">Back Camera (Default)</option><option value="user">Front Camera</option>`;
+        select.innerHTML = `<option value="environment">Back Camera (Rear)</option>`;
       }
     };
     populateCameras();
@@ -810,24 +820,40 @@ export class AdminPage {
           if (placeholder) placeholder.classList.add('hidden');
           cameraBtn.innerHTML = 'STOPPING...';
 
-          const selectedCameraId = cameraSelect?.value || { facingMode: "environment" };
+          // Strictly use back camera ({ facingMode: "environment" }) or explicit rear camera device ID
+          const selectedCameraId = (cameraSelect?.value && cameraSelect.value !== 'environment')
+            ? cameraSelect.value
+            : { facingMode: "environment" };
 
-          await this.html5QrCode.start(
-            selectedCameraId,
-            { fps: 12, qrbox: { width: 240, height: 240 } },
-            (decodedText) => {
-              soundFx.playBeep();
-              this.processScanCode(decodedText);
-            },
-            () => {}
-          );
+          try {
+            await this.html5QrCode.start(
+              selectedCameraId,
+              { fps: 12, qrbox: { width: 240, height: 240 } },
+              (decodedText) => {
+                soundFx.playBeep();
+                this.processScanCode(decodedText);
+              },
+              () => {}
+            );
+          } catch (firstErr) {
+            // Robust fallback directly to { facingMode: "environment" }
+            await this.html5QrCode.start(
+              { facingMode: "environment" },
+              { fps: 12, qrbox: { width: 240, height: 240 } },
+              (decodedText) => {
+                soundFx.playBeep();
+                this.processScanCode(decodedText);
+              },
+              () => {}
+            );
+          }
 
           this.isScanning = true;
           cameraBtn.innerHTML = '⏹ STOP CAMERA';
         } catch (err) {
           if (placeholder) placeholder.classList.remove('hidden');
           cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> START CAMERA';
-          toast.show('Camera access unavailable. Use Option 2 (Reg ID Lookup) below.', 'error');
+          toast.show('Back camera access unavailable. Use Option 2 (Reg ID Lookup) below.', 'error');
           switchScannerTab('reg_id');
         }
       });
