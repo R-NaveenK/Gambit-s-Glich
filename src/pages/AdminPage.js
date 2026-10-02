@@ -559,14 +559,29 @@ export class AdminPage {
                 </button>
               </div>
 
-              <!-- Email Dispatch Controls -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-line">
-                <button id="modal-resend-invoice-btn" type="button" class="btn-secondary py-2.5 px-3 text-xs font-bold font-mono border border-line hover:border-accent text-ink hover:text-accent-dark cursor-pointer transition-all">
-                  ✉ RESEND INVOICE &amp; ATTENDANCE QR PASS
-                </button>
-                <button id="modal-resend-reg-btn" type="button" class="btn-secondary py-2.5 px-3 text-xs font-bold font-mono border border-line hover:border-accent text-ink hover:text-accent-dark cursor-pointer transition-all">
-                  ✉ RESEND REGISTRATION CONFIRMATION EMAIL
-                </button>
+              <!-- Deliverability Tracking & Direct WhatsApp Dispatch -->
+              <div class="p-3 bg-canvas border border-line space-y-2.5">
+                <div class="flex items-center justify-between text-[11px] font-mono">
+                  <div class="flex items-center gap-1.5 font-bold uppercase text-muted">
+                    <span>// EMAIL STATUS:</span>
+                    <span id="modal-email-status-badge" class="px-2 py-0.5 border text-[10px] font-bold">--</span>
+                  </div>
+                  <div id="modal-email-time" class="text-[10px] text-muted font-mono"></div>
+                </div>
+
+                <div id="modal-email-error-box" class="hidden text-[11px] font-mono bg-error/10 border border-error/30 text-error p-2 rounded-xs break-all"></div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1 font-mono">
+                  <button id="modal-whatsapp-pass-btn" type="button" class="btn-primary py-2.5 px-3 text-xs font-bold font-mono bg-[#25D366] hover:bg-[#1EBE5D] text-black border-none cursor-pointer flex items-center justify-center gap-1.5 transition-all shadow-sm">
+                    💬 SEND PASS VIA WHATSAPP
+                  </button>
+                  <button id="modal-resend-invoice-btn" type="button" class="btn-secondary py-2 px-2 text-[11px] font-bold font-mono border border-line hover:border-accent text-ink hover:text-accent-dark cursor-pointer transition-all truncate">
+                    ✉ RESEND INVOICE &amp; QR
+                  </button>
+                  <button id="modal-resend-reg-btn" type="button" class="btn-secondary py-2 px-2 text-[11px] font-bold font-mono border border-line hover:border-accent text-ink hover:text-accent-dark cursor-pointer transition-all truncate">
+                    ✉ RESEND REG EMAIL
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -1391,10 +1406,37 @@ export class AdminPage {
         const presentCount = memberAtt ? Object.values(memberAtt).filter(Boolean).length : (team.attended ? (team.member_count || 1) : 0);
         const attendanceBadge = team.attended ? `<span class="text-success font-bold text-[10px] ml-1 bg-success/10 px-1.5 py-0.5 border border-success/30 font-mono">[ATTENDED: ${presentCount}/${team.member_count || 1}]</span>` : '';
 
+        const emailFailed = Boolean(team.last_email_error || (pay && pay.last_email_error));
+        const emailSent = Boolean((pay && pay.email_sent) || team.email_sent);
+        const emailBadge = emailFailed 
+          ? `<span class="inline-flex items-center gap-1 text-[10px] text-error font-bold font-mono bg-error/10 px-1.5 py-0.5 border border-error/40 cursor-pointer" title="Email error: ${pay?.last_email_error || team.last_email_error}">⚠️ Email Failed</span>`
+          : (emailSent ? `<span class="text-[10px] text-success font-bold font-mono bg-success/10 px-1.5 py-0.5 border border-success/30" title="Email dispatched">✉ Delivered</span>` : '');
+
+        const cleanPhone = (team.leader_phone || '').replace(/[^0-9]/g, '');
+        const waPhone = cleanPhone.startsWith('91') && cleanPhone.length > 10 ? cleanPhone : `91${cleanPhone}`;
+        const waPassUrl = `${window.location.origin}/#status?reg_id=${team.reg_id}`;
+        const waMsg = encodeURIComponent(
+          `⚡ *GAMBIT'S GLITCH 2026 — OFFICIAL PASS* ⚡\n\n` +
+          `Hello *${team.leader_name}*,\n` +
+          `Your squad *${team.team_name}* is registered for Gambit's Glitch!\n\n` +
+          `📋 *Registration ID:* ${team.reg_id}\n` +
+          `🎟 *Slot Status:* ${team.status === 'PAYMENT_APPROVED' ? 'CONFIRMED (FCFS SLOT SECURED) ✔' : 'PAYMENT VERIFICATION PENDING'}\n` +
+          `👥 *Squad Members:* ${team.member_count || (team.members ? team.members.length : 1)}\n\n` +
+          `🔗 *Live Pass & QR Code:* ${waPassUrl}\n\n` +
+          `📍 *Venue:* Auditorium, VSBCETC, Coimbatore\n` +
+          `📅 *Date:* October 13, 2026 at 09:00 AM IST\n\n` +
+          `*Instructions:*\n` +
+          `1. Open the link above to view your digital QR pass.\n` +
+          `2. Keep screen brightness high when presenting at entrance.\n` +
+          `3. No advance PPT required — problem statements revealed live on-spot!`
+        );
+
         return `
           <tr class="hover:bg-canvas transition-colors">
             <td class="p-4">
-              <div class="font-bold text-ink font-sans text-sm flex items-center flex-wrap gap-1">${team.team_name} ${attendanceBadge}</div>
+              <div class="font-bold text-ink font-sans text-sm flex items-center flex-wrap gap-1">
+                ${team.team_name} ${attendanceBadge} ${emailBadge}
+              </div>
               <div class="text-accent-dark text-[11px] font-mono flex items-center gap-1.5 mt-0.5">
                 <span class="font-bold cursor-pointer hover:underline" data-copy="${team.reg_id}" title="Click to copy Registration ID">${team.reg_id}</span>
                 <span class="text-muted text-[10px]">// Leader: ${team.leader_name}</span>
@@ -1433,6 +1475,10 @@ export class AdminPage {
             </td>
 
             <td class="p-4 text-right space-x-1 font-mono whitespace-nowrap">
+              <a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" rel="noopener noreferrer" title="Share Official Pass via WhatsApp" class="px-2 py-1 border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-black text-[10px] cursor-pointer font-bold transition-all inline-block">
+                💬 WA
+              </a>
+
               <button data-action="view-squad" data-reg="${team.reg_id}" class="px-2 py-1 border border-line text-ink hover:border-accent hover:text-accent-dark text-[10px] cursor-pointer font-bold transition-all" title="View squad members roster">
                 👥 SQUAD
               </button>
@@ -1516,7 +1562,11 @@ export class AdminPage {
             ` : ''}
 
             <!-- Mobile Action Buttons Grid (5 touch-friendly buttons) -->
-            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1 font-mono text-[11px]">
+            <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 pt-1 font-mono text-[11px]">
+              <a href="https://wa.me/${waPhone}?text=${waMsg}" target="_blank" rel="noopener noreferrer" class="py-2.5 px-2 border border-[#25D366] text-[#25D366] hover:bg-[#25D366] hover:text-black font-bold text-center flex items-center justify-center gap-1">
+                💬 WA PASS
+              </a>
+
               <button data-action="view-squad" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-line text-ink hover:border-accent hover:text-accent-dark font-bold text-center cursor-pointer">
                 👥 SQUAD
               </button>
@@ -1539,7 +1589,7 @@ export class AdminPage {
                 🎫 CHECK IN
               </button>
 
-              <button data-action="resend-invoice" data-reg="${team.reg_id}" class="col-span-2 sm:col-span-1 py-2.5 px-2 border border-line text-ink hover:text-accent-dark font-bold text-center cursor-pointer">
+              <button data-action="resend-invoice" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-line text-ink hover:text-accent-dark font-bold text-center cursor-pointer">
                 ✉ INVOICE
               </button>
             </div>
@@ -1814,6 +1864,70 @@ export class AdminPage {
       };
     }
 
+    // Email deliverability status badge & error indicator
+    const emailBadge = document.getElementById('modal-email-status-badge');
+    const emailTime = document.getElementById('modal-email-time');
+    const emailErrorBox = document.getElementById('modal-email-error-box');
+
+    const emailFailed = Boolean(team.last_email_error || (team.payment && team.payment.last_email_error));
+    const emailDelivered = Boolean((team.payment && team.payment.email_sent) || team.email_sent);
+    const lastErrorMsg = (team.payment && team.payment.last_email_error) || team.last_email_error;
+    const sentTime = (team.payment && team.payment.email_sent_at) || team.email_sent_at;
+
+    if (emailBadge) {
+      if (emailFailed) {
+        emailBadge.textContent = '⚠️ DELIVERY FAILED';
+        emailBadge.className = 'px-2 py-0.5 border border-error bg-error/10 text-error text-[10px] font-bold font-mono';
+      } else if (emailDelivered) {
+        emailBadge.textContent = '✔ DELIVERED';
+        emailBadge.className = 'px-2 py-0.5 border border-success bg-success/10 text-success text-[10px] font-bold font-mono';
+      } else {
+        emailBadge.textContent = '⏳ PENDING DISPATCH';
+        emailBadge.className = 'px-2 py-0.5 border border-line text-muted text-[10px] font-mono';
+      }
+    }
+
+    if (emailTime) {
+      emailTime.textContent = sentTime ? new Date(sentTime).toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata' }) : '';
+    }
+
+    if (emailErrorBox) {
+      if (emailFailed && lastErrorMsg) {
+        emailErrorBox.textContent = `Brevo / SMTP Diagnostic: ${lastErrorMsg}`;
+        emailErrorBox.classList.remove('hidden');
+      } else {
+        emailErrorBox.classList.add('hidden');
+      }
+    }
+
+    // Direct WhatsApp Pass Dispatch
+    const waBtn = document.getElementById('modal-whatsapp-pass-btn');
+    if (waBtn) {
+      const cleanPhone = (team.leader_phone || '').replace(/[^0-9]/g, '');
+      const waPhone = cleanPhone.startsWith('91') && cleanPhone.length > 10 ? cleanPhone : `91${cleanPhone}`;
+      const waPassUrl = `${window.location.origin}/#status?reg_id=${team.reg_id}`;
+      const waMsg = encodeURIComponent(
+        `⚡ *GAMBIT'S GLITCH 2026 — OFFICIAL PASS* ⚡\n\n` +
+        `Hello *${team.leader_name}*,\n` +
+        `Your squad *${team.team_name}* is registered for Gambit's Glitch!\n\n` +
+        `📋 *Registration ID:* ${team.reg_id}\n` +
+        `🎟 *Slot Status:* ${team.status === 'PAYMENT_APPROVED' ? 'CONFIRMED (FCFS SLOT SECURED) ✔' : 'PAYMENT VERIFICATION PENDING'}\n` +
+        `👥 *Squad Members:* ${team.member_count || (team.members ? team.members.length : 1)}\n\n` +
+        `🔗 *Live Pass & QR Code:* ${waPassUrl}\n\n` +
+        `📍 *Venue:* Auditorium, VSBCETC, Coimbatore\n` +
+        `📅 *Date:* October 13, 2026 at 09:00 AM IST\n\n` +
+        `*Instructions:*\n` +
+        `1. Open the link above to view your digital QR pass.\n` +
+        `2. Keep screen brightness high when presenting at entrance.\n` +
+        `3. No advance PPT required — problem statements revealed live on-spot!`
+      );
+
+      waBtn.onclick = () => {
+        soundFx.playClick();
+        window.open(`https://wa.me/${waPhone}?text=${waMsg}`, '_blank', 'noopener,noreferrer');
+      };
+    }
+
     const resendInvoiceBtn = document.getElementById('modal-resend-invoice-btn');
     if (resendInvoiceBtn) {
       resendInvoiceBtn.onclick = async () => {
@@ -1823,6 +1937,12 @@ export class AdminPage {
           const res = await api.resendInvoiceEmail(team.reg_id);
           if (res.success) {
             toast.show(res.message || 'Invoice & QR pass email dispatched!', 'success');
+            await this.fetchDashboardData(true);
+            if (emailBadge) {
+              emailBadge.textContent = '✔ DELIVERED';
+              emailBadge.className = 'px-2 py-0.5 border border-success bg-success/10 text-success text-[10px] font-bold font-mono';
+            }
+            if (emailErrorBox) emailErrorBox.classList.add('hidden');
           } else {
             toast.show(res.message || 'Failed to dispatch invoice email.', 'error');
           }
@@ -1841,6 +1961,12 @@ export class AdminPage {
           const res = await api.resendRegistrationEmail(team.reg_id);
           if (res.success) {
             toast.show(res.message || 'Registration confirmation email dispatched!', 'success');
+            await this.fetchDashboardData(true);
+            if (emailBadge) {
+              emailBadge.textContent = '✔ DELIVERED';
+              emailBadge.className = 'px-2 py-0.5 border border-success bg-success/10 text-success text-[10px] font-bold font-mono';
+            }
+            if (emailErrorBox) emailErrorBox.classList.add('hidden');
           } else {
             toast.show(res.message || 'Failed to dispatch registration email.', 'error');
           }

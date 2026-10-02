@@ -171,9 +171,15 @@ router.post('/payment/approve', async (req, res) => {
       await dbAdapter.updateTeamStatus(targetTeam.id, 'PAYMENT_APPROVED');
       const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
       try {
-        await sendPaymentInvoiceEmail(fullTeam, updatedPayment, fullTeam.ppt, fullTeam.members || []);
+        const mailRes = await sendPaymentInvoiceEmail(fullTeam, updatedPayment, fullTeam.ppt, fullTeam.members || []);
+        if (mailRes && mailRes.success) {
+          await dbAdapter.updatePaymentEmailStatus(updatedPayment.id, { email_sent: true, last_email_error: null });
+        } else {
+          await dbAdapter.updatePaymentEmailStatus(updatedPayment.id, { email_sent: false, last_email_error: mailRes?.error || 'Email dispatch failed' });
+        }
       } catch (emailErr) {
         console.error('Approved payment invoice dispatch error:', emailErr);
+        await dbAdapter.updatePaymentEmailStatus(updatedPayment.id, { email_sent: false, last_email_error: emailErr?.message || String(emailErr) });
       }
     }
 
@@ -480,7 +486,18 @@ router.post('/team/resend-registration-email', async (req, res) => {
     const team = await dbAdapter.getTeamByRegId(reg_id.trim());
     if (!team) return res.status(404).json({ success: false, message: 'Team not found.' });
 
-    await sendRegistrationConfirmation(team, team.members || [], team.payment);
+    try {
+      const mailRes = await sendRegistrationConfirmation(team, team.members || [], team.payment);
+      if (mailRes && mailRes.success) {
+        await dbAdapter.updateTeamEmailStatus(team.reg_id, { email_sent: true, last_email_error: null });
+      } else {
+        await dbAdapter.updateTeamEmailStatus(team.reg_id, { email_sent: false, last_email_error: mailRes?.error || 'Email dispatch failed' });
+      }
+    } catch (sendErr) {
+      await dbAdapter.updateTeamEmailStatus(team.reg_id, { email_sent: false, last_email_error: sendErr?.message || String(sendErr) });
+      throw sendErr;
+    }
+
     await dbAdapter.logAdminAction(req.user.email, 'RESEND_REGISTRATION_EMAIL', team.reg_id, `Registration Successful email resent to ${team.leader_email}`);
 
     return res.json({ success: true, message: `Registration Successful email resent to team ${team.team_name}.` });
@@ -499,7 +516,22 @@ router.post('/team/resend-invoice-email', async (req, res) => {
     const team = await dbAdapter.getTeamByRegId(reg_id.trim());
     if (!team) return res.status(404).json({ success: false, message: 'Team not found.' });
 
-    await sendPaymentInvoiceEmail(team, team.payment, team.ppt, team.members || []);
+    try {
+      const mailRes = await sendPaymentInvoiceEmail(team, team.payment, team.ppt, team.members || []);
+      if (team.payment && team.payment.id) {
+        if (mailRes && mailRes.success) {
+          await dbAdapter.updatePaymentEmailStatus(team.payment.id, { email_sent: true, last_email_error: null });
+        } else {
+          await dbAdapter.updatePaymentEmailStatus(team.payment.id, { email_sent: false, last_email_error: mailRes?.error || 'Email dispatch failed' });
+        }
+      }
+    } catch (sendErr) {
+      if (team.payment && team.payment.id) {
+        await dbAdapter.updatePaymentEmailStatus(team.payment.id, { email_sent: false, last_email_error: sendErr?.message || String(sendErr) });
+      }
+      throw sendErr;
+    }
+
     await dbAdapter.logAdminAction(req.user.email, 'RESEND_INVOICE_EMAIL', team.reg_id, `Payment Invoice & QR email resent to ${team.leader_email}`);
 
     return res.json({ success: true, message: `Payment Invoice & Attendance QR email resent to team ${team.team_name}.` });

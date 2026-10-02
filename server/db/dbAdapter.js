@@ -526,6 +526,59 @@ export const dbAdapter = {
     }
   },
 
+  async updateTeamEmailStatus(regIdOrId, { email_sent, last_email_error }) {
+    this.invalidateCache();
+    const payload = {
+      email_sent: Boolean(email_sent),
+      last_email_error: last_email_error || null,
+      email_sent_at: email_sent ? new Date().toISOString() : null
+    };
+    if (this.isSupabase) {
+      try {
+        await supabase
+          .from('teams')
+          .update(payload)
+          .or(`id.eq.${regIdOrId},reg_id.eq.${regIdOrId}`);
+      } catch (e) {
+        console.warn('Supabase updateTeamEmailStatus note:', e.message);
+      }
+    } else {
+      const store = loadLocalStore();
+      const team = store.teams.find(t => t.id === regIdOrId || (t.reg_id && t.reg_id.toUpperCase() === String(regIdOrId).toUpperCase()));
+      if (team) {
+        team.email_sent = payload.email_sent;
+        team.last_email_error = payload.last_email_error;
+        team.email_sent_at = payload.email_sent_at;
+        saveLocalStore(store);
+      }
+    }
+  },
+
+  async updatePaymentEmailStatus(paymentId, { email_sent, last_email_error }) {
+    this.invalidateCache();
+    const payload = {
+      email_sent: Boolean(email_sent),
+      last_email_error: last_email_error || null,
+      email_sent_at: email_sent ? new Date().toISOString() : null
+    };
+    if (this.isSupabase) {
+      try {
+        await supabase.from('payments').update(payload).eq('id', paymentId);
+      } catch (e) {
+        console.warn('Supabase updatePaymentEmailStatus note:', e.message);
+      }
+    } else {
+      const store = loadLocalStore();
+      const pay = store.payments.find(p => p.id === paymentId || p.team_id === paymentId);
+      if (pay) {
+        pay.email_sent = payload.email_sent;
+        pay.last_email_error = payload.last_email_error;
+        pay.email_sent_at = payload.email_sent_at;
+        saveLocalStore(store);
+      }
+    }
+  },
+
   // PPT Submissions CRUD
   async upsertPptSubmission(pptData) {
     if (this.isSupabase) {

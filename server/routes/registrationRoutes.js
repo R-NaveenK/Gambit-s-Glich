@@ -211,9 +211,18 @@ router.post('/', regUpload, async (req, res) => {
     });
 
     // Send Registration & Payment Confirmation Email asynchronously in background (zero HTTP delay)
-    sendRegistrationConfirmation(createdTeam, teamMembersData, paymentRecord).catch(emailErr => {
-      console.error('Registration background email dispatch note:', emailErr?.message || emailErr);
-    });
+    sendRegistrationConfirmation(createdTeam, teamMembersData, paymentRecord)
+      .then(async (result) => {
+        if (result && result.success) {
+          await dbAdapter.updateTeamEmailStatus(createdTeam.reg_id, { email_sent: true, last_email_error: null });
+        } else {
+          await dbAdapter.updateTeamEmailStatus(createdTeam.reg_id, { email_sent: false, last_email_error: result?.error || 'Email dispatch failed' });
+        }
+      })
+      .catch(async (emailErr) => {
+        console.error('Registration background email dispatch note:', emailErr?.message || emailErr);
+        await dbAdapter.updateTeamEmailStatus(createdTeam.reg_id, { email_sent: false, last_email_error: emailErr?.message || String(emailErr) });
+      });
 
     return res.status(201).json({
       success: true,
