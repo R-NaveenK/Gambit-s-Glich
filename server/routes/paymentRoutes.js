@@ -183,7 +183,7 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
       team_id: team.id,
       utr_number: sanitizedUtr,
       payer_name: payer_name.trim(),
-      amount: parseFloat(amount) || 499.00,
+      amount: parseFloat(amount) || ((team.member_count || 1) * 250),
       payment_date,
       screenshot_url: screenshotUrl,
       filename: req.file.filename,

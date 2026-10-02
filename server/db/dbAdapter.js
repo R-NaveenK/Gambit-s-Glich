@@ -595,7 +595,7 @@ export const dbAdapter = {
 
   async getPaymentGateStatus() {
     const store = loadLocalStore();
-    return Boolean(store.payment_portal_open);
+    return store.payment_portal_open !== undefined ? Boolean(store.payment_portal_open) : true;
   },
 
   async setPaymentGateStatus(isOpen) {

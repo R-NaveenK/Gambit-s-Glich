@@ -1,7 +1,9 @@
 /**
  * GAMBIT'S GLITCH - Swiss Editorial Admin Control Panel
+ * Enhanced with Dual-Mode Check-in Scanner & Mobile-First Responsive UI
  */
 
+import { Html5Qrcode } from 'html5-qrcode';
 import { api } from '../utils/api.js';
 import { toast } from '../utils/toast.js';
 import { soundFx } from '../utils/audio.js';
@@ -14,7 +16,6 @@ export async function triggerFileDownload(fileUrl, filename = 'download') {
     let shouldRevoke = false;
 
     if (fileUrl.startsWith('data:')) {
-      // Convert Base64 data URI to Blob to bypass browser anchor data-URI length limits
       const res = await fetch(fileUrl);
       const blob = await res.blob();
       blobUrl = URL.createObjectURL(blob);
@@ -59,6 +60,10 @@ export class AdminPage {
     this.scannedTeam = null;
     this.currentFilters = { search: '', theme: 'ALL', status: 'ALL' };
     this.searchDebounceTimer = null;
+    this.scannerMode = 'camera'; // 'camera' or 'reg_id'
+    this.html5QrCode = null;
+    this.isScanning = false;
+    this.autoRefreshTimer = null;
   }
 
   render() {
@@ -68,176 +73,273 @@ export class AdminPage {
     }
 
     return `
-      <div class="py-12 font-mono bg-canvas">
-        <div class="container mx-auto px-4">
+      <div class="py-6 sm:py-12 font-mono bg-canvas min-h-screen">
+        <div class="container mx-auto px-3 sm:px-4 max-w-7xl">
           
-          <!-- Top Bar -->
-          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-line pb-6 mb-8">
-            <div>
-              <div class="text-xs text-accent-dark tracking-widest uppercase font-bold font-mono">[ADMIN CONTROL PANEL]</div>
-              <h1 class="font-sans text-3xl sm:text-5xl font-extrabold uppercase text-ink">
-                GAMBIT’S GLITCH DASHBOARD
-              </h1>
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2 sm:gap-3">
-              <button id="admin-gate-toggle-btn" type="button" class="btn-secondary text-xs py-2.5 px-4 border border-line font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
-                PAYMENT PORTAL: CHECKING...
-              </button>
-              <button id="admin-refresh-btn" type="button" class="btn-primary text-xs py-2.5 px-4 font-mono font-bold uppercase tracking-wider shadow-sm hover:shadow-md transition-all cursor-pointer">
-                REFRESH DATA
-              </button>
-              <button id="admin-export-csv-btn" type="button" class="btn-secondary text-xs py-2.5 px-4 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all cursor-pointer">
-                EXPORT DATA CSV
-              </button>
-              <button id="admin-clear-btn" type="button" class="btn-secondary text-xs py-2.5 px-3 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer">
-                CLEAR ALL DATA
-              </button>
-              <button id="admin-logout-btn" type="button" class="btn-secondary text-xs py-2.5 px-3 border border-line text-muted font-mono font-bold uppercase tracking-wider hover:border-error hover:text-error transition-all cursor-pointer">
-                LOGOUT
-              </button>
-            </div>
-          </div>
-
-          <!-- OVERVIEW STATS GRID -->
-          <div id="admin-stats-grid" class="grid grid-cols-2 md:grid-cols-6 gap-4 mb-10">
-            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">TOTAL TEAMS</div>
-              <div id="stat-total" class="font-mono text-3xl font-bold text-ink">--</div>
-            </div>
-            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">CONFIRMED SLOTS (FCFS)</div>
-              <div class="flex items-baseline justify-center gap-1">
-                <span id="stat-confirmed" class="font-mono text-3xl font-bold text-success">--</span>
-                <span class="font-mono text-base text-muted font-bold">/ 40</span>
-              </div>
-              <div class="text-[9px] text-accent-dark font-mono font-bold uppercase mt-1">CAPACITY: 40 TEAMS</div>
-            </div>
-            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">PAYMENT PENDING</div>
-              <div id="stat-pending" class="font-mono text-3xl font-bold text-accent-dark">--</div>
-            </div>
-            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">PAYMENT APPROVED</div>
-              <div id="stat-approved" class="font-mono text-3xl font-bold text-success">--</div>
-            </div>
-            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">REMAINING SLOTS</div>
-              <div id="stat-remaining" class="font-mono text-3xl font-bold text-ink">--</div>
-              <div class="text-[9px] text-muted font-mono font-bold uppercase mt-1">OF 40 CAP</div>
-            </div>
-            <div class="tech-card p-4 border-line bg-paper text-center shadow-xs">
-              <div class="text-[10px] text-muted uppercase font-mono font-bold">ATTENDANCE ENTRY</div>
-              <div id="stat-attended" class="font-mono text-3xl font-bold text-success">--</div>
-            </div>
-          </div>
-
-          <!-- VENUE CHECK-IN SCANNER LAUNCH TRIGGER BANNER -->
-          <div class="tech-card p-6 border-2 border-accent/40 bg-paper mb-8 flex flex-wrap items-center justify-between gap-6 shadow-sm hover:border-accent transition-all">
-            <div class="space-y-1">
-              <div class="flex items-center gap-2">
-                <span class="text-xs text-accent-dark font-bold font-mono">// VENUE ENTRY & TICKET CHECK-IN</span>
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-accent/15 border border-accent text-accent-dark text-[10px] font-bold font-mono uppercase">
-                  <span class="w-1.5 h-1.5 rounded-full bg-success animate-ping"></span> LIVE SCANNER READY
-                </span>
-              </div>
-              <h2 class="font-sans text-xl sm:text-2xl font-extrabold text-ink uppercase tracking-tight">
-                Event Day Attendance Pass Scanner
-              </h2>
-              <p class="text-xs text-muted font-mono">
-                Click Verify & Scan Ticket to launch live camera scanner or barcode reader.
-              </p>
-            </div>
-            <button type="button" id="open-scanner-box-btn" class="btn-primary py-3 px-6 text-xs uppercase font-mono font-extrabold tracking-widest cursor-pointer shadow-md bg-ink hover:bg-accent hover:text-ink text-inverse-text border border-accent transition-all flex items-center gap-2.5 group">
-              <span>VERIFY & SCAN TICKET PASS</span>
-              <span class="text-accent group-hover:text-ink group-hover:translate-x-0.5 transition-all text-sm font-bold">→</span>
-            </button>
-          </div>
-
-          <!-- COLLAPSIBLE SCANNER CONTAINER (Appears when Verify & Scan clicked) -->
-          <div id="scanner-drawer-container" class="hidden tech-card p-6 md:p-8 border-2 border-accent bg-paper space-y-6 mb-12 max-w-3xl mx-auto shadow-2xl relative">
-            <div class="flex flex-wrap items-center justify-between border-b border-line pb-4 gap-4">
+          <!-- TOP BAR: DESKTOP & MOBILE RESPONSIVE -->
+          <div class="border-b border-line pb-5 mb-6 space-y-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
               <div>
-                <div class="text-xs text-accent-dark font-bold font-mono">// VENUE CHECK-IN SCANNER ACTIVE</div>
-                <h2 class="font-sans text-2xl font-bold text-ink uppercase">
-                  Official QR Pass Scanner
+                <div class="text-[10px] sm:text-xs text-accent-dark tracking-widest uppercase font-bold font-mono">// CONTROL PANEL [ADMIN ACCESS]</div>
+                <h1 class="font-sans text-2xl sm:text-4xl md:text-5xl font-extrabold uppercase text-ink tracking-tight">
+                  GAMBIT’S GLITCH DASHBOARD
+                </h1>
+              </div>
+
+              <!-- Primary Quick Bar on Desktop -->
+              <div class="hidden lg:flex items-center gap-2">
+                <button id="admin-gate-toggle-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-line font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
+                  PAYMENT GATE: CHECKING...
+                </button>
+                <button id="admin-refresh-btn" type="button" class="btn-primary text-xs py-2 px-3 font-mono font-bold uppercase tracking-wider shadow-sm transition-all cursor-pointer">
+                  REFRESH
+                </button>
+                <button id="admin-export-csv-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-accent text-accent-dark font-mono font-bold uppercase tracking-wider hover:bg-accent hover:text-ink transition-all cursor-pointer">
+                  EXPORT CSV
+                </button>
+                <button id="admin-test-email-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent hover:text-accent-dark font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
+                  TEST EMAIL
+                </button>
+                <button id="admin-logs-btn" type="button" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent hover:text-accent-dark font-mono font-bold uppercase tracking-wider transition-all cursor-pointer">
+                  AUDIT LOGS
+                </button>
+                <button id="admin-clear-btn" type="button" class="btn-secondary text-xs py-2 px-2.5 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer" title="Wipe database">
+                  CLEAR DATA
+                </button>
+                <button id="admin-logout-btn" type="button" class="btn-secondary text-xs py-2 px-2.5 border border-line text-muted font-mono font-bold uppercase tracking-wider hover:border-error hover:text-error transition-all cursor-pointer">
+                  LOGOUT
+                </button>
+              </div>
+            </div>
+
+            <!-- Mobile Action Grid (Fits phone screens perfectly without wrapping ugliness) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 lg:hidden gap-2 pt-2 border-t border-line/60">
+              <button id="mobile-gate-toggle-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-line font-mono font-bold uppercase tracking-tight text-center truncate">
+                GATE: ...
+              </button>
+              <button id="mobile-refresh-btn" type="button" class="btn-primary text-[11px] py-2.5 px-2 font-mono font-bold uppercase tracking-tight text-center">
+                🔄 REFRESH
+              </button>
+              <button id="mobile-test-email-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-line text-ink font-mono font-bold uppercase tracking-tight text-center">
+                ✉ TEST EMAIL
+              </button>
+              <button id="mobile-logs-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-line text-ink font-mono font-bold uppercase tracking-tight text-center">
+                📋 AUDIT LOGS
+              </button>
+              <button id="mobile-export-csv-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-accent text-accent-dark font-mono font-bold uppercase tracking-tight text-center">
+                📊 EXPORT CSV
+              </button>
+              <button id="mobile-clear-btn" type="button" class="btn-secondary text-[11px] py-2.5 px-2 border border-error text-error font-mono font-bold uppercase tracking-tight text-center">
+                🗑 CLEAR ALL
+              </button>
+              <button id="mobile-logout-btn" type="button" class="col-span-2 btn-secondary text-[11px] py-2.5 px-2 border border-line text-muted font-mono font-bold uppercase tracking-tight text-center">
+                🚪 LOGOUT
+              </button>
+            </div>
+          </div>
+
+          <!-- OVERVIEW STATS GRID (Responsive for mobile & desktop) -->
+          <div id="admin-stats-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 sm:gap-4 mb-8">
+            <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">TOTAL TEAMS</div>
+              <div id="stat-total" class="font-mono text-2xl sm:text-3xl font-bold text-ink">--</div>
+            </div>
+            <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">CONFIRMED (FCFS)</div>
+              <div class="flex items-baseline justify-center gap-1">
+                <span id="stat-confirmed" class="font-mono text-2xl sm:text-3xl font-bold text-success">--</span>
+                <span class="font-mono text-xs sm:text-base text-muted font-bold">/ 40</span>
+              </div>
+              <div class="text-[8px] sm:text-[9px] text-accent-dark font-mono font-bold uppercase">CAP: 40 TEAMS</div>
+            </div>
+            <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">PAY PENDING</div>
+              <div id="stat-pending" class="font-mono text-2xl sm:text-3xl font-bold text-accent-dark">--</div>
+            </div>
+            <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">PAY APPROVED</div>
+              <div id="stat-approved" class="font-mono text-2xl sm:text-3xl font-bold text-success">--</div>
+            </div>
+            <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">SLOTS LEFT</div>
+              <div id="stat-remaining" class="font-mono text-2xl sm:text-3xl font-bold text-ink">--</div>
+              <div class="text-[8px] sm:text-[9px] text-muted font-mono font-bold uppercase">OF 40</div>
+            </div>
+            <div class="tech-card p-3 sm:p-4 border-line bg-paper text-center shadow-xs">
+              <div class="text-[9px] sm:text-[10px] text-muted uppercase font-mono font-bold">ATTENDANCE</div>
+              <div id="stat-attended" class="font-mono text-2xl sm:text-3xl font-bold text-success">--</div>
+            </div>
+          </div>
+
+          <!-- ATTENDANCE & CHECK-IN LAUNCH BANNER -->
+          <div class="tech-card p-4 sm:p-6 border-2 border-accent bg-paper mb-6 space-y-4 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-[10px] sm:text-xs text-accent-dark font-bold font-mono">// VENUE CHECK-IN SYSTEM</span>
+                  <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-accent/15 border border-accent text-accent-dark text-[9px] sm:text-[10px] font-bold font-mono uppercase">
+                    <span class="w-1.5 h-1.5 rounded-full bg-success animate-ping"></span> TWO CHECK-IN MODES
+                  </span>
+                </div>
+                <h2 class="font-sans text-lg sm:text-2xl font-extrabold text-ink uppercase tracking-tight mt-1">
+                  Event Day Attendance Pass Scanner
+                </h2>
+                <p class="text-xs text-muted font-mono">
+                  Scan attendee QR pass via mobile camera OR search instantly by Registration ID / Squad name.
+                </p>
+              </div>
+
+              <!-- Two prominent trigger buttons right on the banner -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <button type="button" id="open-scanner-camera-btn" class="btn-primary py-3 px-4 text-xs uppercase font-mono font-bold tracking-wider cursor-pointer shadow-sm flex items-center justify-center gap-2 group">
+                  <span>📷 1. LIVE CAMERA SCAN</span>
+                </button>
+                <button type="button" id="open-scanner-regid-btn" class="btn-secondary py-3 px-4 text-xs uppercase font-mono font-bold tracking-wider border-2 border-accent text-accent-dark hover:bg-accent hover:text-ink cursor-pointer flex items-center justify-center gap-2 transition-all">
+                  <span>🔢 2. BY REG ID / SEARCH</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- DUAL-MODE CHECK-IN SCANNER DRAWER / MODAL -->
+          <div id="scanner-drawer-container" class="hidden tech-card p-4 sm:p-8 border-2 border-accent bg-paper space-y-5 mb-10 max-w-3xl mx-auto shadow-2xl relative">
+            <div class="flex items-center justify-between border-b border-line pb-4 gap-2">
+              <div>
+                <div class="text-[10px] sm:text-xs text-accent-dark font-bold font-mono">// ATTENDANCE ENTRY VERIFICATION</div>
+                <h2 class="font-sans text-lg sm:text-2xl font-bold text-ink uppercase">
+                  Check-In Pass Verification
                 </h2>
               </div>
-              
-              <div class="flex items-center gap-3">
+              <button type="button" id="close-scanner-box-btn" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent cursor-pointer font-mono font-bold">
+                ✕ CLOSE
+              </button>
+            </div>
+
+            <!-- TWO CLEAR TAB BUTTONS -->
+            <div class="grid grid-cols-2 gap-2 p-1 bg-canvas border border-line">
+              <button type="button" id="tab-btn-camera" class="py-3 px-3 text-xs font-mono font-extrabold uppercase tracking-wider text-center transition-all bg-accent text-ink border border-accent cursor-pointer">
+                📷 OPTION 1: CAMERA SCANNER
+              </button>
+              <button type="button" id="tab-btn-regid" class="py-3 px-3 text-xs font-mono font-bold uppercase tracking-wider text-center transition-all text-muted hover:text-ink cursor-pointer">
+                🔢 OPTION 2: REG ID LOOKUP
+              </button>
+            </div>
+
+            <!-- VIEW 1: LIVE CAMERA QR SCANNER -->
+            <div id="scanner-mode-camera-view" class="space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+                <div class="flex items-center gap-2">
+                  <span class="text-muted">CAMERA DEVICE:</span>
+                  <select id="camera-select-dropdown" class="px-2 py-1.5 text-xs text-ink bg-canvas border border-line font-mono outline-none">
+                    <option value="">Detecting cameras...</option>
+                  </select>
+                </div>
                 <button type="button" id="toggle-camera-btn" class="btn-primary text-xs py-2 px-4 uppercase font-mono font-bold cursor-pointer flex items-center gap-2">
                   <span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span>
-                  START LIVE CAMERA
-                </button>
-                <button type="button" id="close-scanner-box-btn" class="btn-secondary text-xs py-2 px-3 border border-line text-ink hover:border-accent cursor-pointer font-mono font-bold">
-                  CLOSE SCANNER
+                  START CAMERA
                 </button>
               </div>
-            </div>
 
-            <!-- UNIFIED SCANNER VIEWPORT -->
-            <div class="space-y-4">
-              <div id="reader-container" class="relative bg-canvas border-2 border-accent p-4 min-h-[200px] flex flex-col items-center justify-center text-center">
-                <div id="reader" class="w-full max-w-md mx-auto"></div>
-                
-                <div id="camera-placeholder" class="py-4 space-y-2">
+              <!-- Camera Viewport Box -->
+              <div id="reader-container" class="relative bg-canvas border-2 border-accent p-3 sm:p-4 min-h-[220px] flex flex-col items-center justify-center text-center overflow-hidden">
+                <div id="reader" class="w-full max-w-sm mx-auto overflow-hidden"></div>
+                <div id="camera-placeholder" class="py-8 space-y-2">
+                  <div class="text-3xl">📷</div>
                   <div class="text-xs font-mono font-bold text-ink uppercase tracking-wider">
-                    SCANNER READY // HOLD QR TICKET PASS TO CAMERA OR SCANNER
+                    CAMERA SCANNER READY
                   </div>
-                  <div class="text-[11px] text-muted font-mono">
-                    Point ticket pass at camera or trigger handheld barcode scanner below
+                  <div class="text-[11px] text-muted font-mono max-w-xs mx-auto">
+                    Click <strong>START CAMERA</strong> above and hold the participant's QR pass in front of the lens.
                   </div>
                 </div>
               </div>
 
-              <!-- UNIFIED SCAN INPUT FIELD -->
-              <form id="qr-scanner-form" class="flex flex-wrap items-center gap-2 bg-canvas p-2 border border-accent">
-                <div class="flex-1 flex items-center px-3 gap-2">
-                  <span class="text-accent-dark text-xs font-mono font-bold">SCAN:</span>
-                  <input type="text" id="qr-scan-input" placeholder="Point scanner or scan ticket pass here..." class="w-full py-2 text-xs text-ink font-mono bg-transparent focus:outline-none uppercase font-bold" />
-                </div>
-                <button type="submit" class="btn-primary text-xs py-2.5 px-6 font-mono uppercase font-bold cursor-pointer">
-                  VERIFY TICKET
+              <!-- Fast barcode or paste fallback in camera mode -->
+              <div class="text-center">
+                <button type="button" id="switch-to-regid-quick-btn" class="text-xs text-accent-dark hover:underline font-mono font-bold">
+                  Camera not working or permission denied? Switch to Option 2 (Lookup by Reg ID) →
                 </button>
-              </form>
+              </div>
             </div>
 
-            <!-- SCANNER RESULT DISPLAY -->
-            <div id="scanner-result-box" class="hidden p-6 bg-canvas border-2 border-accent space-y-4">
-              <!-- Injected dynamically via JS -->
+            <!-- VIEW 2: MANUAL REGISTRATION ID & SQUAD LOOKUP -->
+            <div id="scanner-mode-regid-view" class="hidden space-y-5">
+              <div class="p-4 bg-canvas border border-line space-y-3">
+                <div class="text-xs text-accent-dark font-bold font-mono">// OPTION 2: DIRECT LOOKUP & CHECK-IN</div>
+                <p class="text-xs text-muted font-sans">
+                  Enter the 9-character Registration ID (e.g. <strong class="text-ink">GG26-KLGF</strong>) or search by Team Name, Leader Email, or Phone.
+                </p>
+
+                <form id="direct-reg-lookup-form" class="space-y-3">
+                  <div class="flex flex-col sm:flex-row gap-2">
+                    <input 
+                      type="text" 
+                      id="reg-id-lookup-input" 
+                      placeholder="e.g. GG26-KLGF or V' Engine" 
+                      class="flex-1 px-4 py-3 text-sm sm:text-base text-ink font-mono font-bold uppercase bg-paper border-2 border-accent focus:outline-none placeholder:text-muted/60"
+                      autocomplete="off"
+                    />
+                    <button type="submit" class="btn-primary py-3 px-6 text-xs font-mono font-bold uppercase tracking-wider cursor-pointer whitespace-nowrap">
+                      🔍 CHECK IN
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- Clickable Quick Chips for Existing Teams -->
+              <div class="space-y-2">
+                <div class="text-[11px] text-muted font-mono font-bold uppercase">// QUICK CLICK REGISTERED TEAMS TO VERIFY:</div>
+                <div id="quick-teams-chips" class="flex flex-wrap gap-2 max-h-36 overflow-y-auto p-1">
+                  <!-- Dynamically populated -->
+                </div>
+              </div>
+            </div>
+
+            <!-- UNIFIED SCANNER RESULT CARD (Appears below both options when verified) -->
+            <div id="scanner-result-box" class="hidden p-4 sm:p-6 bg-canvas border-2 border-accent space-y-4">
+              <!-- Dynamically populated via JS -->
             </div>
           </div>
 
-          <!-- SEARCH & FILTER BAR -->
-          <div class="tech-card p-4 border border-line bg-paper flex flex-wrap items-center gap-4 mb-8 shadow-xs">
-            <div class="flex-1 min-w-[220px]">
-              <input type="text" id="admin-search-input" placeholder="Search by Team Name, ID, Leader Email, UTR..." class="w-full px-3 py-2 text-xs text-ink font-mono focus:border-accent outline-none bg-canvas border border-line" />
-            </div>
+          <!-- SEARCH & FILTER BAR (Mobile full-width stacked) -->
+          <div class="tech-card p-3 sm:p-4 border border-line bg-paper mb-6 shadow-xs">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-4">
+              <div class="flex-1">
+                <input 
+                  type="text" 
+                  id="admin-search-input" 
+                  placeholder="Search by Team Name, ID, Leader Email, UTR..." 
+                  class="w-full px-3 py-2.5 text-xs text-ink font-mono focus:border-accent outline-none bg-canvas border border-line" 
+                />
+              </div>
 
-            <div class="w-40">
-              <select id="admin-theme-filter" class="w-full px-3 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
-                <option value="ALL">All Themes</option>
-                ${eventConfig.themes.map(t => `<option value="${t.id}">${t.number}. ${t.name}</option>`).join('')}
-              </select>
-            </div>
+              <div class="w-full sm:w-44">
+                <select id="admin-theme-filter" class="w-full px-3 py-2.5 text-xs text-ink font-mono outline-none bg-canvas border border-line">
+                  <option value="ALL">All Themes</option>
+                  ${eventConfig.themes.map(t => `<option value="${t.id}">${t.number}. ${t.name}</option>`).join('')}
+                </select>
+              </div>
 
-            <div class="w-44">
-              <select id="admin-status-filter" class="w-full px-3 py-2 text-xs text-ink font-mono outline-none bg-canvas border border-line">
-                <option value="ALL">All Statuses</option>
-                <option value="REGISTERED">Registered / FCFS</option>
-                <option value="PAYMENT_PENDING">Payment Pending</option>
-                <option value="PAYMENT_APPROVED">Payment Approved (Confirmed)</option>
-                <option value="REJECTED">Rejected</option>
-              </select>
-            </div>
+              <div class="w-full sm:w-48">
+                <select id="admin-status-filter" class="w-full px-3 py-2.5 text-xs text-ink font-mono outline-none bg-canvas border border-line">
+                  <option value="ALL">All Statuses</option>
+                  <option value="REGISTERED">Registered / FCFS</option>
+                  <option value="PAYMENT_PENDING">Payment Pending</option>
+                  <option value="PAYMENT_APPROVED">Payment Approved (Confirmed)</option>
+                  <option value="REJECTED">Rejected</option>
+                </select>
+              </div>
 
-            <button id="admin-filter-reset" class="btn-secondary text-xs py-2 px-4 font-mono font-bold uppercase tracking-wider border border-line hover:border-accent hover:text-accent-dark transition-all cursor-pointer">
-              RESET FILTERS
-            </button>
+              <button id="admin-filter-reset" class="btn-secondary text-xs py-2.5 px-4 font-mono font-bold uppercase tracking-wider border border-line hover:border-accent hover:text-accent-dark transition-all cursor-pointer text-center">
+                RESET FILTERS
+              </button>
+            </div>
           </div>
 
-          <!-- MAIN REGISTRATION MANAGEMENT TABLE -->
-          <div class="tech-card border-line bg-paper overflow-x-auto mb-12">
+          <!-- MAIN REGISTRATION DATA: DUAL PRESENTATION -->
+          
+          <!-- 1. DESKTOP VIEW (TABLE): Visible on screens md and larger -->
+          <div class="hidden md:block tech-card border-line bg-paper overflow-x-auto mb-10 shadow-sm">
             <table class="w-full text-left text-xs border-collapse">
               <thead>
                 <tr class="bg-canvas border-b border-line text-muted uppercase tracking-widest text-[11px]">
@@ -257,51 +359,58 @@ export class AdminPage {
             </table>
           </div>
 
+          <!-- 2. MOBILE VIEW (CARDS): Clean, native card list on phones (no horizontal scrolling!) -->
+          <div id="admin-teams-mobile-container" class="md:hidden space-y-3 mb-10">
+            <div class="tech-card p-6 border-line bg-paper text-center text-xs text-muted">
+              Loading teams mobile database...
+            </div>
+          </div>
+
           <!-- BROADCAST ANNOUNCEMENT SECTION -->
-          <div class="tech-card p-6 border-line bg-paper space-y-4 mb-12">
-            <h2 class="font-sans text-lg font-bold text-ink uppercase border-b border-line pb-2">
+          <div class="tech-card p-4 sm:p-6 border-line bg-paper space-y-4 mb-10">
+            <h2 class="font-sans text-base sm:text-lg font-bold text-ink uppercase border-b border-line pb-2">
               BROADCAST PARTICIPANT ANNOUNCEMENT
             </h2>
             <form id="announcement-form" class="space-y-4">
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div class="md:col-span-2">
-                  <input type="text" name="title" required placeholder="Announcement Headline..." class="w-full px-3 py-2 text-xs text-ink focus:border-accent outline-none" />
+                  <input type="text" name="title" required placeholder="Announcement Headline..." class="w-full px-3 py-2 text-xs text-ink focus:border-accent outline-none bg-canvas border border-line" />
                 </div>
                 <div>
-                  <select name="priority" class="w-full px-3 py-2 text-xs text-ink outline-none">
+                  <select name="priority" class="w-full px-3 py-2 text-xs text-ink outline-none bg-canvas border border-line">
                     <option value="NORMAL">NORMAL PRIORITY</option>
                     <option value="URGENT">URGENT</option>
                     <option value="CRITICAL">CRITICAL</option>
                   </select>
                 </div>
               </div>
-              <textarea name="content" required rows="2" placeholder="Announcement body text displayed on status tracker..." class="w-full p-3 text-xs text-ink focus:border-accent outline-none font-sans"></textarea>
-              <button type="submit" class="btn-primary text-xs py-2 px-6">
+              <textarea name="content" required rows="2" placeholder="Announcement body text displayed on status tracker..." class="w-full p-3 text-xs text-ink focus:border-accent outline-none font-sans bg-canvas border border-line"></textarea>
+              <button type="submit" class="btn-primary text-xs py-2.5 px-6 font-mono font-bold uppercase cursor-pointer">
                 POST ANNOUNCEMENT
               </button>
             </form>
           </div>
 
-          <!-- PAYMENT MODAL -->
-          <div id="payment-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-4">
-            <div class="tech-card p-6 md:p-8 border-2 border-accent bg-paper max-w-3xl w-full space-y-5 max-h-[92vh] overflow-y-auto shadow-2xl">
-              <div class="flex items-center justify-between border-b border-line pb-4">
+          <!-- PAYMENT PROOF AUDIT MODAL -->
+          <div id="payment-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+            <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-3xl w-full space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl">
+              <div class="flex items-center justify-between border-b border-line pb-3">
                 <div>
-                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// PAYMENT PROOF VERIFICATION & FCFS AUDIT</div>
-                  <div class="font-sans text-xl sm:text-2xl font-bold text-ink uppercase" id="modal-team-title">VERIFY PAYMENT PROOF</div>
+                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// PAYMENT PROOF VERIFICATION</div>
+                  <div class="font-sans text-lg sm:text-2xl font-bold text-ink uppercase truncate max-w-xs sm:max-w-md" id="modal-team-title">VERIFY PAYMENT PROOF</div>
                 </div>
-                <button id="close-modal-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors">✕</button>
+                <button id="close-modal-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors leading-none">✕</button>
               </div>
 
               <!-- Metadata Grid -->
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono bg-canvas p-4 border border-line">
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs font-mono bg-canvas p-3 border border-line">
                 <div>
                   <div class="text-[10px] text-muted uppercase font-bold">REG ID:</div>
                   <strong id="modal-reg-id" class="text-accent-dark font-mono text-sm">--</strong>
                 </div>
                 <div>
                   <div class="text-[10px] text-muted uppercase font-bold">UTR NUMBER:</div>
-                  <strong id="modal-utr" class="text-ink font-mono text-sm select-all">--</strong>
+                  <strong id="modal-utr" class="text-ink font-mono text-xs sm:text-sm select-all break-all">--</strong>
                 </div>
                 <div>
                   <div class="text-[10px] text-muted uppercase font-bold">PAYER ACCOUNT:</div>
@@ -316,7 +425,7 @@ export class AdminPage {
               <!-- Screenshot Viewer Frame -->
               <div class="space-y-2">
                 <div class="flex items-center justify-between text-xs font-mono">
-                  <span class="text-muted font-bold text-[11px] uppercase">// UPI TRANSFER SCREENSHOT:</span>
+                  <span class="text-muted font-bold text-[10px] uppercase">// UPI TRANSFER SCREENSHOT:</span>
                   <div class="flex items-center gap-2">
                     <a id="modal-view-original-btn" href="#" target="_blank" class="px-2.5 py-1 border border-line text-ink hover:border-accent text-[10px] font-bold uppercase transition-all">
                       Open Full Size ↗
@@ -326,18 +435,89 @@ export class AdminPage {
                     </button>
                   </div>
                 </div>
-                <div class="p-3 bg-canvas border-2 border-line text-center max-h-96 overflow-auto flex items-center justify-center">
-                  <img id="modal-screenshot-img" src="" alt="Payment Proof Screenshot" class="max-w-full max-h-88 h-auto mx-auto object-contain border border-line shadow-xs" />
+                <div class="p-2 sm:p-3 bg-canvas border-2 border-line text-center max-h-80 overflow-auto flex items-center justify-center">
+                  <img id="modal-screenshot-img" src="" alt="Payment Proof Screenshot" class="max-w-full max-h-72 h-auto mx-auto object-contain border border-line shadow-xs" />
                 </div>
               </div>
 
               <!-- Action Controls -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-line">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-line">
                 <button id="modal-approve-btn" type="button" class="btn-primary py-3 px-4 text-xs font-bold tracking-widest uppercase cursor-pointer flex items-center justify-center gap-2">
-                  <span>✔ APPROVE PAYMENT (CONFIRM FCFS SLOT)</span>
+                  <span>✔ APPROVE PAYMENT (CONFIRM FCFS)</span>
                 </button>
                 <button id="modal-reject-btn" type="button" class="btn-secondary py-3 px-4 text-xs font-bold tracking-widest uppercase border border-error text-error hover:bg-error hover:text-white cursor-pointer transition-all">
                   <span>✕ REJECT PAYMENT (REQUEST RESUBMISSION)</span>
+                </button>
+              </div>
+
+              <!-- Email Dispatch Controls -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-line">
+                <button id="modal-resend-invoice-btn" type="button" class="btn-secondary py-2.5 px-3 text-xs font-bold font-mono border border-line hover:border-accent text-ink hover:text-accent-dark cursor-pointer transition-all">
+                  ✉ RESEND INVOICE &amp; ATTENDANCE QR PASS
+                </button>
+                <button id="modal-resend-reg-btn" type="button" class="btn-secondary py-2.5 px-3 text-xs font-bold font-mono border border-line hover:border-accent text-ink hover:text-accent-dark cursor-pointer transition-all">
+                  ✉ RESEND REGISTRATION CONFIRMATION EMAIL
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- DIAGNOSTIC TEST EMAIL MODAL -->
+          <div id="test-email-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+            <div class="tech-card p-5 sm:p-8 border-2 border-accent bg-paper max-w-md w-full space-y-4 shadow-2xl">
+              <div class="flex items-center justify-between border-b border-line pb-3">
+                <div>
+                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// EMAIL DISPATCH DIAGNOSTICS</div>
+                  <h3 class="font-sans text-lg sm:text-xl font-bold text-ink uppercase">SEND DIAGNOSTIC TEST EMAIL</h3>
+                </div>
+                <button id="close-test-email-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors leading-none">✕</button>
+              </div>
+              <p class="text-xs text-muted font-sans leading-relaxed">
+                Test and verify live Brevo HTTP API v3 deliverability directly to any inbox.
+              </p>
+              <form id="test-email-form" class="space-y-4">
+                <div>
+                  <label class="block text-xs text-ink mb-1">RECIPIENT EMAIL ADDRESS *</label>
+                  <input type="email" id="test-email-input" required value="gambitsglitch@gmail.com" placeholder="name@example.com" class="w-full px-3 py-2.5 text-xs text-ink border border-line bg-canvas focus:border-accent outline-none font-mono" />
+                </div>
+                <button type="submit" id="send-test-email-submit-btn" class="btn-primary w-full py-3 text-xs font-bold font-mono uppercase tracking-wider cursor-pointer">
+                  ⚡ DISPATCH TEST EMAIL
+                </button>
+              </form>
+              <div id="test-email-status-box" class="hidden p-3 text-xs font-mono border break-words"></div>
+            </div>
+          </div>
+
+          <!-- AUDIT LOGS MODAL -->
+          <div id="admin-logs-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+            <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-4xl w-full space-y-4 max-h-[90vh] flex flex-col shadow-2xl">
+              <div class="flex items-center justify-between border-b border-line pb-3">
+                <div>
+                  <div class="text-[10px] text-accent-dark font-mono font-bold tracking-widest uppercase">// SYSTEM AUDIT TRAIL</div>
+                  <h3 class="font-sans text-lg sm:text-xl font-bold text-ink uppercase">ADMINISTRATIVE ACTION LOGS</h3>
+                </div>
+                <button id="close-logs-modal-btn" class="text-ink hover:text-accent text-2xl font-bold p-1 cursor-pointer transition-colors leading-none">✕</button>
+              </div>
+              <div class="flex-1 overflow-y-auto border border-line bg-canvas min-h-[250px]">
+                <table class="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr class="bg-paper border-b border-line text-muted uppercase text-[10px] tracking-wider">
+                      <th class="p-3">TIMESTAMP</th>
+                      <th class="p-3">ADMIN</th>
+                      <th class="p-3">ACTION</th>
+                      <th class="p-3">TARGET</th>
+                      <th class="p-3">DETAILS</th>
+                    </tr>
+                  </thead>
+                  <tbody id="admin-logs-tbody" class="divide-y divide-line font-mono text-[11px]">
+                    <tr><td colspan="5" class="p-4 text-center text-muted">Loading audit records...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="flex justify-between items-center pt-2 border-t border-line text-xs font-mono">
+                <span id="logs-count-text" class="text-muted">0 logs recorded</span>
+                <button type="button" id="refresh-logs-btn" class="px-3 py-1.5 border border-line hover:border-accent text-ink text-[11px] font-bold uppercase transition-all cursor-pointer">
+                  REFRESH LOGS
                 </button>
               </div>
             </div>
@@ -351,149 +531,217 @@ export class AdminPage {
   async attachEvents() {
     if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer);
 
-    // Fetch initial dashboard data on page load
+    // Initial fetch
     await this.fetchDashboardData();
 
-    // Auto-refresh stats and team status live every 5 seconds
+    // Auto-refresh stats and team status every 6 seconds
     this.autoRefreshTimer = setInterval(() => {
       this.fetchDashboardData(true);
-    }, 5000);
+    }, 6000);
 
-    // PAYMENT PORTAL GATE TOGGLE BUTTON HANDLER
-    const gateToggleBtn = document.getElementById('admin-gate-toggle-btn');
+    // GATE BUTTON STATUS SYNC
     const syncGateBtnUI = async () => {
-      if (!gateToggleBtn) return;
+      const desktopBtn = document.getElementById('admin-gate-toggle-btn');
+      const mobileBtn = document.getElementById('mobile-gate-toggle-btn');
       try {
         const res = await api.getPaymentGateStatus();
         const isOpen = res && res.open;
-        if (isOpen) {
-          gateToggleBtn.className = "btn-secondary text-xs py-2.5 px-4 border border-success text-success font-mono font-bold uppercase tracking-wider hover:bg-success hover:text-canvas transition-all cursor-pointer";
-          gateToggleBtn.textContent = "PAYMENT PORTAL: OPEN";
-        } else {
-          gateToggleBtn.className = "btn-secondary text-xs py-2.5 px-4 border border-error text-error font-mono font-bold uppercase tracking-wider hover:bg-error hover:text-white transition-all cursor-pointer";
-          gateToggleBtn.textContent = "PAYMENT PORTAL: LOCKED";
+        const text = isOpen ? 'GATE: OPEN' : 'GATE: LOCKED';
+        const className = isOpen
+          ? 'btn-secondary text-xs py-2 px-3 border border-success text-success font-mono font-bold uppercase tracking-wider cursor-pointer'
+          : 'btn-secondary text-xs py-2 px-3 border border-error text-error font-mono font-bold uppercase tracking-wider cursor-pointer';
+
+        if (desktopBtn) {
+          desktopBtn.className = className;
+          desktopBtn.textContent = isOpen ? 'PAYMENT PORTAL: OPEN' : 'PAYMENT PORTAL: LOCKED';
+          desktopBtn.setAttribute('data-open', isOpen ? 'true' : 'false');
         }
-        gateToggleBtn.setAttribute('data-open', isOpen ? 'true' : 'false');
+        if (mobileBtn) {
+          mobileBtn.className = className.replace('text-xs py-2 px-3', 'text-[11px] py-2.5 px-2 text-center');
+          mobileBtn.textContent = text;
+          mobileBtn.setAttribute('data-open', isOpen ? 'true' : 'false');
+        }
       } catch (err) {
-        gateToggleBtn.textContent = "PAYMENT PORTAL: ERROR";
+        if (desktopBtn) desktopBtn.textContent = 'PAYMENT GATE: ERROR';
+        if (mobileBtn) mobileBtn.textContent = 'GATE: ERR';
       }
     };
     await syncGateBtnUI();
 
-    if (gateToggleBtn) {
-      gateToggleBtn.addEventListener('click', async () => {
-        soundFx.playClick();
-        const currentOpen = gateToggleBtn.getAttribute('data-open') === 'true';
-        const newStatus = !currentOpen;
-        const confirmed = confirm(`Are you sure you want to ${newStatus ? 'OPEN' : 'LOCK'} the payment portal for participating teams (First-Come, First-Served)?`);
-        if (!confirmed) return;
+    const handleGateToggle = async () => {
+      soundFx.playClick();
+      const currentBtn = document.getElementById('admin-gate-toggle-btn') || document.getElementById('mobile-gate-toggle-btn');
+      const currentOpen = currentBtn?.getAttribute('data-open') === 'true';
+      const newStatus = !currentOpen;
+      const confirmed = confirm(`Are you sure you want to ${newStatus ? 'OPEN' : 'LOCK'} the payment portal for participating teams?`);
+      if (!confirmed) return;
 
-        try {
-          const res = await api.togglePaymentGate(newStatus);
-          if (res && res.success) {
-            toast.show(`Payment Portal is now ${res.open ? 'OPEN' : 'LOCKED'}`, 'success');
-            await syncGateBtnUI();
-          } else {
-            toast.show('Failed to toggle Payment Portal gate.', 'error');
-          }
-        } catch (err) {
-          toast.show('Error updating Payment Portal status.', 'error');
-        }
-      });
-    }
-
-    const refreshBtn = document.getElementById('admin-refresh-btn');
-    if (refreshBtn) {
-      refreshBtn.addEventListener('click', async () => {
-        soundFx.playClick();
-        toast.show('Refreshing admin teams database...', 'info');
-        await this.fetchDashboardData();
-        toast.show('Dashboard data updated!', 'success');
-      });
-    }
-
-    const exportCsvBtn = document.getElementById('admin-export-csv-btn');
-    if (exportCsvBtn) {
-      exportCsvBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        soundFx.playClick();
-        toast.show('Generating & exporting CSV data...', 'info');
-        try {
-          const blob = await api.downloadExportCsv();
-          const blobUrl = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = blobUrl;
-          a.download = `gambits_glitch_registrations_${new Date().toISOString().slice(0, 10)}.csv`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-          toast.show('CSV export downloaded successfully!', 'success');
-        } catch (err) {
-          toast.show('Failed to export CSV. Please check admin login session.', 'error');
-        }
-      });
-    }
-
-    const clearBtn = document.getElementById('admin-clear-btn');
-    if (clearBtn) {
-      clearBtn.addEventListener('click', async () => {
-        soundFx.playClick();
-        const confirmed = confirm("⚠️ ARE YOU SURE?\nThis will permanently delete all registered teams, payments, PPT submissions, and attendance logs from the database!");
-        if (!confirmed) return;
-        toast.show('Clearing database...', 'info');
-        const res = await api.clearAllData();
-        if (res.success) {
-          toast.show('Database wiped clean successfully!', 'success');
-          await this.fetchDashboardData();
+      try {
+        const res = await api.togglePaymentGate(newStatus);
+        if (res && res.success) {
+          toast.show(`Payment Portal is now ${res.open ? 'OPEN' : 'LOCKED'}`, 'success');
+          await syncGateBtnUI();
         } else {
-          toast.show(res.message || 'Failed to clear database.', 'error');
+          toast.show('Failed to toggle Payment Portal gate.', 'error');
         }
-      });
-    }
+      } catch (err) {
+        toast.show('Error updating Payment Portal status.', 'error');
+      }
+    };
 
-    const logoutBtn = document.getElementById('admin-logout-btn');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', () => {
-        if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer);
-        api.clearToken();
-        toast.show('Logged out.', 'info');
-        this.navigate('login');
-      });
-    }
+    document.getElementById('admin-gate-toggle-btn')?.addEventListener('click', handleGateToggle);
+    document.getElementById('mobile-gate-toggle-btn')?.addEventListener('click', handleGateToggle);
 
-    // SCANNER DRAWER SHOW / HIDE TOGGLE
-    const openScannerBtn = document.getElementById('open-scanner-box-btn');
-    const closeScannerBtn = document.getElementById('close-scanner-box-btn');
+    // REFRESH BUTTONS
+    const handleRefresh = async () => {
+      soundFx.playClick();
+      toast.show('Refreshing teams database...', 'info');
+      await this.fetchDashboardData();
+      toast.show('Dashboard data updated!', 'success');
+    };
+    document.getElementById('admin-refresh-btn')?.addEventListener('click', handleRefresh);
+    document.getElementById('mobile-refresh-btn')?.addEventListener('click', handleRefresh);
+
+    // EXPORT CSV BUTTONS
+    const handleExportCsv = async (e) => {
+      e.preventDefault();
+      soundFx.playClick();
+      toast.show('Generating CSV export...', 'info');
+      try {
+        const blob = await api.downloadExportCsv();
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = `gambits_glitch_registrations_${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+        toast.show('CSV export downloaded successfully!', 'success');
+      } catch (err) {
+        toast.show('Failed to export CSV. Please check admin login session.', 'error');
+      }
+    };
+    document.getElementById('admin-export-csv-btn')?.addEventListener('click', handleExportCsv);
+    document.getElementById('mobile-export-csv-btn')?.addEventListener('click', handleExportCsv);
+
+    // CLEAR ALL DATA BUTTONS
+    const handleClearData = async () => {
+      soundFx.playClick();
+      const confirmed = confirm("⚠️ ARE YOU SURE?\nThis will permanently delete all registered teams, payments, and attendance logs!");
+      if (!confirmed) return;
+      toast.show('Clearing database...', 'info');
+      const res = await api.clearAllData();
+      if (res.success) {
+        toast.show('Database wiped clean successfully!', 'success');
+        await this.fetchDashboardData();
+      } else {
+        toast.show(res.message || 'Failed to clear database.', 'error');
+      }
+    };
+    document.getElementById('admin-clear-btn')?.addEventListener('click', handleClearData);
+    document.getElementById('mobile-clear-btn')?.addEventListener('click', handleClearData);
+
+    // LOGOUT BUTTONS
+    const handleLogout = () => {
+      if (this.autoRefreshTimer) clearInterval(this.autoRefreshTimer);
+      if (this.isScanning && this.html5QrCode) {
+        try { this.html5QrCode.stop(); } catch (e) {}
+      }
+      api.clearToken();
+      toast.show('Logged out.', 'info');
+      this.navigate('login');
+    };
+    document.getElementById('admin-logout-btn')?.addEventListener('click', handleLogout);
+    document.getElementById('mobile-logout-btn')?.addEventListener('click', handleLogout);
+
+    // DUAL-MODE SCANNER DRAWER / TABS HANDLERS
     const scannerDrawer = document.getElementById('scanner-drawer-container');
-    const qrInput = document.getElementById('qr-scan-input');
+    const tabBtnCamera = document.getElementById('tab-btn-camera');
+    const tabBtnRegId = document.getElementById('tab-btn-regid');
+    const viewCamera = document.getElementById('scanner-mode-camera-view');
+    const viewRegId = document.getElementById('scanner-mode-regid-view');
+    const regLookupInput = document.getElementById('reg-id-lookup-input');
 
-    if (openScannerBtn && scannerDrawer) {
-      openScannerBtn.addEventListener('click', () => {
-        soundFx.playClick();
-        scannerDrawer.classList.remove('hidden');
-        scannerDrawer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        if (qrInput) setTimeout(() => qrInput.focus(), 100);
-      });
-    }
+    const switchScannerTab = (mode) => {
+      this.scannerMode = mode;
+      if (mode === 'camera') {
+        tabBtnCamera.className = "py-3 px-3 text-xs font-mono font-extrabold uppercase tracking-wider text-center transition-all bg-accent text-ink border border-accent cursor-pointer";
+        tabBtnRegId.className = "py-3 px-3 text-xs font-mono font-bold uppercase tracking-wider text-center transition-all text-muted hover:text-ink cursor-pointer";
+        viewCamera?.classList.remove('hidden');
+        viewRegId?.classList.add('hidden');
+      } else {
+        tabBtnRegId.className = "py-3 px-3 text-xs font-mono font-extrabold uppercase tracking-wider text-center transition-all bg-accent text-ink border border-accent cursor-pointer";
+        tabBtnCamera.className = "py-3 px-3 text-xs font-mono font-bold uppercase tracking-wider text-center transition-all text-muted hover:text-ink cursor-pointer";
+        viewRegId?.classList.remove('hidden');
+        viewCamera?.classList.add('hidden');
+        setTimeout(() => regLookupInput?.focus(), 100);
+      }
+    };
 
-    if (closeScannerBtn && scannerDrawer) {
-      closeScannerBtn.addEventListener('click', async () => {
-        soundFx.playClick();
-        scannerDrawer.classList.add('hidden');
-        if (this.isScanning && this.html5QrCode) {
-          try {
-            await this.html5QrCode.stop();
-            this.html5QrCode.clear();
-          } catch (e) {}
-          this.isScanning = false;
+    tabBtnCamera?.addEventListener('click', () => switchScannerTab('camera'));
+    tabBtnRegId?.addEventListener('click', () => switchScannerTab('reg_id'));
+    document.getElementById('switch-to-regid-quick-btn')?.addEventListener('click', () => switchScannerTab('reg_id'));
+
+    // Open from Banner Button 1 (Camera Mode)
+    document.getElementById('open-scanner-camera-btn')?.addEventListener('click', () => {
+      soundFx.playClick();
+      scannerDrawer?.classList.remove('hidden');
+      switchScannerTab('camera');
+      scannerDrawer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // If camera not yet started, trigger start
+      if (!this.isScanning) {
+        document.getElementById('toggle-camera-btn')?.click();
+      }
+    });
+
+    // Open from Banner Button 2 (Reg ID Mode)
+    document.getElementById('open-scanner-regid-btn')?.addEventListener('click', () => {
+      soundFx.playClick();
+      scannerDrawer?.classList.remove('hidden');
+      switchScannerTab('reg_id');
+      scannerDrawer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    // Close Scanner Drawer
+    document.getElementById('close-scanner-box-btn')?.addEventListener('click', async () => {
+      soundFx.playClick();
+      scannerDrawer?.classList.add('hidden');
+      if (this.isScanning && this.html5QrCode) {
+        try {
+          await this.html5QrCode.stop();
+          this.html5QrCode.clear();
+        } catch (e) {}
+        this.isScanning = false;
+        const cameraBtn = document.getElementById('toggle-camera-btn');
+        if (cameraBtn) cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> START CAMERA';
+      }
+    });
+
+    // Populate Available Cameras in Dropdown
+    const populateCameras = async () => {
+      const select = document.getElementById('camera-select-dropdown');
+      if (!select) return;
+      try {
+        const devices = await Html5Qrcode.getCameras();
+        if (devices && devices.length) {
+          select.innerHTML = devices.map((d, i) => `
+            <option value="${d.id}">${d.label || `Camera ${i + 1}`}</option>
+          `).join('');
+        } else {
+          select.innerHTML = `<option value="environment">Back Camera (Default)</option><option value="user">Front Camera</option>`;
         }
-      });
-    }
+      } catch (e) {
+        select.innerHTML = `<option value="environment">Back Camera (Default)</option><option value="user">Front Camera</option>`;
+      }
+    };
+    populateCameras();
 
-    // CAMERA QR SCANNER TOGGLE
+    // LIVE CAMERA SCANNER START / STOP
     const cameraBtn = document.getElementById('toggle-camera-btn');
     const placeholder = document.getElementById('camera-placeholder');
+    const cameraSelect = document.getElementById('camera-select-dropdown');
+
     if (cameraBtn) {
       cameraBtn.addEventListener('click', async () => {
         if (this.isScanning && this.html5QrCode) {
@@ -503,70 +751,53 @@ export class AdminPage {
           } catch (e) {}
           this.isScanning = false;
           if (placeholder) placeholder.classList.remove('hidden');
-          cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> START LIVE CAMERA';
+          cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> START CAMERA';
           return;
         }
 
         try {
-          if (window.Html5Qrcode) {
-            this.html5QrCode = new window.Html5Qrcode("reader");
-            if (placeholder) placeholder.classList.add('hidden');
-            await this.html5QrCode.start(
-              { facingMode: "environment" },
-              { fps: 10, qrbox: { width: 220, height: 220 } },
-              (decodedText) => {
-                soundFx.playBeep();
-                this.processScanCode(decodedText);
-              },
-              () => {}
-            );
-            this.isScanning = true;
-            cameraBtn.innerHTML = 'STOP CAMERA';
-          } else {
-            toast.show('Camera scanner module loading...', 'info');
+          const ScannerClass = window.Html5Qrcode || Html5Qrcode;
+          if (!this.html5QrCode) {
+            this.html5QrCode = new ScannerClass("reader");
           }
+
+          if (placeholder) placeholder.classList.add('hidden');
+          cameraBtn.innerHTML = 'STOPPING...';
+
+          const selectedCameraId = cameraSelect?.value || { facingMode: "environment" };
+
+          await this.html5QrCode.start(
+            selectedCameraId,
+            { fps: 12, qrbox: { width: 240, height: 240 } },
+            (decodedText) => {
+              soundFx.playBeep();
+              this.processScanCode(decodedText);
+            },
+            () => {}
+          );
+
+          this.isScanning = true;
+          cameraBtn.innerHTML = '⏹ STOP CAMERA';
         } catch (err) {
           if (placeholder) placeholder.classList.remove('hidden');
-          toast.show('Camera access unavailable. Point scanner or scan ticket into field.', 'error');
+          cameraBtn.innerHTML = '<span class="inline-block w-2 h-2 rounded-full bg-success animate-pulse"></span> START CAMERA';
+          toast.show('Camera access unavailable. Use Option 2 (Reg ID Lookup) below.', 'error');
+          switchScannerTab('reg_id');
         }
       });
     }
 
-    const processScanCode = async (rawInput) => {
-      if (!rawInput) return;
-      let regId = rawInput.trim();
-      const match = rawInput.match(/GG26-[A-Z0-9]{4}/i);
-      if (match) regId = match[0];
-
-      const team = this.teams.find(t => t.reg_id.toUpperCase() === regId.toUpperCase());
-      if (team) {
-        this.renderScannerResult(team);
-      } else {
-        try {
-          const allRes = await api.getAdminTeams({ search: regId });
-          if (allRes.success && allRes.teams && allRes.teams.length) {
-            this.renderScannerResult(allRes.teams[0]);
-          } else {
-            toast.show(`Invalid QR Code scanned.`, 'error');
-          }
-        } catch (err) {
-          toast.show('Error verifying scanned QR ticket.', 'error');
-        }
-      }
-    };
-    this.processScanCode = processScanCode;
-
-    // QR SCANNER FORM EVENT
-    const qrForm = document.getElementById('qr-scanner-form');
-    if (qrForm && qrInput) {
-      qrForm.addEventListener('submit', async (e) => {
+    // REG ID DIRECT LOOKUP FORM SUBMIT
+    const directLookupForm = document.getElementById('direct-reg-lookup-form');
+    if (directLookupForm && regLookupInput) {
+      directLookupForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         soundFx.playClick();
-        await processScanCode(qrInput.value);
-        qrInput.value = '';
+        await this.processScanCode(regLookupInput.value);
       });
     }
 
+    // Search and Filters
     const searchInput = document.getElementById('admin-search-input');
     const themeFilter = document.getElementById('admin-theme-filter');
     const statusFilter = document.getElementById('admin-status-filter');
@@ -601,18 +832,134 @@ export class AdminPage {
       });
     }
 
+    // PAYMENT MODAL CLOSE
     const closeModal = document.getElementById('close-modal-btn');
     const modal = document.getElementById('payment-modal');
     if (closeModal && modal) {
       closeModal.addEventListener('click', () => modal.classList.add('hidden'));
     }
-
     if (modal) {
       modal.addEventListener('click', (e) => {
         if (e.target === modal) modal.classList.add('hidden');
       });
     }
 
+    // TEST EMAIL MODAL HANDLERS
+    const openTestEmail = () => {
+      soundFx.playClick();
+      document.getElementById('test-email-modal')?.classList.remove('hidden');
+      document.getElementById('test-email-status-box')?.classList.add('hidden');
+    };
+    document.getElementById('admin-test-email-btn')?.addEventListener('click', openTestEmail);
+    document.getElementById('mobile-test-email-btn')?.addEventListener('click', openTestEmail);
+
+    const closeTestEmailBtn = document.getElementById('close-test-email-btn');
+    const testEmailModal = document.getElementById('test-email-modal');
+    if (closeTestEmailBtn && testEmailModal) {
+      closeTestEmailBtn.addEventListener('click', () => testEmailModal.classList.add('hidden'));
+      testEmailModal.addEventListener('click', (e) => {
+        if (e.target === testEmailModal) testEmailModal.classList.add('hidden');
+      });
+    }
+
+    const testEmailForm = document.getElementById('test-email-form');
+    if (testEmailForm) {
+      testEmailForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        soundFx.playClick();
+        const input = document.getElementById('test-email-input');
+        const submitBtn = document.getElementById('send-test-email-submit-btn');
+        const statusBox = document.getElementById('test-email-status-box');
+        const targetEmail = input ? input.value.trim() : '';
+        if (!targetEmail) return;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `DISPATCHING VIA BREVO API...`;
+        if (statusBox) {
+          statusBox.className = 'p-3 text-xs font-mono border border-accent bg-canvas text-accent-dark';
+          statusBox.textContent = 'Connecting to Brevo REST API v3...';
+          statusBox.classList.remove('hidden');
+        }
+
+        try {
+          const res = await api.testEmail(targetEmail);
+          if (res.success) {
+            toast.show('Test email delivered!', 'success');
+            if (statusBox) {
+              statusBox.className = 'p-3 text-xs font-mono border border-success bg-paper text-success';
+              statusBox.textContent = `✔ SUCCESS: ${res.message || 'Diagnostic email delivered.'}`;
+            }
+          } else {
+            toast.show(res.message || 'Email delivery failed.', 'error');
+            if (statusBox) {
+              statusBox.className = 'p-3 text-xs font-mono border border-error bg-paper text-error';
+              statusBox.textContent = `✕ ERROR: ${res.message || 'Delivery failed.'}`;
+            }
+          }
+        } catch (err) {
+          toast.show('Network error testing email.', 'error');
+          if (statusBox) {
+            statusBox.className = 'p-3 text-xs font-mono border border-error bg-paper text-error';
+            statusBox.textContent = '✕ Network error dispatching test email.';
+          }
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `⚡ DISPATCH TEST EMAIL`;
+        }
+      });
+    }
+
+    // AUDIT LOGS MODAL HANDLERS
+    const logsModal = document.getElementById('admin-logs-modal');
+    const loadLogs = async () => {
+      const tbody = document.getElementById('admin-logs-tbody');
+      const countEl = document.getElementById('logs-count-text');
+      if (!tbody) return;
+      tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-muted">Loading audit records...</td></tr>`;
+      try {
+        const res = await api.getAdminLogs();
+        if (res.success && res.logs) {
+          if (countEl) countEl.textContent = `${res.logs.length} logs recorded`;
+          if (res.logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-muted">No administrative logs recorded yet.</td></tr>`;
+            return;
+          }
+          tbody.innerHTML = res.logs.map(log => {
+            const time = log.created_at ? new Date(log.created_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : 'N/A';
+            return `
+              <tr class="hover:bg-paper">
+                <td class="p-3 text-muted whitespace-nowrap text-[10px]">${time}</td>
+                <td class="p-3 font-bold text-ink">${log.admin_user || 'Admin'}</td>
+                <td class="p-3"><span class="px-2 py-0.5 border border-line bg-canvas font-bold text-[10px]">${log.action}</span></td>
+                <td class="p-3 text-accent-dark font-bold">${log.target_reg_id || '--'}</td>
+                <td class="p-3 text-muted text-[11px]">${log.details || '--'}</td>
+              </tr>
+            `;
+          }).join('');
+        } else {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-error">Failed to fetch logs.</td></tr>`;
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-error">Error loading logs.</td></tr>`;
+      }
+    };
+
+    const openLogsModal = async () => {
+      soundFx.playClick();
+      logsModal?.classList.remove('hidden');
+      await loadLogs();
+    };
+    document.getElementById('admin-logs-btn')?.addEventListener('click', openLogsModal);
+    document.getElementById('mobile-logs-btn')?.addEventListener('click', openLogsModal);
+    document.getElementById('close-logs-modal-btn')?.addEventListener('click', () => logsModal?.classList.add('hidden'));
+    document.getElementById('refresh-logs-btn')?.addEventListener('click', loadLogs);
+    if (logsModal) {
+      logsModal.addEventListener('click', (e) => {
+        if (e.target === logsModal) logsModal.classList.add('hidden');
+      });
+    }
+
+    // ANNOUNCEMENT BROADCAST FORM
     const annForm = document.getElementById('announcement-form');
     if (annForm) {
       annForm.addEventListener('submit', async (e) => {
@@ -635,6 +982,35 @@ export class AdminPage {
     }
   }
 
+  async processScanCode(rawInput) {
+    if (!rawInput) return;
+    let clean = rawInput.trim();
+    const match = clean.match(/GG26-[A-Z0-9]{4}/i);
+    const searchTarget = match ? match[0] : clean;
+
+    const team = this.teams.find(t => 
+      t.reg_id.toUpperCase() === searchTarget.toUpperCase() ||
+      (t.team_name || '').toLowerCase() === searchTarget.toLowerCase() ||
+      (t.leader_phone || '').includes(searchTarget)
+    );
+
+    if (team) {
+      this.renderScannerResult(team);
+    } else {
+      try {
+        toast.show('Looking up squad in database...', 'info');
+        const allRes = await api.getAdminTeams({ search: searchTarget });
+        if (allRes.success && allRes.teams && allRes.teams.length) {
+          this.renderScannerResult(allRes.teams[0]);
+        } else {
+          toast.show(`No registered team found matching "${searchTarget}".`, 'error');
+        }
+      } catch (err) {
+        toast.show('Error querying database.', 'error');
+      }
+    }
+  }
+
   renderScannerResult(team) {
     const box = document.getElementById('scanner-result-box');
     if (!box) return;
@@ -644,70 +1020,86 @@ export class AdminPage {
     const isAttended = Boolean(team.attended);
 
     const membersHtml = (team.members && team.members.length) ? team.members.map((m, i) => `
-      <div class="text-[11px] text-ink border-b border-line/40 py-1 flex justify-between">
-        <span><strong>0${i + 1}. ${m.name}</strong> (${m.role || 'Member'})</span>
-        <span class="text-muted">${m.phone || m.email}</span>
+      <div class="text-[11px] text-ink border-b border-line/40 py-1.5 flex justify-between items-center">
+        <span><strong>0${i + 1}. ${m.name}</strong> <span class="text-muted">(${m.role || 'Member'})</span></span>
+        <span class="text-accent-dark font-mono text-[10px]">${m.phone || m.email}</span>
       </div>
     `).join('') : `<div class="text-[11px] text-muted">01. ${team.leader_name} (${team.leader_phone})</div>`;
 
     box.innerHTML = `
-      <div class="flex flex-wrap items-center justify-between border-b border-line pb-3 gap-2">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-line pb-3 gap-2">
         <div>
           <div class="text-xs text-muted">REGISTRATION ID: <strong class="text-accent-dark font-mono text-base">${team.reg_id}</strong></div>
-          <h3 class="font-sans text-xl font-bold text-ink uppercase">${team.team_name}</h3>
+          <h3 class="font-sans text-xl sm:text-2xl font-bold text-ink uppercase">${team.team_name}</h3>
           <div class="text-xs text-muted">${team.college} // Track: ${team.theme_id}</div>
         </div>
 
-        <div class="text-right font-mono">
-          <div class="px-3 py-1 border ${isPaid ? 'border-success text-success bg-paper' : 'border-accent text-accent-dark bg-paper'} text-xs font-bold uppercase mb-1">
-            ${isPaid ? 'PAYMENT VERIFIED' : 'PAYMENT PENDING'}
+        <div class="sm:text-right font-mono space-y-1">
+          <div class="inline-block px-3 py-1 border ${isPaid ? 'border-success text-success bg-paper font-bold' : 'border-accent text-accent-dark bg-paper font-bold'} text-xs uppercase">
+            ${isPaid ? '✔ PAYMENT VERIFIED (FCFS CONFIRMED)' : '⏳ PAYMENT PENDING'}
           </div>
           <div class="text-[11px] ${isAttended ? 'text-success font-bold' : 'text-error font-bold'}">
-            ${isAttended ? `ATTENDANCE RECORDED (${team.attended_at ? team.attended_at.split('T')[0] : 'Today'})` : 'NOT CHECKED IN'}
+            ${isAttended ? `✔ ATTENDANCE RECORDED (${team.attended_at ? new Date(team.attended_at).toLocaleTimeString('en-IN') : 'Logged'})` : '❌ NOT CHECKED IN'}
           </div>
         </div>
       </div>
 
       <div class="space-y-2 font-mono text-xs">
-        <div class="text-xs text-accent-dark font-bold uppercase">// SQUAD ROSTER DETAILS:</div>
+        <div class="text-xs text-accent-dark font-bold uppercase">// SQUAD ROSTER (${team.member_count || 1} Members):</div>
         <div class="bg-paper p-3 border border-line space-y-1">
           ${membersHtml}
         </div>
       </div>
 
-      <div class="pt-2 flex gap-3">
+      <div class="pt-2 flex flex-col sm:flex-row gap-2">
         ${!isAttended ? `
-          <button id="scanner-mark-attendance-btn" class="btn-primary w-full py-3 text-xs font-bold tracking-wider uppercase">
-            MARK ATTENDANCE & GRANT VENUE ENTRY
+          <button id="scanner-mark-attendance-btn" class="btn-primary w-full py-4 text-xs font-bold tracking-wider uppercase cursor-pointer shadow-md bg-success hover:bg-success/90 text-canvas border border-success">
+            ✔ MARK ATTENDANCE &amp; GRANT VENUE ENTRY
           </button>
         ` : `
-          <div class="p-3 bg-paper border border-success text-success text-xs text-center font-bold w-full">
-            ENTRY ALREADY GRANTED // ATTENDANCE LOGGED
+          <div class="p-3 bg-paper border-2 border-success text-success text-xs text-center font-bold w-full">
+            ✔ ENTRY ALREADY GRANTED // ATTENDANCE LOGGED
           </div>
         `}
+        <button id="scanner-resend-pass-btn" class="btn-secondary py-3 px-4 text-xs font-bold uppercase font-mono border border-line hover:border-accent text-ink hover:text-accent-dark transition-all cursor-pointer whitespace-nowrap">
+          ✉ RESEND INVOICE / PASS
+        </button>
       </div>
     `;
 
     box.classList.remove('hidden');
+    box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-    const markBtn = document.getElementById('scanner-mark-attendance-btn');
-    if (markBtn) {
-      markBtn.addEventListener('click', async () => {
-        try {
-          const res = await api.markAttendance(team.reg_id);
-          if (res.success) {
-            soundFx.playBeep();
-            toast.show(`ENTRY GRANTED! Attendance logged for ${team.team_name}`, 'success');
-            await this.fetchDashboardData();
-            this.renderScannerResult({ ...team, attended: true, attended_at: new Date().toISOString() });
-          } else {
-            toast.show(res.message || 'Failed to mark attendance.', 'error');
-          }
-        } catch (err) {
-          toast.show('Network error marking attendance.', 'error');
+    document.getElementById('scanner-mark-attendance-btn')?.addEventListener('click', async () => {
+      try {
+        const res = await api.markAttendance(team.reg_id);
+        if (res.success) {
+          soundFx.playBeep();
+          toast.show(`✔ ENTRY GRANTED! Attendance logged for ${team.team_name}`, 'success');
+          await this.fetchDashboardData();
+          this.renderScannerResult({ ...team, attended: true, attended_at: new Date().toISOString() });
+        } else {
+          toast.show(res.message || 'Failed to mark attendance.', 'error');
         }
-      });
-    }
+      } catch (err) {
+        toast.show('Network error marking attendance.', 'error');
+      }
+    });
+
+    document.getElementById('scanner-resend-pass-btn')?.addEventListener('click', async () => {
+      soundFx.playClick();
+      toast.show(`Sending Attendance Pass email to Team ${team.team_name}...`, 'info');
+      try {
+        const res = await api.resendInvoiceEmail(team.reg_id);
+        if (res.success) {
+          toast.show('Attendance Pass email sent successfully!', 'success');
+        } else {
+          toast.show(res.message || 'Failed to send pass email.', 'error');
+        }
+      } catch (err) {
+        toast.show('Network error sending pass email.', 'error');
+      }
+    });
   }
 
   async fetchDashboardData(silent = false) {
@@ -741,7 +1133,7 @@ export class AdminPage {
         const shortlistEl = document.getElementById('stat-confirmed') || document.getElementById('stat-shortlist');
         const attendedEl = document.getElementById('stat-attended');
 
-        const confirmedCount = statsRes.stats.confirmedSlots ?? statsRes.stats.approvedPayments ?? statsRes.stats.shortlisted ?? 0;
+        const confirmedCount = statsRes.stats.confirmedSlots ?? statsRes.stats.approvedPayments ?? 0;
 
         if (totalEl) totalEl.textContent = statsRes.stats.totalRegistrations;
         if (pendingEl) pendingEl.textContent = statsRes.stats.pendingPayments;
@@ -754,107 +1146,203 @@ export class AdminPage {
       if (teamsRes.success) {
         this.teams = teamsRes.teams || [];
         this.renderTeamsTable(this.teams);
+        this.renderQuickTeamChips(this.teams);
       }
     } catch (err) {
       if (!silent) toast.show('Error loading dashboard statistics.', 'error');
     }
   }
 
-  async fetchTeamsData(filters = {}) {
-    const tbody = document.getElementById('admin-teams-tbody');
-    if (!tbody) return;
+  renderQuickTeamChips(teams = []) {
+    const container = document.getElementById('quick-teams-chips');
+    if (!container) return;
 
-    try {
-      const res = await api.getAdminTeams(filters);
-      if (res.success) {
-        this.teams = res.teams || [];
-        this.renderTeamsTable(this.teams);
-      }
-    } catch (err) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-error">Failed to load teams list.</td></tr>`;
+    if (!teams || teams.length === 0) {
+      container.innerHTML = `<span class="text-[11px] text-muted font-mono">No teams registered yet.</span>`;
+      return;
     }
+
+    container.innerHTML = teams.slice(0, 8).map(t => `
+      <button type="button" data-quick-reg="${t.reg_id}" class="px-2.5 py-1 text-[11px] font-mono border border-line hover:border-accent bg-paper hover:bg-accent/15 text-ink hover:text-accent-dark font-bold rounded-xs transition-all cursor-pointer truncate max-w-xs">
+        ⚡ ${t.team_name} (${t.reg_id})
+      </button>
+    `).join('');
+
+    container.querySelectorAll('button[data-quick-reg]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        soundFx.playClick();
+        const regId = btn.getAttribute('data-quick-reg');
+        const team = this.teams.find(t => t.reg_id === regId);
+        if (team) {
+          const input = document.getElementById('reg-id-lookup-input');
+          if (input) input.value = team.reg_id;
+          this.renderScannerResult(team);
+        }
+      });
+    });
   }
 
   renderTeamsTable(teams) {
     const tbody = document.getElementById('admin-teams-tbody');
-    if (!tbody) return;
+    const mobileContainer = document.getElementById('admin-teams-mobile-container');
 
-    if (teams.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-muted">No teams found matching current query.</td></tr>`;
+    if (!teams || teams.length === 0) {
+      if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="p-8 text-center text-muted">No teams found matching current query.</td></tr>`;
+      if (mobileContainer) mobileContainer.innerHTML = `<div class="tech-card p-6 border-line bg-paper text-center text-xs text-muted">No teams found matching current query.</div>`;
       return;
     }
 
-    tbody.innerHTML = teams.map(team => {
-      const pay = team.payment;
+    // 1. RENDER DESKTOP TABLE
+    if (tbody) {
+      tbody.innerHTML = teams.map(team => {
+        const pay = team.payment;
+        const payBadge = pay ? (
+          pay.status === 'APPROVED' ? '<span class="text-success font-bold">APPROVED</span>' :
+          pay.status === 'REJECTED' ? '<span class="text-error font-bold">REJECTED</span>' :
+          '<span class="text-accent-dark font-bold">PENDING VERIFICATION</span>'
+        ) : '<span class="text-muted">NO PROOF</span>';
 
-      const payBadge = pay ? (
-        pay.status === 'APPROVED' ? '<span class="text-success font-bold">APPROVED</span>' :
-        pay.status === 'REJECTED' ? '<span class="text-error font-bold">REJECTED</span>' :
-        '<span class="text-accent-dark font-bold">PENDING VERIFICATION</span>'
-      ) : '<span class="text-muted">NO PROOF</span>';
+        const attendanceBadge = team.attended ? '<span class="text-success font-bold text-[10px] ml-1">[ATTENDED]</span>' : '';
 
-      const attendanceBadge = team.attended ? '<span class="text-success font-bold text-[10px]">ATTENDED</span>' : '';
+        return `
+          <tr class="hover:bg-canvas transition-colors">
+            <td class="p-4">
+              <div class="font-bold text-ink font-sans text-sm">${team.team_name} ${attendanceBadge}</div>
+              <div class="text-accent-dark text-[11px] font-mono">${team.reg_id} // Leader: ${team.leader_name}</div>
+              <div class="text-muted text-[10px] font-sans">${team.college} (${team.member_count || 1} Members)</div>
+            </td>
 
-      return `
-        <tr class="hover:bg-canvas transition-colors">
-          <td class="p-4">
-            <div class="font-bold text-ink font-sans">${team.team_name} ${attendanceBadge}</div>
-            <div class="text-accent-dark text-[11px] font-mono">${team.reg_id} // Leader: ${team.leader_name}</div>
-            <div class="text-muted text-[10px] font-sans">${team.college} (${team.member_count} Members)</div>
-          </td>
+            <td class="p-4 text-ink font-mono">${team.theme_id || 'TBD'}</td>
 
-          <td class="p-4 text-ink font-mono">
-            ${team.theme_id}
-          </td>
+            <td class="p-4 font-mono">
+              <div>${payBadge}</div>
+              ${pay ? `<div class="text-[10px] text-muted">UTR: <span class="text-ink font-bold select-all">${pay.utr_number}</span></div>` : ''}
+              ${pay && pay.payer_name ? `<div class="text-[10px] text-muted">Payer: ${pay.payer_name}</div>` : ''}
+            </td>
 
-          <td class="p-4 font-mono">
-            <div>${payBadge}</div>
-            ${pay ? `<div class="text-[10px] text-muted">UTR: <span class="text-ink font-bold select-all">${pay.utr_number}</span></div>` : ''}
-            ${pay && pay.payer_name ? `<div class="text-[10px] text-muted">Payer: ${pay.payer_name}</div>` : ''}
-          </td>
+            <td class="p-4 font-mono text-[11px]">
+              ${pay ? `
+                <div class="space-y-1">
+                  <button type="button" data-action="view-proof" data-reg="${team.reg_id}" class="px-2.5 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer uppercase flex items-center gap-1 transition-all">
+                    <span>VIEW PROOF</span>
+                    <span class="text-xs">↗</span>
+                  </button>
+                  <div class="text-[10px] text-muted">₹${pay.amount || (team.member_count * 250)} • ${pay.payment_date || 'Today'}</div>
+                </div>
+              ` : '<span class="text-muted">NO PROOF</span>'}
+            </td>
 
-          <td class="p-4 font-mono text-[11px]">
-            ${pay ? `
-              <div class="space-y-1">
-                <button type="button" data-action="view-proof" data-reg="${team.reg_id}" class="px-2.5 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] font-bold cursor-pointer uppercase flex items-center gap-1 transition-all">
-                  <span>VIEW PROOF</span>
-                  <span class="text-xs">↗</span>
+            <td class="p-4 font-mono text-[11px]">
+              <span class="px-2 py-1 border ${
+                team.status === 'PAYMENT_APPROVED' ? 'border-success text-success font-bold' :
+                team.status === 'PAYMENT_PENDING' ? 'border-accent text-accent-dark font-bold' :
+                team.status === 'REJECTED' ? 'border-error text-error font-bold' : 'border-line text-ink'
+              }">
+                ${team.status === 'PAYMENT_APPROVED' ? 'SLOT CONFIRMED' : team.status}
+              </span>
+            </td>
+
+            <td class="p-4 text-right space-x-1.5 font-mono whitespace-nowrap">
+              ${pay ? `
+                <button data-action="verify-pay" data-reg="${team.reg_id}" class="px-2 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer font-bold transition-all">
+                  ${pay.status === 'APPROVED' ? 'PROOF' : 'VERIFY'}
                 </button>
-                <div class="text-[10px] text-muted">₹${pay.amount || (team.member_count * 250)} • ${pay.payment_date || 'Today'}</div>
-              </div>
-            ` : '<span class="text-muted">NO PROOF</span>'}
-          </td>
+              ` : ''}
 
-          <td class="p-4 font-mono text-[11px]">
-            <span class="px-2 py-1 border ${
-              team.status === 'PAYMENT_APPROVED' ? 'border-success text-success font-bold' :
-              team.status === 'PAYMENT_PENDING' ? 'border-accent text-accent-dark font-bold' :
-              team.status === 'REJECTED' ? 'border-error text-error font-bold' : 'border-line text-ink'
-            }">
-              ${team.status === 'PAYMENT_APPROVED' ? 'SLOT CONFIRMED' : team.status}
-            </span>
-          </td>
-
-          <td class="p-4 text-right space-x-2 font-mono">
-            ${pay ? `
-              <button data-action="verify-pay" data-reg="${team.reg_id}" class="px-2.5 py-1 border border-accent text-accent-dark hover:bg-accent hover:text-ink text-[10px] cursor-pointer font-bold transition-all">
-                ${pay.status === 'APPROVED' ? 'PAYMENT PROOF' : 'VERIFY PAYMENT'}
+              <button data-action="toggle-slot" data-reg="${team.reg_id}" data-current="${team.status}" class="px-2 py-1 border ${team.status === 'PAYMENT_APPROVED' ? 'border-line text-muted' : 'border-accent text-accent-dark font-bold'} hover:bg-paper text-[10px] cursor-pointer transition-all">
+                ${team.status === 'PAYMENT_APPROVED' ? 'REVOKE' : 'CONFIRM'}
               </button>
+
+              <button data-action="quick-scan" data-reg="${team.reg_id}" class="px-2 py-1 border border-success text-success hover:bg-success hover:text-canvas text-[10px] cursor-pointer transition-all">
+                ENTRY
+              </button>
+
+              <button data-action="resend-invoice" data-reg="${team.reg_id}" title="Resend Payment Invoice &amp; Attendance QR Email" class="px-2 py-1 border border-line text-ink hover:border-accent hover:text-accent-dark text-[10px] cursor-pointer transition-all">
+                ✉ INVOICE
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // 2. RENDER MOBILE CARDS (Touch-friendly native layout for phones)
+    if (mobileContainer) {
+      mobileContainer.innerHTML = teams.map(team => {
+        const pay = team.payment;
+        const isPaid = pay && pay.status === 'APPROVED';
+        const isAttended = Boolean(team.attended);
+
+        return `
+          <div class="tech-card p-4 border border-line bg-paper space-y-3 shadow-xs">
+            <div class="flex items-start justify-between gap-2 border-b border-line/50 pb-2">
+              <div>
+                <div class="text-[11px] text-accent-dark font-bold font-mono tracking-wider">${team.reg_id}</div>
+                <h3 class="font-sans text-base font-extrabold text-ink uppercase tracking-tight">${team.team_name}</h3>
+                <div class="text-[10px] text-muted font-sans">${team.college} • ${team.member_count || 1} Members</div>
+              </div>
+
+              <div>
+                <span class="px-2 py-0.5 border text-[10px] font-mono font-bold uppercase ${
+                  isAttended ? 'border-success text-success bg-canvas' : 'border-line text-muted'
+                }">
+                  ${isAttended ? '✔ ATTENDED' : 'NOT CHECKED IN'}
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px] font-mono bg-canvas p-2.5 border border-line">
+              <div>
+                <div class="text-[9px] text-muted uppercase font-bold">SLOT STATUS:</div>
+                <span class="font-bold ${team.status === 'PAYMENT_APPROVED' ? 'text-success' : 'text-accent-dark'}">
+                  ${team.status === 'PAYMENT_APPROVED' ? 'SLOT CONFIRMED' : team.status}
+                </span>
+              </div>
+              <div>
+                <div class="text-[9px] text-muted uppercase font-bold">PAYMENT:</div>
+                <span class="font-bold ${isPaid ? 'text-success' : pay ? 'text-accent-dark' : 'text-muted'}">
+                  ${pay ? (pay.status === 'APPROVED' ? `✔ PAID (₹${pay.amount})` : `⏳ PENDING`) : 'NO PROOF'}
+                </span>
+              </div>
+            </div>
+
+            ${pay ? `
+              <div class="text-[10px] text-muted font-mono truncate">
+                UTR: <span class="text-ink font-bold select-all">${pay.utr_number}</span> (${pay.payer_name || 'Payer'})
+              </div>
             ` : ''}
 
-            <button data-action="toggle-slot" data-reg="${team.reg_id}" data-current="${team.status}" class="px-2 py-1 border ${team.status === 'PAYMENT_APPROVED' ? 'border-line text-muted' : 'border-accent text-accent-dark font-bold'} hover:bg-paper text-[10px] cursor-pointer transition-all">
-              ${team.status === 'PAYMENT_APPROVED' ? 'REVOKE SLOT' : 'CONFIRM SLOT'}
-            </button>
+            <!-- Mobile Action Buttons Grid (4 touch-friendly buttons) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[11px]">
+              ${pay ? `
+                <button data-action="verify-pay" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-accent text-accent-dark font-bold text-center cursor-pointer hover:bg-accent hover:text-ink">
+                  ${pay.status === 'APPROVED' ? 'PROOF ↗' : 'VERIFY PAY'}
+                </button>
+              ` : `
+                <button disabled class="py-2.5 px-2 border border-line text-muted font-bold text-center opacity-50">
+                  NO PROOF
+                </button>
+              `}
 
-            <button data-action="quick-scan" data-reg="${team.reg_id}" class="px-2 py-1 border border-success text-success hover:bg-success hover:text-canvas text-[10px] cursor-pointer transition-all">
-              SCAN / ENTRY
-            </button>
-          </td>
-        </tr>
-      `;
-    }).join('');
+              <button data-action="toggle-slot" data-reg="${team.reg_id}" data-current="${team.status}" class="py-2.5 px-2 border ${team.status === 'PAYMENT_APPROVED' ? 'border-line text-muted' : 'border-accent text-accent-dark font-bold'} text-center cursor-pointer">
+                ${team.status === 'PAYMENT_APPROVED' ? 'REVOKE' : 'CONFIRM'}
+              </button>
 
-    tbody.querySelectorAll('button[data-action="view-proof"], button[data-action="verify-pay"]').forEach(btn => {
+              <button data-action="quick-scan" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-success text-success font-bold text-center cursor-pointer hover:bg-success hover:text-canvas">
+                🎫 CHECK IN
+              </button>
+
+              <button data-action="resend-invoice" data-reg="${team.reg_id}" class="py-2.5 px-2 border border-line text-ink hover:text-accent-dark font-bold text-center cursor-pointer">
+                ✉ INVOICE
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ATTACH ACTION LISTENERS (Covers both Desktop Table AND Mobile Cards)
+    document.querySelectorAll('button[data-action="view-proof"], button[data-action="verify-pay"]').forEach(btn => {
       btn.addEventListener('click', () => {
         soundFx.playClick();
         const regId = btn.getAttribute('data-reg');
@@ -865,7 +1353,7 @@ export class AdminPage {
       });
     });
 
-    tbody.querySelectorAll('button[data-action="quick-scan"]').forEach(btn => {
+    document.querySelectorAll('button[data-action="quick-scan"]').forEach(btn => {
       btn.addEventListener('click', () => {
         soundFx.playClick();
         const regId = btn.getAttribute('data-reg');
@@ -874,12 +1362,11 @@ export class AdminPage {
           const drawer = document.getElementById('scanner-drawer-container');
           if (drawer) drawer.classList.remove('hidden');
           this.renderScannerResult(team);
-          window.scrollTo({ top: 300, behavior: 'smooth' });
         }
       });
     });
 
-    tbody.querySelectorAll('button[data-action="toggle-slot"], button[data-action="toggle-shortlist"]').forEach(btn => {
+    document.querySelectorAll('button[data-action="toggle-slot"]').forEach(btn => {
       btn.addEventListener('click', async () => {
         soundFx.playClick();
         const regId = btn.getAttribute('data-reg');
@@ -889,11 +1376,32 @@ export class AdminPage {
         try {
           const res = await api.updateTeamStatus(regId, nextStatus);
           if (res.success) {
-            toast.show(`Team slot status updated to ${nextStatus === 'PAYMENT_APPROVED' ? 'SLOT CONFIRMED' : 'REGISTERED'}`, 'success');
+            toast.show(`Slot status updated to ${nextStatus === 'PAYMENT_APPROVED' ? 'SLOT CONFIRMED' : 'REGISTERED'}`, 'success');
             await this.fetchDashboardData();
           }
         } catch (err) {
           toast.show('Failed to update status.', 'error');
+        }
+      });
+    });
+
+    document.querySelectorAll('button[data-action="resend-invoice"]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        soundFx.playClick();
+        const regId = btn.getAttribute('data-reg');
+        const team = this.teams.find(t => t.reg_id === regId);
+        if (!team) return;
+
+        toast.show(`Dispatching invoice & QR pass to Team ${team.team_name}...`, 'info');
+        try {
+          const res = await api.resendInvoiceEmail(regId);
+          if (res.success) {
+            toast.show(res.message || 'Invoice & QR pass email dispatched!', 'success');
+          } else {
+            toast.show(res.message || 'Failed to dispatch invoice email.', 'error');
+          }
+        } catch (err) {
+          toast.show('Network error dispatching invoice email.', 'error');
         }
       });
     });
@@ -941,9 +1449,7 @@ export class AdminPage {
     if (imgEl) imgEl.src = screenshotUrl;
 
     const viewOriginalBtn = document.getElementById('modal-view-original-btn');
-    if (viewOriginalBtn) {
-      viewOriginalBtn.href = screenshotUrl;
-    }
+    if (viewOriginalBtn) viewOriginalBtn.href = screenshotUrl;
 
     const downloadProofBtn = document.getElementById('modal-download-proof-btn');
     if (downloadProofBtn) {
@@ -963,7 +1469,7 @@ export class AdminPage {
         try {
           const res = await api.approvePayment(team.reg_id, team.payment.id);
           if (res.success) {
-            toast.show('Payment approved! Official attendance pass & tax invoice dispatched.', 'success');
+            toast.show('Payment approved! Official attendance pass & invoice dispatched.', 'success');
             modal.classList.add('hidden');
             await this.fetchDashboardData();
           } else {
@@ -993,6 +1499,42 @@ export class AdminPage {
           }
         } catch (err) {
           toast.show('Error rejecting payment.', 'error');
+        }
+      };
+    }
+
+    const resendInvoiceBtn = document.getElementById('modal-resend-invoice-btn');
+    if (resendInvoiceBtn) {
+      resendInvoiceBtn.onclick = async () => {
+        soundFx.playClick();
+        toast.show(`Dispatching payment invoice & QR pass email to Team ${team.team_name}...`, 'info');
+        try {
+          const res = await api.resendInvoiceEmail(team.reg_id);
+          if (res.success) {
+            toast.show(res.message || 'Invoice & QR pass email dispatched!', 'success');
+          } else {
+            toast.show(res.message || 'Failed to dispatch invoice email.', 'error');
+          }
+        } catch (err) {
+          toast.show('Network error dispatching invoice email.', 'error');
+        }
+      };
+    }
+
+    const resendRegBtn = document.getElementById('modal-resend-reg-btn');
+    if (resendRegBtn) {
+      resendRegBtn.onclick = async () => {
+        soundFx.playClick();
+        toast.show(`Dispatching registration confirmation email to Team ${team.team_name}...`, 'info');
+        try {
+          const res = await api.resendRegistrationEmail(team.reg_id);
+          if (res.success) {
+            toast.show(res.message || 'Registration confirmation email dispatched!', 'success');
+          } else {
+            toast.show(res.message || 'Failed to dispatch registration email.', 'error');
+          }
+        } catch (err) {
+          toast.show('Network error dispatching registration email.', 'error');
         }
       };
     }

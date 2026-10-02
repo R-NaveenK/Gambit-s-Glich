@@ -3,8 +3,8 @@ import jwt from 'jsonwebtoken';
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || 'gambits_glitch_super_secret_jwt_key_2026_x89!';
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@gambitsglitch.tech';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin#glitch2026';
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || 'gambitsglitch@gmail.com').trim();
+const ADMIN_PASSWORD = (process.env.ADMIN_PASSWORD || 'admin#glitch2026').replace(/^["']|["']$/g, '').trim();
 
 router.post('/login', (req, res) => {
   const { email, password } = req.body;

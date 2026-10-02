@@ -142,7 +142,11 @@ router.post('/payment/approve', async (req, res) => {
     if (targetTeam) {
       await dbAdapter.updateTeamStatus(targetTeam.id, 'PAYMENT_APPROVED');
       const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
-      sendPaymentInvoiceEmail(fullTeam, updatedPayment, fullTeam.ppt, fullTeam.members || []).catch(err => console.error('Approved payment invoice dispatch error:', err));
+      try {
+        await sendPaymentInvoiceEmail(fullTeam, updatedPayment, fullTeam.ppt, fullTeam.members || []);
+      } catch (emailErr) {
+        console.error('Approved payment invoice dispatch error:', emailErr);
+      }
     }
 
     return res.json({ success: true, message: 'Payment approved successfully! Official payment invoice with squad member list dispatched to team.', payment: updatedPayment });
@@ -233,7 +237,11 @@ router.post('/team/update-status', async (req, res) => {
     if (new_status === 'PAYMENT_APPROVED' && targetTeam) {
       const fullTeam = await dbAdapter.getTeamByRegId(targetTeam.reg_id);
       if (fullTeam && fullTeam.payment) {
-        sendPaymentInvoiceEmail(fullTeam, fullTeam.payment, fullTeam.ppt, fullTeam.members || []).catch(err => console.error('Approved payment invoice dispatch error:', err));
+        try {
+          await sendPaymentInvoiceEmail(fullTeam, fullTeam.payment, fullTeam.ppt, fullTeam.members || []);
+        } catch (emailErr) {
+          console.error('Approved payment invoice dispatch error:', emailErr);
+        }
       }
     }
 
