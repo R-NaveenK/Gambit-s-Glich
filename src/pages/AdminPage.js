@@ -453,7 +453,7 @@ export class AdminPage {
           </div>
 
           <!-- SQUAD DETAILS & MEMBER ROSTER MODAL -->
-          <div id="squad-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+          <div id="squad-modal" class="hidden fixed inset-0 z-50 bg-canvas/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
             <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-2xl w-full space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl">
               <div class="flex items-center justify-between border-b border-line pb-3">
                 <div>
@@ -510,7 +510,7 @@ export class AdminPage {
           </div>
 
           <!-- PAYMENT PROOF AUDIT MODAL -->
-          <div id="payment-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+          <div id="payment-modal" class="hidden fixed inset-0 z-50 bg-canvas/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
             <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-3xl w-full space-y-4 max-h-[92vh] overflow-y-auto shadow-2xl">
               <div class="flex items-center justify-between border-b border-line pb-3">
                 <div>
@@ -581,7 +581,7 @@ export class AdminPage {
           </div>
 
           <!-- DIAGNOSTIC TEST EMAIL MODAL -->
-          <div id="test-email-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+          <div id="test-email-modal" class="hidden fixed inset-0 z-50 bg-canvas/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
             <div class="tech-card p-5 sm:p-8 border-2 border-accent bg-paper max-w-md w-full space-y-4 shadow-2xl">
               <div class="flex items-center justify-between border-b border-line pb-3">
                 <div>
@@ -607,7 +607,7 @@ export class AdminPage {
           </div>
 
           <!-- AUDIT LOGS MODAL -->
-          <div id="admin-logs-modal" class="hidden fixed inset-0 z-50 bg-canvas/95 flex items-center justify-center p-3 sm:p-4">
+          <div id="admin-logs-modal" class="hidden fixed inset-0 z-50 bg-canvas/90 backdrop-blur-md flex items-center justify-center p-3 sm:p-4">
             <div class="tech-card p-4 sm:p-8 border-2 border-accent bg-paper max-w-4xl w-full space-y-4 max-h-[90vh] flex flex-col shadow-2xl">
               <div class="flex items-center justify-between border-b border-line pb-3">
                 <div>

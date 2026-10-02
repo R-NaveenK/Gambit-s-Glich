@@ -304,6 +304,25 @@ input:not([type='checkbox']):not([type='radio']), select, textarea {
   will-change: opacity, transform;
 }
 
+/* QR SCANNER VIEWPORT CLEANUP */
+#reader {
+  border: none !important;
+}
+#reader video {
+  width: 100% !important;
+  max-height: 280px !important;
+  object-fit: cover !important;
+  border-radius: 0px !important;
+}
+#reader__scan_region {
+  background: transparent !important;
+}
+#reader__dashboard_section_csr,
+#reader__status_span,
+#reader img[alt="Info icon"] {
+  display: none !important;
+}
+
 @tailwind utilities;
 
 @media (prefers-reduced-motion: reduce) {
