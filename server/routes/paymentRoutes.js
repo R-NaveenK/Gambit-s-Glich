@@ -69,8 +69,7 @@ router.get('/lookup/:regId', async (req, res) => {
     }
 
     const MAX_CONFIRMED_TEAMS = 40;
-    const allTeams = await dbAdapter.getAllTeams();
-    const confirmedCount = allTeams.filter(t => t.payment && t.payment.status === 'APPROVED').length;
+    const confirmedCount = await dbAdapter.getConfirmedPaymentCount();
     const isPaid = Boolean(team.payment && team.payment.status === 'APPROVED');
     const isCapacityFull = confirmedCount >= MAX_CONFIRMED_TEAMS && !isPaid;
     const isEligible = team.status !== 'REJECTED' && !isCapacityFull;
@@ -144,8 +143,7 @@ router.post('/submit', upload.single('screenshot'), async (req, res) => {
 
     // Enforce 40 confirmed teams capacity limit
     const MAX_CONFIRMED_TEAMS = 40;
-    const allTeams = await dbAdapter.getAllTeams();
-    const confirmedCount = allTeams.filter(t => t.payment && t.payment.status === 'APPROVED').length;
+    const confirmedCount = await dbAdapter.getConfirmedPaymentCount();
     const isAlreadyPaid = team.payment && team.payment.status === 'APPROVED';
     if (confirmedCount >= MAX_CONFIRMED_TEAMS && !isAlreadyPaid) {
       return res.status(403).json({

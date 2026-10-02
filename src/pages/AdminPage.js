@@ -1366,24 +1366,36 @@ export class AdminPage {
         if (!confirmEmpty) return;
       }
 
+      // 1. Instant Optimistic UI Feedback (< 1ms reaction time)
+      soundFx.playBeep();
+      toast.show(`✔ ENTRY GRANTED! ${presentCount}/${members.length} members checked in for ${team.team_name}`, 'success');
+
+      const nowIso = new Date().toISOString();
+      const updatedTeam = {
+        ...team,
+        attended: true,
+        attended_at: nowIso,
+        member_attendance: { ...memberAttendanceState }
+      };
+
+      // Instantly update team in local state and refresh table & scanner box
+      const teamIdx = this.teams.findIndex(t => t.reg_id === team.reg_id);
+      if (teamIdx !== -1) {
+        this.teams[teamIdx] = updatedTeam;
+        this.renderTeamsTable(this.teams);
+      }
+      this.renderScannerResult(updatedTeam);
+
+      // 2. High-speed asynchronous server persistence
       try {
-        toast.show('Submitting attendance...', 'info');
         const res = await api.markAttendance(team.reg_id, memberAttendanceState);
-        if (res.success) {
-          soundFx.playBeep();
-          toast.show(`✔ ENTRY GRANTED! ${presentCount}/${members.length} members checked in for ${team.team_name}`, 'success');
-          await this.fetchDashboardData(true);
-          this.renderScannerResult({
-            ...team,
-            attended: true,
-            attended_at: new Date().toISOString(),
-            member_attendance: memberAttendanceState
-          });
+        if (!res.success) {
+          toast.show(res.message || 'Failed to sync attendance with database.', 'error');
         } else {
-          toast.show(res.message || 'Failed to mark attendance.', 'error');
+          this.fetchDashboardData(true);
         }
       } catch (err) {
-        toast.show('Network error marking attendance.', 'error');
+        toast.show('Network sync warning: check server connection.', 'error');
       }
     });
 

@@ -11,8 +11,7 @@ router.use(authenticateAdmin);
 // 1. Dashboard Overview Stats & Summary
 router.get('/dashboard', async (req, res) => {
   try {
-    const teams = await dbAdapter.getAllTeams();
-    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
+    const fullTeams = await dbAdapter.getAllTeamsFull();
 
     let totalRegistrations = fullTeams.length;
     let pendingPayments = 0;
@@ -80,9 +79,7 @@ router.get('/dashboard', async (req, res) => {
 router.get('/teams', async (req, res) => {
   try {
     const { search, theme, status, college, attendance } = req.query;
-    const teams = await dbAdapter.getAllTeams();
-
-    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
+    const fullTeams = await dbAdapter.getAllTeamsFull();
 
     let filtered = fullTeams.filter(Boolean);
 
@@ -299,12 +296,12 @@ router.post('/team/mark-attendance', async (req, res) => {
       ? Object.values(member_attendance).filter(Boolean).length
       : totalCount;
 
-    await dbAdapter.logAdminAction(
+    dbAdapter.logAdminAction(
       req.user ? req.user.email : 'Admin', 
       'ATTENDANCE_MARKED', 
       team.reg_id, 
       `Attendance entry granted for team ${team.team_name} (${presentCount}/${totalCount} members verified present)`
-    );
+    ).catch(e => console.warn('Non-fatal audit log note:', e.message));
 
     return res.json({
       success: true,
@@ -347,8 +344,7 @@ router.get('/logs', async (req, res) => {
 // 8. Export CSV
 router.get('/export-csv', async (req, res) => {
   try {
-    const teams = await dbAdapter.getAllTeams();
-    const fullTeams = await Promise.all(teams.map(t => dbAdapter.getTeamByRegId(t.reg_id)));
+    const fullTeams = await dbAdapter.getAllTeamsFull();
 
     const headers = [
       'Registration ID', 'Team Name', 'Theme', 'Leader Name', 'Leader Email', 'Leader Phone',

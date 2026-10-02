@@ -210,12 +210,10 @@ router.post('/', regUpload, async (req, res) => {
       file_data: fileData
     });
 
-    // Send Registration & Payment Confirmation Email (awaited for serverless/cloud environments)
-    try {
-      await sendRegistrationConfirmation(createdTeam, teamMembersData, paymentRecord);
-    } catch (emailErr) {
-      console.error('Registration email dispatch error:', emailErr);
-    }
+    // Send Registration & Payment Confirmation Email asynchronously in background (zero HTTP delay)
+    sendRegistrationConfirmation(createdTeam, teamMembersData, paymentRecord).catch(emailErr => {
+      console.error('Registration background email dispatch note:', emailErr?.message || emailErr);
+    });
 
     return res.status(201).json({
       success: true,
