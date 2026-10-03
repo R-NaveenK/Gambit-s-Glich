@@ -4,7 +4,6 @@
 
 import { eventConfig } from '../config/eventConfig.js';
 import { Countdown } from '../components/Countdown.js';
-import { api } from '../utils/api.js';
 
 export class HomePage {
   constructor(navigate) {
@@ -50,10 +49,9 @@ export class HomePage {
 
             <!-- Supporting Copy & Tagline -->
             <div class="space-y-3 max-w-2xl mt-2">
-              <!-- Live Animated Confirmed Slot Counter -->
-              <div id="hero-live-slot-badge" class="inline-flex items-center gap-2.5 px-3.5 py-2 bg-paper border-2 border-accent text-ink font-mono text-xs font-bold uppercase shadow-sm">
-                <span class="w-2 h-2 rounded-full bg-signal animate-pulse"></span>
-                <span id="hero-slot-text">🔥 <strong id="confirmed-slot-count" class="text-accent-dark">--</strong> / 40 CONFIRMED SLOTS TAKEN (<span id="remaining-slot-count" class="text-signal font-bold">--</span> REMAINING)</span>
+              <div class="inline-flex flex-wrap items-center gap-2 px-3 py-1.5 bg-paper border border-accent text-accent-dark font-mono text-[11px] sm:text-xs font-bold uppercase shadow-xs">
+                <span class="w-1.5 h-1.5 rounded-full bg-signal"></span>
+                <span>ON-SPOT PROBLEM STATEMENTS • DIRECT REGISTRATION PAYMENT • STRICTLY 40 TEAMS FCFS</span>
               </div>
 
               <div class="font-mono text-sm sm:text-base font-bold text-ink uppercase tracking-wider">
@@ -88,7 +86,7 @@ export class HomePage {
             ${this.countdown.render()}
 
             <div class="pt-4 border-t border-line font-mono text-meta text-muted flex justify-between items-center">
-              <span>SLOTS: <strong id="hero-slots-stat" class="text-accent-dark font-bold">40 TEAMS (FCFS)</strong></span>
+              <span>SLOTS: <strong class="text-accent-dark font-bold">40 TEAMS (FCFS)</strong></span>
               <span class="text-signal font-bold">FEE: ${eventConfig.teamPolicy.feeType.toUpperCase()}</span>
             </div>
 
@@ -108,18 +106,7 @@ export class HomePage {
     `;
   }
 
-  async attachEvents() {
+  attachEvents() {
     this.countdown.start();
-    try {
-      const stats = await api.getPublicStats();
-      if (stats && stats.success) {
-        const countEl = document.getElementById('confirmed-slot-count');
-        const remEl = document.getElementById('remaining-slot-count');
-        const statEl = document.getElementById('hero-slots-stat');
-        if (countEl) countEl.textContent = stats.confirmedCount;
-        if (remEl) remEl.textContent = `${stats.remainingSlots}`;
-        if (statEl) statEl.textContent = `${stats.confirmedCount}/40 CONFIRMED`;
-      }
-    } catch (e) {}
   }
 }
